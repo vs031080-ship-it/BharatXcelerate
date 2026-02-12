@@ -1,0 +1,147 @@
+.footer {
+    background: var(--color-text);
+    color: rgba(255, 255, 255, 0.7);
+    padding-top: 72px;
+}
+
+.footerInner {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(3, 1fr) 1.2fr;
+    gap: 40px;
+    padding-bottom: 48px;
+}
+
+/* Brand */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 1.375rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.logoPrimary {
+    color: var(--color-white);
+}
+
+.logoAccent {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.brandDesc {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    max-width: 280px;
+}
+
+.socials {
+    display: flex;
+    gap: 12px;
+}
+
+.socialLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    transition: all var(--transition-base);
+}
+
+.socialLink:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+    transform: translateY(-2px);
+}
+
+/* Columns */
+.colTitle {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-white);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+}
+
+.colLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.colLink {
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+}
+
+.colLink:hover {
+    color: var(--color-white);
+    padding-left: 4px;
+}
+
+/* Contact */
+.contactList {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.contactItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.875rem;
+}
+
+/* Bottom Bar */
+.bottomBar {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 20px 0;
+}
+
+.bottomInner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .footerInner {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .footerBrand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .footerInner {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px;
+    }
+
+    .bottomInner {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .footerInner {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,353 @@
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.backLink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 24px;
+    transition: color var(--transition-fast);
+}
+
+.backLink:hover {
+    color: var(--color-primary);
+}
+
+.profileHeader {
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    border: 1px solid var(--color-border);
+    margin-bottom: 24px;
+}
+
+.headerTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.userInfo {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--color-bg);
+}
+
+.userInfo h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.role {
+    font-size: 1.125rem;
+    color: var(--color-text);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+}
+
+.bioSection {
+    border-top: 1px solid var(--color-border);
+    padding-top: 24px;
+}
+
+.bioSection p {
+    max-width: 700px;
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.socialLinks {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.socialLinks a {
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+}
+
+.socialLinks a:hover {
+    color: var(--color-primary);
+}
+
+.resumeBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: var(--color-primary-50);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.resumeBtn:hover {
+    background: var(--color-primary-100);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+}
+
+.card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    border: 1px solid var(--color-border);
+    margin-bottom: 24px;
+}
+
+.card h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* Scorecard Widget */
+.scoreCircle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 24px;
+}
+
+.circularChart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.circleBg {
+    fill: none;
+    stroke: var(--color-bg);
+    stroke-width: 2.5;
+}
+
+.circle {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease-out;
+}
+
+.scoreText {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.scoreText strong {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1;
+}
+
+.scoreText span {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.metricRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--color-border);
+}
+
+.metricRow:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.metricRow strong {
+    color: var(--color-text);
+}
+
+/* Skills */
+.skillTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill {
+    font-size: 0.8125rem;
+    background: var(--color-bg);
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* Education */
+.eduItem h4 {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.eduItem p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.eduItem span {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+/* Projects */
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.projectList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.projectCard {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+}
+
+.projectCard:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.projectHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.projectHeader h4 {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.domainBadge {
+    font-size: 0.75rem;
+    background: var(--color-bg);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+.projectScore {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9375rem;
+}
+
+.projectFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.viewLink {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .leftCol {
+        order: 2;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    .rightCol {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .headerTop {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .actions {
+        width: 100%;
+    }
+
+    .actions button {
+        flex: 1;
+    }
+
+    .leftCol {
+        grid-template-columns: 1fr;
+    }
+}

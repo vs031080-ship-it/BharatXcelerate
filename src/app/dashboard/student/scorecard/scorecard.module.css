@@ -1,0 +1,350 @@
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.verifiedBadge {
+    font-size: 0.875rem;
+    background: #ECFDF5;
+    color: #059669;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    border: 1px solid #D1FAE5;
+}
+
+.header p {
+    color: var(--color-text-secondary);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Main Score Section */
+.mainScoreSection {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 48px;
+    background: var(--color-white);
+    padding: 40px;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 40px;
+    align-items: center;
+}
+
+.scoreCircleWrapper {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+}
+
+.circularChart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.circleBg {
+    fill: none;
+    stroke: var(--color-bg);
+    stroke-width: 2;
+}
+
+.circle {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 85, 100;
+    transition: stroke-dasharray 1s ease-out;
+}
+
+.scoreText {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.scoreLabel {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.scoreText strong {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.totalPoints {
+    font-size: 1rem;
+    color: var(--color-primary);
+    font-weight: 700;
+    background: var(--color-primary-50);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+}
+
+.scoreMetrics {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.metricCard {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.metricIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.iconBlue {
+    background: var(--color-primary-100);
+    color: var(--color-primary);
+}
+
+.iconPurple {
+    background: var(--color-secondary-50);
+    color: var(--color-secondary);
+}
+
+.iconGreen {
+    background: var(--color-accent-50);
+    color: var(--color-accent);
+}
+
+.metricCard>div:last-child {
+    flex: 1;
+}
+
+.metricCard h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.bar {
+    height: 8px;
+    background: var(--color-bg);
+    border-radius: var(--radius-full);
+    margin-bottom: 4px;
+    overflow: hidden;
+}
+
+.bar div {
+    height: 100%;
+    background: currentColor;
+    border-radius: var(--radius-full);
+}
+
+.metricCard span {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    float: right;
+}
+
+/* Projects List */
+.projectsSection h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.projectList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.projectRow {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    transition: all var(--transition-fast);
+}
+
+.projectRow:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.projectInfo {
+    flex: 2;
+}
+
+.projectInfo h4 {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.projectMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+}
+
+.dot {
+    color: var(--color-border);
+}
+
+.date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.projectSkills {
+    flex: 2;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.projectSkills span {
+    font-size: 0.75rem;
+    background: var(--color-bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.projectScore {
+    text-align: center;
+    min-width: 60px;
+}
+
+.projectScore strong {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.projectScore span {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.viewBtn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.viewBtn:hover {
+    background: var(--color-bg);
+    color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .actions {
+        width: 100%;
+    }
+
+    .actions button {
+        flex: 1;
+    }
+
+    .mainScoreSection {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 24px;
+    }
+
+    .projectRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .projectSkills,
+    .projectScore {
+        width: 100%;
+        text-align: left;
+    }
+
+    .projectScore {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .viewBtn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    .projectRow {
+        position: relative;
+    }
+}

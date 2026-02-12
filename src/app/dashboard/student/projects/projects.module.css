@@ -1,0 +1,231 @@
+.container {}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.header p {
+    color: var(--color-text-secondary);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    background: var(--color-white);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.searchWrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--color-bg);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    width: 300px;
+}
+
+.searchWrapper input {
+    border: none;
+    background: none;
+    outline: none;
+    flex: 1;
+    font-size: 0.9375rem;
+}
+
+.filters {
+    display: flex;
+    gap: 8px;
+}
+
+.filterBtn {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: none;
+    transition: all var(--transition-fast);
+}
+
+.filterBtn:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.activeFilter {
+    background: var(--color-text) !important;
+    color: var(--color-white) !important;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-primary);
+}
+
+.cardHeader {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+}
+
+.img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+
+.statusBadge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+}
+
+.statusBadge[data-status="In Progress"] {
+    background: #EFF6FF;
+    color: #2563EB;
+}
+
+.statusBadge[data-status="Completed"] {
+    background: #ECFDF5;
+    color: #10B981;
+}
+
+.statusBadge[data-status="Not Started"] {
+    background: #F1F5F9;
+    color: #64748B;
+}
+
+.cardBody {
+    padding: 20px;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cardBody h4 {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.progressSection {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.progressBar {
+    flex: 1;
+    height: 6px;
+    background: var(--color-bg);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progressBar div {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+}
+
+.pointsRow {
+    display: flex;
+    items-align: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--color-border);
+    padding-top: 16px;
+}
+
+.points {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.actionLink {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.actionLink:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .controls {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
