@@ -1,5 +1,5 @@
 /* ============================================
-   COMPANY PROFILE — PROFESSIONAL CLEAN
+   STUDENT PROFILE — PROFESSIONAL CLEAN
    ============================================ */
 
 .container {
@@ -31,9 +31,9 @@
 .avatar {
     width: 80px;
     height: 80px;
-    border-radius: 16px;
+    border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #F2F4F7;
+    border: 3px solid #F2F4F7;
 }
 
 .userInfo h1 {
@@ -91,6 +91,23 @@
     color: #6941C6;
 }
 
+.resumeBtn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6941C6;
+    background: #F9F5FF;
+    padding: 5px 12px;
+    border-radius: 8px;
+    transition: all 150ms ease;
+}
+
+.resumeBtn:hover {
+    background: #F4EBFF;
+}
+
 /* Grid Layout */
 .grid {
     display: grid;
@@ -118,42 +135,88 @@
     border-bottom: 1px solid #EAECF0;
 }
 
-/* Stats */
-.statsGrid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+/* Scorecard */
+.scoreCircle {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 16px;
 }
 
-.statItem {
-    background: #F9FAFB;
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-}
-
-.statItem strong {
+.circularChart {
     display: block;
-    font-size: 1.375rem;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.circleBg {
+    fill: none;
+    stroke: #F2F4F7;
+    stroke-width: 2.5;
+}
+
+.circle {
+    fill: none;
+    stroke: #6941C6;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease-out;
+}
+
+.scoreText {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.scoreText strong {
+    font-size: 1.5rem;
     font-weight: 700;
     color: #101828;
-    margin-bottom: 2px;
+    line-height: 1;
 }
 
-.statItem span {
+.scoreText span {
     font-size: 0.6875rem;
     color: #98A2B3;
-    font-weight: 500;
 }
 
-/* Tech Stack */
-.techTags {
+.metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.metricRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    color: #475467;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #F2F4F7;
+}
+
+.metricRow:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.metricRow strong {
+    color: #101828;
+}
+
+/* Skills */
+.skillTags {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
 }
 
-.techTag {
+.skill {
     font-size: 0.75rem;
     background: #F9FAFB;
     padding: 4px 10px;
@@ -163,14 +226,43 @@
     border: 1px solid #EAECF0;
 }
 
-/* Open Roles */
-.roleList {
+/* Education */
+.eduItem h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #101828;
+    margin-bottom: 2px;
+}
+
+.eduItem p {
+    font-size: 0.8125rem;
+    color: #475467;
+}
+
+.eduItem span {
+    font-size: 0.75rem;
+    color: #98A2B3;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+/* Projects */
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #101828;
+}
+
+.projectList {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.roleCard {
+.projectCard {
     background: #FFFFFF;
     border-radius: 12px;
     padding: 16px 20px;
@@ -178,60 +270,79 @@
     transition: all 150ms ease;
 }
 
-.roleCard:hover {
+.projectCard:hover {
     border-color: #D6BBFB;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 
-.roleHeader {
+.projectHeader {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 8px;
-}
-
-.roleHeader h4 {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: #101828;
-}
-
-.roleMeta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.75rem;
-    color: #98A2B3;
     margin-bottom: 10px;
 }
 
-.roleMeta span {
+.projectHeader h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #101828;
+    margin-bottom: 2px;
+}
+
+.domainBadge {
+    font-size: 0.6875rem;
+    background: #F9FAFB;
+    padding: 2px 8px;
+    border-radius: 16px;
+    color: #475467;
+    font-weight: 500;
+    border: 1px solid #EAECF0;
+}
+
+.projectScore {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
+    font-size: 0.875rem;
 }
 
-.salaryBadge {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    background: #ECFDF3;
-    color: #039855;
-    padding: 3px 8px;
-    border-radius: 16px;
-}
-
-.applyLink {
+.projectFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: #6941C6;
+    color: #98A2B3;
+}
+
+.projectFooter span {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
+.viewLink {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6941C6;
+    font-weight: 600;
+    background: none;
+    font-size: 0.8125rem;
+}
+
 @media (max-width: 1024px) {
     .grid {
         grid-template-columns: 1fr;
+    }
+
+    .leftCol {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .leftCol .card {
+        margin-bottom: 0;
     }
 }
 
@@ -241,7 +352,16 @@
         gap: 20px;
     }
 
-    .statsGrid {
+    .actions {
+        width: 100%;
+    }
+
+    .actions a {
+        flex: 1;
+        text-align: center;
+    }
+
+    .leftCol {
         grid-template-columns: 1fr;
     }
 }

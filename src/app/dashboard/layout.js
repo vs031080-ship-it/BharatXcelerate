@@ -1,35 +1,42 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Award, Lightbulb, User, Settings, LogOut, Menu, X, Bell, Search, ChevronDown } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, FolderKanban, Award, Lightbulb, User, Settings, LogOut, Menu, X, Bell, Search, ChevronDown, Bookmark, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 import styles from './dashboard.module.css';
 
 const sidebarLinks = {
     student: [
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/student' },
+        { icon: Compass, label: 'Explore Projects', href: '/dashboard/student/explore' },
         { icon: FolderKanban, label: 'My Projects', href: '/dashboard/student/projects' },
         { icon: Award, label: 'My Scorecard', href: '/dashboard/student/scorecard' },
         { icon: Lightbulb, label: 'Idea Lab', href: '/dashboard/student/ideas' },
         { icon: User, label: 'Profile', href: '/dashboard/student/profile' },
+        { icon: Settings, label: 'Settings', href: '/dashboard/student/settings' },
     ],
     company: [
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/company' },
         { icon: Search, label: 'Find Talent', href: '/dashboard/company/talent' },
-        { icon: FolderKanban, label: 'Shortlisted', href: '/dashboard/company/shortlist' },
+        { icon: Bookmark, label: 'Shortlisted', href: '/dashboard/company/shortlist' },
         { icon: User, label: 'Company Profile', href: '/dashboard/company/profile' },
+        { icon: Settings, label: 'Settings', href: '/dashboard/company/settings' },
     ],
     investor: [
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/investor' },
         { icon: Lightbulb, label: 'Explore Ideas', href: '/dashboard/investor/explore' },
         { icon: Award, label: 'My Portfolio', href: '/dashboard/investor/portfolio' },
         { icon: User, label: 'Investor Profile', href: '/dashboard/investor/profile' },
+        { icon: Settings, label: 'Settings', href: '/dashboard/investor/settings' },
     ],
 };
 
 export default function DashboardLayout({ children }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const { logout } = useAuth();
     // Determine role based on URL for demo purposes. In real app, comes from Auth context.
     const role = pathname.includes('/company') ? 'company' : pathname.includes('/investor') ? 'investor' : 'student';
     const links = sidebarLinks[role] || sidebarLinks.student;
@@ -64,11 +71,7 @@ export default function DashboardLayout({ children }) {
                 </nav>
 
                 <div className={styles.sidebarFooter}>
-                    <Link href="/settings" className={styles.navItem}>
-                        <Settings size={22} />
-                        {sidebarOpen && <span>Settings</span>}
-                    </Link>
-                    <button className={`${styles.navItem} ${styles.logoutBtn}`}>
+                    <button className={`${styles.navItem} ${styles.logoutBtn}`} onClick={() => { logout(); router.push('/login'); }}>
                         <LogOut size={22} />
                         {sidebarOpen && <span>Log Out</span>}
                     </button>

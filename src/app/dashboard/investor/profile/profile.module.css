@@ -1,5 +1,5 @@
 /* ============================================
-   COMPANY PROFILE — PROFESSIONAL CLEAN
+   INVESTOR PROFILE — PROFESSIONAL CLEAN
    ============================================ */
 
 .container {
@@ -31,9 +31,9 @@
 .avatar {
     width: 80px;
     height: 80px;
-    border-radius: 16px;
+    border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #F2F4F7;
+    border: 3px solid #F2F4F7;
 }
 
 .userInfo h1 {
@@ -91,7 +91,7 @@
     color: #6941C6;
 }
 
-/* Grid Layout */
+/* Grid */
 .grid {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -118,42 +118,19 @@
     border-bottom: 1px solid #EAECF0;
 }
 
-/* Stats */
-.statsGrid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+.thesisText {
+    font-size: 0.875rem;
+    color: #475467;
+    line-height: 1.7;
 }
 
-.statItem {
-    background: #F9FAFB;
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-}
-
-.statItem strong {
-    display: block;
-    font-size: 1.375rem;
-    font-weight: 700;
-    color: #101828;
-    margin-bottom: 2px;
-}
-
-.statItem span {
-    font-size: 0.6875rem;
-    color: #98A2B3;
-    font-weight: 500;
-}
-
-/* Tech Stack */
-.techTags {
+.skillTags {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
 }
 
-.techTag {
+.skill {
     font-size: 0.75rem;
     background: #F9FAFB;
     padding: 4px 10px;
@@ -163,14 +140,45 @@
     border: 1px solid #EAECF0;
 }
 
-/* Open Roles */
-.roleList {
+.metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.metricRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    color: #475467;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #F2F4F7;
+}
+
+.metricRow:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.metricRow strong {
+    color: #101828;
+}
+
+/* Right Column */
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #101828;
+}
+
+.investmentList {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.roleCard {
+.investmentCard {
     background: #FFFFFF;
     border-radius: 12px;
     padding: 16px 20px;
@@ -178,60 +186,81 @@
     transition: all 150ms ease;
 }
 
-.roleCard:hover {
+.investmentCard:hover {
     border-color: #D6BBFB;
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 
-.roleHeader {
+.investHeader {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 8px;
-}
-
-.roleHeader h4 {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: #101828;
-}
-
-.roleMeta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.75rem;
-    color: #98A2B3;
     margin-bottom: 10px;
 }
 
-.roleMeta span {
+.investHeader h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #101828;
+    margin-bottom: 2px;
+}
+
+.domainBadge {
+    font-size: 0.6875rem;
+    background: #F9FAFB;
+    padding: 2px 8px;
+    border-radius: 16px;
+    color: #475467;
+    font-weight: 500;
+    border: 1px solid #EAECF0;
+}
+
+.investAmount {
     display: flex;
     align-items: center;
-    gap: 3px;
-}
-
-.salaryBadge {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    background: #ECFDF3;
-    color: #039855;
-    padding: 3px 8px;
-    border-radius: 16px;
-}
-
-.applyLink {
-    font-size: 0.8125rem;
-    font-weight: 600;
+    gap: 4px;
+    font-size: 0.875rem;
     color: #6941C6;
+    font-weight: 600;
+}
+
+.investFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8125rem;
+    color: #98A2B3;
+}
+
+.investFooter span {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
+.viewLink {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6941C6;
+    font-weight: 600;
+    background: none;
+    font-size: 0.8125rem;
+}
+
 @media (max-width: 1024px) {
     .grid {
         grid-template-columns: 1fr;
+    }
+
+    .leftCol {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .leftCol .card {
+        margin-bottom: 0;
     }
 }
 
@@ -241,7 +270,11 @@
         gap: 20px;
     }
 
-    .statsGrid {
+    .actions {
+        width: 100%;
+    }
+
+    .leftCol {
         grid-template-columns: 1fr;
     }
 }

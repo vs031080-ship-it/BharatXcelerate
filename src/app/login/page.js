@@ -1,7 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Users } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Users, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -35,30 +35,68 @@ export default function LoginPage() {
 
     return (
         <div className={styles.authPage}>
+            {/* Left Panel — Masonry Brand Grid */}
             <div className={styles.authLeft}>
                 <div className={styles.authLeftContent}>
-                    <h1>Welcome back to <span className="gradient-text">Bharat Xcelerate</span></h1>
-                    <p>Continue building your proof-of-work portfolio and get discovered by companies and investors.</p>
-                    <div className={styles.authStats}>
-                        <div><strong>10K+</strong><span>Students</span></div>
-                        <div><strong>500+</strong><span>Companies</span></div>
-                        <div><strong>200+</strong><span>Investors</span></div>
+                    <div className={styles.authMasonry}>
+                        {/* Column 1 */}
+                        <div className={`${styles.masonryItem} ${styles.itemTall}`}>
+                            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1471&auto=format&fit=crop" alt="Students collaborating" />
+                        </div>
+                        <div className={`${styles.masonryItem} ${styles.itemSquare} ${styles.bgOrange}`}>
+                            <div className={styles.contentCard}>
+                                <h2>41%</h2>
+                                <p>of recruiters say entry-level positions are the hardest to fill. We bridge that gap.</p>
+                            </div>
+                        </div>
+                        <div className={`${styles.masonryItem} ${styles.itemTall}`}>
+                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1470&auto=format&fit=crop" alt="Modern office" />
+                        </div>
+
+                        {/* Column 2 */}
+                        <div className={`${styles.masonryItem} ${styles.itemVeryTall}`}>
+                            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1374&auto=format&fit=crop" alt="Professional mentor" />
+                        </div>
+                        <div className={`${styles.masonryItem} ${styles.itemSquare} ${styles.bgGreen}`}>
+                            <div className={styles.contentCard}>
+                                <h2>76%</h2>
+                                <p>of hiring managers admit attracting the right job candidates is their greatest challenge.</p>
+                            </div>
+                        </div>
+                        <div className={`${styles.masonryItem} ${styles.itemLarge}`}>
+                            <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1374&auto=format&fit=crop" alt="Team meeting" />
+                        </div>
+
+                        {/* Column 3 */}
+                        <div className={`${styles.masonryItem} ${styles.itemTall}`}>
+                            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1470&auto=format&fit=crop" alt="Corporate office" />
+                        </div>
+                        <div className={`${styles.masonryItem} ${styles.itemVeryTall}`}>
+                            <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=1374&auto=format&fit=crop" alt="Networking event" />
+                        </div>
+                        <div className={`${styles.masonryItem} ${styles.itemShort}`}>
+                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1470&auto=format&fit=crop" alt="Workshop" />
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Right Panel — Login Form */}
             <div className={styles.authRight}>
-                <motion.div className={styles.authForm} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <Link href="/" className={styles.authLogo}>
-                        <span>Bharat</span><span className="gradient-text">Xcelerate</span>
-                    </Link>
-                    <h2>Log in to your account</h2>
-                    <p className={styles.authSubtitle}>Enter your credentials to access your dashboard.</p>
+                <motion.div className={styles.authForm} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                    <div className={styles.authHeader}>
+                        <Link href="/" className={styles.authLogo}>
+                            <Zap size={24} color="#2563EB" fill="#2563EB" />
+                            <span>BharatXcelerate</span>
+                        </Link>
+                        <h2>Sign in to BharatXcelerate</h2>
+                        <p className={styles.authSubtitle}>Welcome back! Please enter your details below.</p>
+                    </div>
 
                     <form onSubmit={handleLogin}>
                         <div className={styles.inputGroup}>
-                            <label>I am a</label>
+                            <label>Login As</label>
                             <div className={styles.inputWrapper}>
-                                <Users size={18} className={styles.inputIcon} />
                                 <select
                                     className={styles.selectInput}
                                     value={role}
@@ -74,10 +112,9 @@ export default function LoginPage() {
                         <div className={styles.inputGroup}>
                             <label>Email Address</label>
                             <div className={styles.inputWrapper}>
-                                <Mail size={18} className={styles.inputIcon} />
                                 <input
                                     type="email"
-                                    placeholder="you@example.com"
+                                    placeholder="your@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -87,7 +124,6 @@ export default function LoginPage() {
                         <div className={styles.inputGroup}>
                             <label>Password</label>
                             <div className={styles.inputWrapper}>
-                                <Lock size={18} className={styles.inputIcon} />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="••••••••"
@@ -101,22 +137,21 @@ export default function LoginPage() {
                             </div>
                         </div>
                         <div className={styles.formOptions}>
-                            <label className={styles.checkbox}><input type="checkbox" /> Remember me</label>
-                            <Link href="#" className={styles.forgotLink}>Forgot password?</Link>
+                            <Link href="#" className={styles.forgotLink}>Forgot the password?</Link>
                         </div>
-                        <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading}>
-                            {loading ? 'Logging in...' : <>Log In <ArrowRight size={18} /></>}
+                        <button type="submit" className={styles.submitBtn} disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
 
-                    <div className={styles.divider}><span>or</span></div>
+                    <div className={styles.divider}><span>OR</span></div>
 
                     <button className={styles.socialBtn}>
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" height="20" />
-                        Continue with Google
+                        Sign in with Google
                     </button>
 
-                    <p className={styles.authSwitch}>Don&apos;t have an account? <Link href="/signup">Sign up for free</Link></p>
+                    <p className={styles.authSwitch}>Don&apos;t have an account? <Link href="/signup">Sign up</Link></p>
                 </motion.div>
             </div>
         </div>

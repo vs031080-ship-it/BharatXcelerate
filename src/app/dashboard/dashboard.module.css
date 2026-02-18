@@ -1,19 +1,23 @@
+/* ============================================
+   DASHBOARD LAYOUT — PROFESSIONAL CLEAN DESIGN
+   ============================================ */
+
 .dashboardContainer {
     display: flex;
     min-height: 100vh;
-    background: var(--color-bg);
+    background: #F9FAFB;
 }
 
-/* Sidebar */
+/* ---- Sidebar ---- */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
     z-index: 50;
-    background: var(--color-white);
-    border-right: 1px solid var(--color-border);
-    transition: width var(--transition-base);
+    background: #FFFFFF;
+    border-right: 1px solid #EAECF0;
+    transition: width 250ms ease;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -24,57 +28,61 @@
 }
 
 .sidebarClosed {
-    width: 80px;
+    width: 72px;
 }
 
 .sidebarHeader {
-    height: var(--nav-height);
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
-    border-bottom: 1px solid var(--color-border);
+    padding: 0 20px;
+    border-bottom: 1px solid #EAECF0;
+    flex-shrink: 0;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 1.25rem;
+    gap: 3px;
+    font-size: 1.125rem;
     font-weight: 800;
     overflow: hidden;
     white-space: nowrap;
+    letter-spacing: -0.02em;
 }
 
 .logoPrimary {
-    color: var(--color-text);
+    color: #101828;
 }
 
 .logoAccent {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #6941C6;
 }
 
 .collapseBtn {
     background: none;
-    color: var(--color-text-secondary);
-    padding: 4px;
-    border-radius: var(--radius-md);
+    color: #98A2B3;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 150ms ease;
 }
 
 .collapseBtn:hover {
-    background: var(--color-bg);
-    color: var(--color-primary);
+    background: #F2F4F7;
+    color: #344054;
 }
 
+/* Navigation */
 .sidebarNav {
     flex: 1;
-    padding: 24px 16px;
+    padding: 16px 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 2px;
     overflow-y: auto;
 }
 
@@ -82,95 +90,119 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
-    color: var(--color-text-secondary);
+    padding: 10px 12px;
+    color: #475467;
     font-weight: 500;
-    font-size: 0.9375rem;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    font-size: 0.875rem;
+    border-radius: 8px;
+    transition: all 150ms ease;
     white-space: nowrap;
     overflow: hidden;
+    position: relative;
 }
 
 .navItem:hover {
-    color: var(--color-primary);
-    background: var(--color-primary-50);
+    color: #344054;
+    background: #F9FAFB;
 }
 
 .navItemActive {
-    color: var(--color-primary);
-    background: var(--color-primary-50);
+    color: #6941C6;
+    background: #F9F5FF;
     font-weight: 600;
 }
 
+.navItemActive::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: #6941C6;
+    border-radius: 0 3px 3px 0;
+}
+
+/* Sidebar Footer */
 .sidebarFooter {
-    padding: 16px;
-    border-top: 1px solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid #EAECF0;
+    flex-shrink: 0;
 }
 
 .logoutBtn {
     width: 100%;
     text-align: left;
-    color: #EF4444;
+    color: #B42318;
 }
 
 .logoutBtn:hover {
-    background: #FEF2F2;
-    color: #DC2626;
+    background: #FEF3F2;
+    color: #912018;
 }
 
-/* Main Content */
+/* ---- Main Content ---- */
 .mainContent {
     flex: 1;
     margin-left: 260px;
     display: flex;
     flex-direction: column;
-    transition: margin-left var(--transition-base);
+    transition: margin-left 250ms ease;
     width: calc(100% - 260px);
+    min-height: 100vh;
 }
 
 .sidebarClosed~.mainContent {
-    margin-left: 80px;
-    width: calc(100% - 80px);
+    margin-left: 72px;
+    width: calc(100% - 72px);
 }
 
-/* Topbar */
+/* ---- Topbar ---- */
 .topbar {
-    height: var(--nav-height);
-    background: var(--color-white);
-    border-bottom: 1px solid var(--color-border);
+    height: 64px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #EAECF0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 32px;
+    padding: 0 24px;
     position: sticky;
     top: 0;
     z-index: 40;
 }
 
 .pageTitle {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--color-text);
+    font-size: 1rem;
+    font-weight: 600;
+    color: #101828;
 }
 
 .topbarActions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .searchWrapper {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--color-bg);
-    padding: 8px 16px;
-    border-radius: var(--radius-full);
+    padding: 8px 14px;
+    border: 1px solid #D0D5DD;
+    border-radius: 8px;
     width: 280px;
+    background: #FFFFFF;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.searchWrapper:focus-within {
+    border-color: #6941C6;
+    box-shadow: 0 0 0 4px rgba(105, 65, 198, 0.12);
+}
+
+.searchWrapper svg {
+    color: #98A2B3;
+    flex-shrink: 0;
 }
 
 .searchWrapper input {
@@ -179,63 +211,64 @@
     outline: none;
     font-size: 0.875rem;
     width: 100%;
-    color: var(--color-text);
+    color: #101828;
+    font-family: inherit;
 }
 
 .searchWrapper input::placeholder {
-    color: var(--color-text-muted);
+    color: #98A2B3;
 }
 
+/* Icon Button */
 .iconBtn {
     position: relative;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-white);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-secondary);
-    transition: all var(--transition-fast);
+    background: #FFFFFF;
+    border: 1px solid #D0D5DD;
+    color: #475467;
+    transition: all 150ms ease;
 }
 
 .iconBtn:hover {
-    background: var(--color-bg);
-    color: var(--color-primary);
+    background: #F9FAFB;
+    border-color: #98A2B3;
 }
 
 .badge {
     position: absolute;
-    top: -2px;
-    right: -2px;
-    background: #EF4444;
+    top: -4px;
+    right: -4px;
+    background: #F04438;
     color: white;
     font-size: 0.625rem;
     font-weight: 700;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--color-white);
+    border: 2px solid #FFFFFF;
 }
 
+/* User Menu */
 .userMenu {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 4px 8px;
-    border-radius: var(--radius-full);
-    border: 1px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 150ms ease;
 }
 
 .userMenu:hover {
-    background: var(--color-bg);
-    border-color: var(--color-border);
+    background: #F9FAFB;
 }
 
 .userMenu img {
@@ -243,6 +276,7 @@
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid #EAECF0;
 }
 
 .userInfo {
@@ -253,35 +287,37 @@
 }
 
 .userName {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--color-text);
+    color: #344054;
 }
 
 .userRole {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
+    font-size: 0.6875rem;
+    color: #98A2B3;
 }
 
-/* Page Content */
+/* ---- Page Content ---- */
 .pageInner {
-    padding: 32px;
+    padding: 24px;
     flex: 1;
 }
 
-/* Mobile */
+/* ---- Mobile ---- */
 .mobileToggle {
     display: none;
     background: none;
     padding: 4px;
     margin-right: 12px;
+    color: #344054;
 }
 
 .overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(16, 24, 40, 0.6);
+    backdrop-filter: blur(4px);
     z-index: 45;
 }
 
