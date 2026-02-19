@@ -51,6 +51,11 @@ export default function DashboardLayout({ children }) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Refs for click outside
     const notifRef = useRef(null);
@@ -253,7 +258,7 @@ export default function DashboardLayout({ children }) {
                                                         <div className={styles.notifDot}>{!n.read && <span />}</div>
                                                         <div className={styles.notifContent}>
                                                             <p>{n.message}</p>
-                                                            <span>{new Date(n.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                            <span>{mounted ? new Date(n.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                                                         </div>
                                                     </div>
                                                 ))
