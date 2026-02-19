@@ -66,6 +66,32 @@ export function DataProvider({ children }) {
         loadData();
     }, []);
 
+
+    // Poll for notifications every 30 seconds
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            const headers = getAuthHeaders();
+            if (headers.Authorization) {
+                fetch('/api/notifications', { headers })
+                    .then(res => res.ok && res.json())
+                    .then(data => {
+                        if (data.notifications) {
+                            setNotifications(prev => {
+                                // Simple check to avoid unnecessary re-renders if data matches
+                                if (JSON.stringify(prev) !== JSON.stringify(data.notifications)) {
+                                    return data.notifications;
+                                }
+                                return prev;
+                            });
+                        }
+                    })
+                    .catch(console.error);
+            }
+        }, 30000);
+
+        return () => clearInterval(intervalId);
+    }, []);
+
     // --- Actions ---
     const addJob = useCallback(async (job) => {
         const newJob = { ...job, id: `job-${Date.now()}`, postedDate: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }), applicants: [] };

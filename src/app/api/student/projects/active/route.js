@@ -29,13 +29,13 @@ export async function GET(request) {
             const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
             return {
-                id: project._id,
+                id: project._id.toString(),
                 title: project.title,
                 domain: project.domain,
                 difficulty: project.difficulty,
                 points: project.points,
                 progress: progress,
-                submissionId: sub._id,
+                submissionId: sub._id.toString(),
                 status: sub.status,
                 currentStep: sub.currentStep
             };
