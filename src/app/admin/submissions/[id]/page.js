@@ -41,6 +41,19 @@ export default function SubmissionDetailPage({ params }) {
     }, [id]);
 
     const handleStatusUpdate = async (newStatus) => {
+        if (newStatus === 'accepted') {
+            if (!grade.trim()) {
+                setToast('Grade is mandatory for final project acceptance.');
+                setTimeout(() => setToast(''), 3000);
+                return;
+            }
+            if (!feedback.trim() || feedback.trim().length < 10) {
+                setToast('Detailed feedback (min 10 chars) is mandatory for final acceptance.');
+                setTimeout(() => setToast(''), 3000);
+                return;
+            }
+        }
+
         setActionLoading(true);
         try {
             const res = await fetch('/api/admin/submissions', {
@@ -52,6 +65,10 @@ export default function SubmissionDetailPage({ params }) {
                 const data = await res.json();
                 setSubmission(data.submission);
                 setToast(`Submission ${newStatus === 'accepted' ? 'accepted' : 'rejected'} successfully!`);
+                setTimeout(() => setToast(''), 4000);
+            } else {
+                const err = await res.json();
+                setToast(err.error || 'Failed to update status');
                 setTimeout(() => setToast(''), 4000);
             }
         } catch (e) { console.error(e); }
@@ -321,7 +338,7 @@ export default function SubmissionDetailPage({ params }) {
                         </div>
                         <div className={styles.gradingForm}>
                             <div className={styles.fieldRow}>
-                                <label htmlFor="grade">Grade</label>
+                                <label htmlFor="grade">Grade <span className={styles.requiredLabel}>(Required)</span></label>
                                 <input
                                     id="grade"
                                     type="text"
@@ -333,14 +350,14 @@ export default function SubmissionDetailPage({ params }) {
                                 />
                             </div>
                             <div className={styles.fieldRow}>
-                                <label htmlFor="feedback">Feedback</label>
+                                <label htmlFor="feedback">Feedback <span className={styles.requiredLabel}>(Required)</span></label>
                                 <textarea
                                     id="feedback"
                                     value={feedback}
                                     onChange={e => setFeedback(e.target.value)}
                                     className={styles.textarea}
                                     rows={4}
-                                    placeholder="Write feedback for the student..."
+                                    placeholder="Write detailed feedback for the student (min 10 chars)..."
                                     disabled={submission.status === 'accepted_by_student'}
                                 />
                             </div>

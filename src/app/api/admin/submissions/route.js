@@ -87,6 +87,15 @@ export async function PUT(req) {
             }
         } else {
             // Handle Global update
+            if (status === 'accepted') {
+                if (!grade) {
+                    return NextResponse.json({ error: 'Grade is mandatory to accept and complete project' }, { status: 400 });
+                }
+                if (!feedback || feedback.trim().length < 10) {
+                    return NextResponse.json({ error: 'Detailed feedback (min 10 chars) is mandatory for final project review' }, { status: 400 });
+                }
+            }
+
             if (status) submission.status = status;
             if (grade !== undefined) submission.grade = grade;
             if (feedback !== undefined) submission.feedback = feedback;
