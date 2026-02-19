@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import dns from 'dns';
 
 // Force Google DNS for SRV lookups (fixes Atlas on restrictive networks)
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+// dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bharatxcelerate';
 
