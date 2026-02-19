@@ -99,8 +99,11 @@ export default function SubmissionDetailPage({ params }) {
                 body: JSON.stringify({
                     id: submission._id,
                     stepIndex,
+                    stepIndex,
                     stepStatus: status,
-                    stepFeedback: feedback
+                    stepFeedback: feedback,
+                    // If last step, include grading
+                    ...(stepIndex === (submission.project?.steps?.length - 1) && status === 'approved' ? { grade, totalScore: Number(totalScore) } : {})
                 }),
             });
             if (res.ok) {
@@ -281,6 +284,24 @@ export default function SubmissionDetailPage({ params }) {
                                                 {sub?.submittedAt && <div className={styles.timestamp}>Submitted: {new Date(sub.submittedAt).toLocaleString()}</div>}
                                             </div>
 
+                                            {/* Final Step Artifacts (GitHub, etc.) */}
+                                            {i === project.steps.length - 1 && (submission.githubUrl && submission.githubUrl !== 'pending') && (
+                                                <div className={styles.finalArtifactsInline}>
+                                                    <div className={styles.fieldRowInline}>
+                                                        <label>Final GitHub Repository</label>
+                                                        <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.githubLinkSmall}>
+                                                            <Github size={13} /> {submission.githubUrl} <ExternalLink size={10} />
+                                                        </a>
+                                                    </div>
+                                                    {submission.description && (
+                                                        <div className={styles.fieldRowInline}>
+                                                            <label>Final Notes / Approach</label>
+                                                            <p className={styles.notesSmall}>{submission.description}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
                                             {/* Review Controls */}
                                             <div className={styles.reviewControls}>
                                                 <textarea
@@ -289,6 +310,33 @@ export default function SubmissionDetailPage({ params }) {
                                                     onChange={e => setStepFeedbacks(prev => ({ ...prev, [i]: e.target.value }))}
                                                     disabled={isApproved}
                                                 />
+
+                                                {/* If this is the LAST step, add Final Grading fields here */}
+                                                {i === project.steps.length - 1 && !isApproved && (
+                                                    <div className={styles.finalGradingInputsInline}>
+                                                        <div className={styles.fieldRowInline}>
+                                                            <label>Final Grade <span className={styles.requiredSmall}>(Required)</span></label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="e.g. A+"
+                                                                value={grade}
+                                                                onChange={e => setGrade(e.target.value)}
+                                                                className={styles.inputInline}
+                                                            />
+                                                        </div>
+                                                        <div className={styles.fieldRowInline}>
+                                                            <label>Total Score / 100 <span className={styles.requiredSmall}>(Required)</span></label>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="e.g. 95"
+                                                                value={totalScore}
+                                                                onChange={e => setTotalScore(e.target.value)}
+                                                                className={styles.inputInline}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 <div className={styles.buttons}>
                                                     <button
                                                         onClick={() => handleStepAction(i, 'approved')}
@@ -338,153 +386,78 @@ export default function SubmissionDetailPage({ params }) {
                         </div>
                     </div>
 
-                    {/* Grading Section */}
-                    <div className={styles.card}>
-                        <div className={styles.cardHeader}>
-                            <Award size={18} /> Grade & Feedback
-                        </div>
-                        <div className={styles.gradingForm}>
-                            <div className={styles.fieldRow}>
-                                <label htmlFor="grade">Grade <span className={styles.requiredLabel}>(Required)</span></label>
-                                <input
-                                    id="grade"
-                                    type="text"
-                                    value={grade}
-                                    onChange={e => setGrade(e.target.value)}
-                                    className={styles.input}
-                                    placeholder="e.g. A+, 95/100, Excellent"
-                                    disabled={submission.status === 'accepted_by_student'}
-                                />
-                            </div>
-                            <div className={styles.fieldRow}>
-                                <label htmlFor="totalScore">Total Score <span className={styles.requiredLabel}>(Required)</span></label>
-                                <input
-                                    id="totalScore"
-                                    type="number"
-                                    value={totalScore}
-                                    onChange={e => setTotalScore(e.target.value)}
-                                    className={styles.input}
-                                    placeholder="e.g. 95"
-                                    disabled={submission.status === 'accepted_by_student'}
-                                />
-                            </div>
-                            <div className={styles.fieldRow}>
-                                <label htmlFor="feedback">Feedback <span className={styles.requiredLabel}>(Required)</span></label>
-                                <textarea
-                                    id="feedback"
-                                    value={feedback}
-                                    onChange={e => setFeedback(e.target.value)}
-                                    className={styles.textarea}
-                                    rows={4}
-                                    placeholder="Write detailed feedback for the student (min 10 chars)..."
-                                    disabled={submission.status === 'accepted_by_student'}
-                                />
-                            </div>
-                            {(submission.status === 'submitted' || submission.status === 'accepted_by_student') && (
-                                <div className={styles.actionRow}>
-                                    {submission.status === 'submitted' && (
-                                        <>
-                                            <button className={styles.acceptBtn} onClick={() => handleStatusUpdate('accepted')} disabled={actionLoading}>
-                                                {actionLoading ? <Loader2 size={16} className={styles.spin} /> : <CheckCircle size={16} />}
-                                                Accept & Grade
-                                            </button>
-                                            <button className={styles.rejectBtn} onClick={() => handleStatusUpdate('rejected')} disabled={actionLoading}>
-                                                <XCircle size={16} /> Reject
-                                            </button>
-                                        </>
-                                    )}
-                                    {submission.status === 'accepted_by_student' && (
-                                        <p className={styles.waitingNote}>
-                                            <AlertCircle size={14} /> Student has accepted the project but hasn&apos;t submitted work yet.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                            {(submission.status === 'accepted' || submission.status === 'rejected') && (
-                                <div className={styles.resultBox}>
-                                    <span className={`${styles.resultBadge} ${submission.status === 'accepted' ? styles.resultAccepted : styles.resultRejected}`}>
-                                        {submission.status === 'accepted' ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                                        {submission.status === 'accepted' ? 'Accepted' : 'Rejected'}
-                                    </span>
-                                    {submission.grade && <div><strong>Grade:</strong> {submission.grade}</div>}
-                                    {submission.totalScore !== undefined && <div><strong>Score:</strong> {submission.totalScore}</div>}
-                                    {submission.feedback && <div className={styles.feedbackText}><strong>Feedback:</strong> {submission.feedback}</div>}
-                                </div>
-                            )}
-                        </div>
+                </div>
+            </div>
+
+            {/* Right Column — Sidebar */}
+            <div className={styles.rightCol}>
+                {/* Quick Stats */}
+                <div className={styles.sideCard}>
+                    <h4>Quick Stats</h4>
+                    <div className={styles.statRow}><Zap size={14} /> <span>XP Points</span> <strong>{project?.points || 100}</strong></div>
+                    <div className={styles.statRow}><Clock size={14} /> <span>Duration</span> <strong>{project?.duration || '—'}</strong></div>
+                    <div className={styles.statRow}><Target size={14} /> <span>Domain</span> <strong>{project?.domain || '—'}</strong></div>
+                    <div className={styles.statRow}>
+                        <Star size={14} />
+                        <span>Difficulty</span>
+                        <strong style={{ color: getDifficultyColor(project?.difficulty) }}>{project?.difficulty || '—'}</strong>
                     </div>
                 </div>
 
-                {/* Right Column — Sidebar */}
-                <div className={styles.rightCol}>
-                    {/* Quick Stats */}
+                {/* Technologies */}
+                {project?.technologies?.length > 0 && (
                     <div className={styles.sideCard}>
-                        <h4>Quick Stats</h4>
-                        <div className={styles.statRow}><Zap size={14} /> <span>XP Points</span> <strong>{project?.points || 100}</strong></div>
-                        <div className={styles.statRow}><Clock size={14} /> <span>Duration</span> <strong>{project?.duration || '—'}</strong></div>
-                        <div className={styles.statRow}><Target size={14} /> <span>Domain</span> <strong>{project?.domain || '—'}</strong></div>
-                        <div className={styles.statRow}>
-                            <Star size={14} />
-                            <span>Difficulty</span>
-                            <strong style={{ color: getDifficultyColor(project?.difficulty) }}>{project?.difficulty || '—'}</strong>
+                        <h4><Code size={15} /> Tech Stack</h4>
+                        <div className={styles.tagGrid}>
+                            {project.technologies.map((t, i) => <span key={i} className={styles.tag}>{t}</span>)}
                         </div>
                     </div>
+                )}
 
-                    {/* Technologies */}
-                    {project?.technologies?.length > 0 && (
-                        <div className={styles.sideCard}>
-                            <h4><Code size={15} /> Tech Stack</h4>
-                            <div className={styles.tagGrid}>
-                                {project.technologies.map((t, i) => <span key={i} className={styles.tag}>{t}</span>)}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Skills */}
-                    {project?.skills?.length > 0 && (
-                        <div className={styles.sideCard}>
-                            <h4><BookOpen size={15} /> Skills</h4>
-                            <div className={styles.tagGrid}>
-                                {project.skills.map((s, i) => <span key={i} className={styles.skillTag}>{s}</span>)}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Resources */}
-                    {project?.resources?.length > 0 && (
-                        <div className={styles.sideCard}>
-                            <h4><FileText size={15} /> Resources</h4>
-                            <div className={styles.resourceList}>
-                                {project.resources.map((r, i) => (
-                                    <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className={styles.resourceLink}>
-                                        <ExternalLink size={12} /> {r.label || r.url}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Timeline */}
+                {/* Skills */}
+                {project?.skills?.length > 0 && (
                     <div className={styles.sideCard}>
-                        <h4><Calendar size={15} /> Timeline</h4>
-                        <div className={styles.timeline}>
+                        <h4><BookOpen size={15} /> Skills</h4>
+                        <div className={styles.tagGrid}>
+                            {project.skills.map((s, i) => <span key={i} className={styles.skillTag}>{s}</span>)}
+                        </div>
+                    </div>
+                )}
+
+                {/* Resources */}
+                {project?.resources?.length > 0 && (
+                    <div className={styles.sideCard}>
+                        <h4><FileText size={15} /> Resources</h4>
+                        <div className={styles.resourceList}>
+                            {project.resources.map((r, i) => (
+                                <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className={styles.resourceLink}>
+                                    <ExternalLink size={12} /> {r.label || r.url}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Timeline */}
+                <div className={styles.sideCard}>
+                    <h4><Calendar size={15} /> Timeline</h4>
+                    <div className={styles.timeline}>
+                        <div className={styles.timelineItem}>
+                            <div className={styles.timelineDot} />
+                            <div>
+                                <strong>Accepted</strong>
+                                <span>{new Date(submission.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                        </div>
+                        {submission.status !== 'accepted_by_student' && (
                             <div className={styles.timelineItem}>
-                                <div className={styles.timelineDot} />
+                                <div className={`${styles.timelineDot} ${styles.timelineDotActive}`} />
                                 <div>
-                                    <strong>Accepted</strong>
-                                    <span>{new Date(submission.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                    <strong>{submission.status === 'submitted' ? 'Submitted' : submission.status === 'accepted' ? 'Graded' : 'Updated'}</strong>
+                                    <span>{new Date(submission.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
                             </div>
-                            {submission.status !== 'accepted_by_student' && (
-                                <div className={styles.timelineItem}>
-                                    <div className={`${styles.timelineDot} ${styles.timelineDotActive}`} />
-                                    <div>
-                                        <strong>{submission.status === 'submitted' ? 'Submitted' : submission.status === 'accepted' ? 'Graded' : 'Updated'}</strong>
-                                        <span>{new Date(submission.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

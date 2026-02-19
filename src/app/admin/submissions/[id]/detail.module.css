@@ -833,3 +833,77 @@
     color: white !important;
     border-color: #DC2626 !important;
 }
+
+/* Inline Final Grading */
+.finalGradingInputsInline {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed #E2E8F0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    animation: fadeIn 300ms ease-out;
+}
+
+.finalArtifactsInline {
+    margin-top: 12px;
+    padding: 12px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fieldRowInline {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fieldRowInline label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.inputInline {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #0F172A;
+    background: #FFFFFF;
+}
+
+.githubLinkSmall {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #0284C7;
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.notesSmall {
+    font-size: 0.8125rem;
+    color: #334155;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.requiredSmall {
+    color: #EF4444;
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
