@@ -83,6 +83,7 @@ export async function POST(req) {
             // User requested: "when the admin excepts... then only percentage bar change".
             // So we keep it pending.
 
+            submission.status = 'submitted';
             await submission.save();
             return NextResponse.json({ success: true, submission, message: 'Step submitted for review' });
         }

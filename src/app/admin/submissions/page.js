@@ -63,9 +63,9 @@ export default function AdminSubmissionsPage() {
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'accepted_by_student': return <span className={`${styles.badge} ${styles.badgeInfo}`}>Student Accepted</span>;
+            case 'started': return <span className={`${styles.badge} ${styles.badgeInfo}`}>In Progress</span>;
             case 'submitted': return <span className={`${styles.badge} ${styles.badgePending}`}>Pending Review</span>;
-            case 'accepted': return <span className={`${styles.badge} ${styles.badgeVerified}`}>Accepted</span>;
+            case 'completed': return <span className={`${styles.badge} ${styles.badgeVerified}`}>Completed</span>;
             case 'rejected': return <span className={`${styles.badge} ${styles.badgeRejected}`}>Rejected</span>;
             default: return <span className={styles.badge}>{status}</span>;
         }
@@ -73,9 +73,9 @@ export default function AdminSubmissionsPage() {
 
     const counts = {
         all: submissions.length,
-        accepted_by_student: submissions.filter(s => s.status === 'accepted_by_student').length,
+        started: submissions.filter(s => s.status === 'started').length,
         submitted: submissions.filter(s => s.status === 'submitted').length,
-        accepted: submissions.filter(s => s.status === 'accepted').length,
+        completed: submissions.filter(s => s.status === 'completed').length,
         rejected: submissions.filter(s => s.status === 'rejected').length,
     };
 
@@ -100,11 +100,11 @@ export default function AdminSubmissionsPage() {
                 {/* Filter Tabs */}
                 <div className={styles.filterTabs}>
                     {[
-                        { key: 'all', label: `All ${counts.all}` },
-                        { key: 'accepted_by_student', label: `Student Accepted ${counts.accepted_by_student}` },
-                        { key: 'submitted', label: `Pending ${counts.submitted}` },
-                        { key: 'accepted', label: `Accepted ${counts.accepted}` },
-                        { key: 'rejected', label: `Rejected ${counts.rejected}` },
+                        { key: 'all', label: 'All Submissions', count: counts.all },
+                        { key: 'started', label: 'In Progress', count: counts.started },
+                        { key: 'submitted', label: 'Pending Review', count: counts.submitted },
+                        { key: 'completed', label: 'Completed', count: counts.completed },
+                        { key: 'rejected', label: 'Rejected', count: counts.rejected },
                     ].map(tab => (
                         <button
                             key={tab.key}
@@ -112,6 +112,7 @@ export default function AdminSubmissionsPage() {
                             onClick={() => setFilter(tab.key)}
                         >
                             {tab.label}
+                            <span className={styles.tabCount}>{tab.count}</span>
                         </button>
                     ))}
                 </div>
@@ -175,10 +176,10 @@ export default function AdminSubmissionsPage() {
                                             </Link>
                                             {submission.status === 'submitted' && (
                                                 <>
-                                                    <button className={styles.btnSuccess} onClick={() => handleStatusUpdate(submission._id, 'accepted')} title="Accept" disabled={actionLoading}>
+                                                    <button className={styles.btnSuccess} onClick={() => handleStatusUpdate(submission._id, 'completed')} title="Approve Project" disabled={actionLoading}>
                                                         <CheckCircle size={16} />
                                                     </button>
-                                                    <button className={styles.btnDanger} onClick={() => handleStatusUpdate(submission._id, 'rejected')} title="Reject" disabled={actionLoading}>
+                                                    <button className={styles.btnDanger} onClick={() => handleStatusUpdate(submission._id, 'rejected')} title="Reject Project" disabled={actionLoading}>
                                                         <XCircle size={16} />
                                                     </button>
                                                 </>
@@ -242,8 +243,8 @@ export default function AdminSubmissionsPage() {
                         <div className={styles.formActions}>
                             {selectedSubmission.status === 'submitted' && (
                                 <>
-                                    <button className={styles.btnSuccess} onClick={() => { handleStatusUpdate(selectedSubmission._id, 'accepted'); setSelectedSubmission(null); }}>
-                                        <CheckCircle size={16} /> Accept
+                                    <button className={styles.btnSuccess} onClick={() => { handleStatusUpdate(selectedSubmission._id, 'completed'); setSelectedSubmission(null); }}>
+                                        <CheckCircle size={16} /> Approve
                                     </button>
                                     <button className={styles.btnDanger} onClick={() => { handleStatusUpdate(selectedSubmission._id, 'rejected'); setSelectedSubmission(null); }}>
                                         <XCircle size={16} /> Reject

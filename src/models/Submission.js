@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const SubmissionSchema = new mongoose.Schema({
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
-    status: { type: String, enum: ['started', 'submitted', 'completed'], default: 'started' },
+    status: { type: String, enum: ['started', 'submitted', 'completed', 'rejected'], default: 'started' },
 
     // Step Tracking
     currentStep: { type: Number, default: 0 },
