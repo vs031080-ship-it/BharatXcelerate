@@ -64,23 +64,6 @@ export async function PUT(req) {
                 if (!submission.completedSteps.includes(stepIndex)) {
                     submission.completedSteps.push(stepIndex);
                 }
-
-                // If this is the FINAL step, require grading
-                const totalSteps = submission.project?.steps?.length || 0;
-                if (totalSteps > 0 && stepIndex === totalSteps - 1) {
-                    if (!grade) {
-                        return NextResponse.json({ error: 'Grade is mandatory to approve the final step and complete project' }, { status: 400 });
-                    }
-                    if (totalScore === undefined || totalScore === null) {
-                        return NextResponse.json({ error: 'Total Score is mandatory to approve the final step and complete project' }, { status: 400 });
-                    }
-
-                    // Finalize the project
-                    submission.status = 'accepted';
-                    submission.grade = grade;
-                    submission.totalScore = totalScore;
-                    if (feedback) submission.feedback = feedback; // Global feedback if provided
-                }
             } else if (stepStatus === 'rejected') {
                 if (!stepFeedback || stepFeedback.trim().length < 5) {
                     return NextResponse.json({ error: 'Feedback is mandatory when rejecting a step' }, { status: 400 });
