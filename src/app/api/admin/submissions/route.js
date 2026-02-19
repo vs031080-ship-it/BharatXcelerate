@@ -41,7 +41,9 @@ export async function PUT(req) {
             return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 });
         }
 
-        const submission = await Submission.findById(id).populate('project');
+        const submission = await Submission.findById(id)
+            .populate('student', 'name email avatar role')
+            .populate('project');
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
