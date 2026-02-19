@@ -216,7 +216,34 @@ export default function SubmissionDetailPage({ params }) {
                                             <div className={styles.submissionBox}>
                                                 <strong>Student Submission:</strong>
                                                 {sub ? (
-                                                    <div className={styles.contentPre}>{sub.content}</div>
+                                                    (() => {
+                                                        let content = { link: '', notes: '' };
+                                                        try {
+                                                            const parsed = JSON.parse(sub.content);
+                                                            if (typeof parsed === 'object') content = parsed;
+                                                            else content = { notes: sub.content };
+                                                        } catch {
+                                                            content = { notes: sub.content };
+                                                        }
+
+                                                        return (
+                                                            <div className={styles.contentStructured}>
+                                                                {content.link ? (
+                                                                    <div className={styles.contentRow}>
+                                                                        <span className={styles.label}>Link:</span>
+                                                                        <a href={content.link} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                                                                            <ExternalLink size={12} /> {content.link}
+                                                                        </a>
+                                                                    </div>
+                                                                ) : <div className={styles.textMuted}>No link provided</div>}
+
+                                                                <div className={styles.contentRow}>
+                                                                    <span className={styles.label}>Notes:</span>
+                                                                    <p className={styles.notes}>{content.notes || 'No notes provided'}</p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()
                                                 ) : (
                                                     <p className={styles.textMuted}>Not submitted yet.</p>
                                                 )}

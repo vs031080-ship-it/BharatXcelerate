@@ -98,6 +98,13 @@ export default function ProjectDetailPage() {
     const handleStepSubmit = async (e, stepIndex) => {
         e.preventDefault();
         setStepSubmitting(true);
+
+        // Get form data
+        const formData = new FormData(e.target);
+        const link = formData.get('link');
+        const notes = formData.get('notes');
+        const content = JSON.stringify({ link, notes });
+
         try {
             const res = await fetch('/api/student/submit', {
                 method: 'POST',
@@ -106,14 +113,13 @@ export default function ProjectDetailPage() {
                     projectId: id,
                     action: 'submit_step',
                     stepIndex,
-                    content: stepContent
+                    content
                 }),
             });
             const data = await res.json();
             if (res.ok) {
                 setSubmission(data.submission);
                 setToast('Step submitted for review!');
-                setStepContent('');
                 setTimeout(() => setToast(''), 4000);
             } else {
                 setToast(data.error || 'Submission failed');
@@ -228,11 +234,19 @@ export default function ProjectDetailPage() {
                     {submission ? (
                         <motion.div className={styles.workspace} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
                             <div className={styles.workspaceHeader}>
-                                <Code size={18} />
-                                <h3>Project Workspace</h3>
+                                <div className={styles.workspaceTitle}>
+                                    <Code size={20} />
+                                    <h3>Project Workspace</h3>
+                                </div>
+                                <div className={styles.workspaceProgress}>
+                                    <span>{statusInfo.progress}% Complete</span>
+                                    <div className={styles.progressBar}>
+                                        <div className={styles.progressFill} style={{ width: `${statusInfo.progress}%` }} />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className={styles.stepsContainer}>
+                            <div className={styles.stepperContainer}>
                                 {project.steps && project.steps.map((step, index) => {
                                     // Determine step status
                                     const stepSub = submission.stepSubmissions?.find(s => s.stepIndex === index);
@@ -241,68 +255,132 @@ export default function ProjectDetailPage() {
                                     const isLocked = index > (submission.currentStep || 0) && !isCompleted;
                                     const isActive = activeStep === index;
 
+                                    // Parse content if JSON
+                                    let subContent = { link: '', notes: '' };
+                                    if (stepSub?.content) {
+                                        try {
+                                            const parsed = JSON.parse(stepSub.content);
+                                            if (typeof parsed === 'object') subContent = parsed;
+                                            else subContent = { notes: stepSub.content };
+                                        } catch {
+                                            subContent = { notes: stepSub.content };
+                                        }
+                                    }
+
                                     return (
-                                        <div key={index} className={`${styles.stepCard} ${isActive ? styles.stepActive : ''} ${isLocked ? styles.stepLocked : ''}`}>
-                                            <div className={styles.stepHeader} onClick={() => !isLocked && setActiveStep(index)}>
-                                                <div className={styles.stepTitleRow}>
-                                                    <span className={`${styles.stepNumber} ${isCompleted ? styles.stepNumDone : ''}`}>
-                                                        {isCompleted ? <CheckCircle size={14} /> : index + 1}
-                                                    </span>
-                                                    <h4>{step.title}</h4>
-                                                </div>
-                                                <div className={styles.stepMeta}>
-                                                    <span className={styles.stepPoints}>+{step.points} XP</span>
-                                                    {isCompleted && <span className={styles.badgeSuccess}>Completed</span>}
-                                                    {isPending && <span className={styles.badgeWarning}>Pending Review</span>}
-                                                    {isLocked && <span className={styles.badgeLocked}>Locked</span>}
-                                                    <ArrowRight size={16} className={`${styles.stepArrow} ${isActive ? styles.stepArrowActive : ''}`} />
-                                                </div>
+                                        <div key={index} className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isLocked ? styles.stepLocked : ''} ${isCompleted ? styles.stepCompleted : ''}`}>
+                                            {/* Vertical Line */}
+                                            {index < project.steps.length - 1 && <div className={styles.stepLine} />}
+
+                                            {/* Step Indicator */}
+                                            <div
+                                                className={styles.stepIndicator}
+                                                onClick={() => !isLocked && setActiveStep(index)}
+                                            >
+                                                {isCompleted ? <CheckCircle size={18} /> :
+                                                    isLocked ? <div className={styles.lockedDot} /> :
+                                                        index + 1}
                                             </div>
 
-                                            {/* Expanded Step Content */}
-                                            <AnimatePresence>
-                                                {isActive && !isLocked && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className={styles.stepBody}
-                                                    >
-                                                        <p className={styles.stepDesc}>{step.description}</p>
+                                            {/* Step Content */}
+                                            <div className={styles.stepContentWrapper}>
+                                                <div className={styles.stepHeaderRow} onClick={() => !isLocked && setActiveStep(index)}>
+                                                    <div className={styles.stepTitleGroup}>
+                                                        <h4>{step.title}</h4>
+                                                        <span className={styles.stepPointsBadge}>+{step.points} XP</span>
+                                                    </div>
+                                                    <div className={styles.stepStatusBadge}>
+                                                        {isCompleted && <span className={styles.badgeSuccess}>Completed</span>}
+                                                        {isPending && <span className={styles.badgeWarning}>In Review</span>}
+                                                        {isLocked && <span className={styles.badgeLocked}>Locked</span>}
+                                                        <ArrowRight size={16} className={`${styles.stepArrow} ${isActive ? styles.rotate90 : ''}`} />
+                                                    </div>
+                                                </div>
 
-                                                        {/* Step Submission Form */}
-                                                        {!isCompleted && !isPending && (
-                                                            <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
-                                                                <label>Submit your work for this step:</label>
-                                                                <textarea
-                                                                    placeholder="Paste your code snippet, GitHub link, or explain your solution..."
-                                                                    value={stepContent}
-                                                                    onChange={(e) => setStepContent(e.target.value)}
-                                                                    required
-                                                                    className={styles.textarea}
-                                                                    rows={3}
-                                                                />
-                                                                <button type="submit" className={styles.submitBtnSmall} disabled={stepSubmitting}>
-                                                                    {stepSubmitting ? 'Submitting...' : 'Submit Step'} <Send size={14} />
-                                                                </button>
-                                                            </form>
-                                                        )}
+                                                <AnimatePresence>
+                                                    {isActive && !isLocked && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            className={styles.stepBody}
+                                                        >
+                                                            <p className={styles.stepDesc}>{step.description}</p>
 
-                                                        {isPending && (
-                                                            <div className={styles.pendingMsg}>
-                                                                <Clock size={16} />
-                                                                <p>Your submission for this step is under review. You&apos;ll be notified once it&apos;s approved.</p>
+                                                            {/* Submission Form / View */}
+                                                            <div className={styles.submissionArea}>
+                                                                {!isCompleted && !isPending ? (
+                                                                    <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
+                                                                        <h5>Submit Your Work</h5>
+
+                                                                        <div className={styles.formGroup}>
+                                                                            <label>Project Link / GitHub Repo</label>
+                                                                            <div className={styles.inputWrapper}>
+                                                                                <LinkIcon size={16} />
+                                                                                <input
+                                                                                    type="url"
+                                                                                    placeholder="https://github.com/username/repo"
+                                                                                    required
+                                                                                    className={styles.input}
+                                                                                    name="link"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className={styles.formGroup}>
+                                                                            <label>Implementation Notes</label>
+                                                                            <textarea
+                                                                                placeholder="Describe your approach, challenges faced, or key features..."
+                                                                                required
+                                                                                className={styles.textarea}
+                                                                                rows={4}
+                                                                                name="notes"
+                                                                            />
+                                                                        </div>
+
+                                                                        <button type="submit" className={styles.submitBtn} disabled={stepSubmitting}>
+                                                                            {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : <Send size={16} />}
+                                                                            {stepSubmitting ? 'Submitting...' : 'Submit Review'}
+                                                                        </button>
+                                                                    </form>
+                                                                ) : (
+                                                                    <div className={styles.submittedView}>
+                                                                        <div className={styles.submittedField}>
+                                                                            <span className={styles.fieldLabel}>Submission Link</span>
+                                                                            {subContent.link ? (
+                                                                                <a href={subContent.link} target="_blank" rel="noopener noreferrer" className={styles.linkDisplay}>
+                                                                                    <ExternalLink size={14} /> {subContent.link}
+                                                                                </a>
+                                                                            ) : <span className={styles.textMuted}>No link provided</span>}
+                                                                        </div>
+                                                                        <div className={styles.submittedField}>
+                                                                            <span className={styles.fieldLabel}>Notes</span>
+                                                                            <p className={styles.notesDisplay}>{subContent.notes || 'No notes provided'}</p>
+                                                                        </div>
+
+                                                                        {isPending && (
+                                                                            <div className={styles.pendingBanner}>
+                                                                                <Clock size={18} />
+                                                                                <div>
+                                                                                    <strong>Under Review</strong>
+                                                                                    <p>Your mentor will review your submission shortly.</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {stepSub?.feedback && (
+                                                                            <div className={styles.feedbackBanner}>
+                                                                                <strong>Mentor Feedback:</strong>
+                                                                                <p>{stepSub.feedback}</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
-
-                                                        {stepSub?.feedback && (
-                                                            <div className={styles.feedbackBox}>
-                                                                <strong>Feedback:</strong> {stepSub.feedback}
-                                                            </div>
-                                                        )}
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
                                         </div>
                                     );
                                 })}
