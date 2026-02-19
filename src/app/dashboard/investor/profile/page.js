@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Globe, Linkedin, Mail, Target, DollarSign, Calendar, ArrowRight, Briefcase } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import styles from '../../account.module.css';
 
 const tabs = [
@@ -11,7 +12,7 @@ const tabs = [
     { id: 'thesis', label: 'Thesis' },
 ];
 
-const focusAreas = ['Deep Tech', 'AI/ML', 'AgriTech', 'HealthTech', 'Blockchain', 'EdTech'];
+const defaultFocusAreas = ['Deep Tech', 'AI/ML', 'AgriTech', 'HealthTech', 'Blockchain', 'EdTech'];
 
 const recentInvestments = [
     { id: 1, title: 'AgriTech Drone Solution', domain: 'Agriculture', amount: '₹5,00,000', date: 'Dec 2025' },
@@ -21,14 +22,21 @@ const recentInvestments = [
 ];
 
 export default function InvestorProfilePage() {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('overview');
+
+    const investorName = user?.name || 'Investor';
+    const investorEmail = user?.email || 'investor@example.com';
+    const investorBio = user?.bio || 'Experienced angel investor with a passion for deep tech and sustainability.';
+    const investorLinkedin = user?.linkedin || 'linkedin.com/in/investor';
+    const investorWebsite = user?.github || 'ventures.com';
 
     return (
         <div className={styles.container}>
             {/* Page Header */}
             <div className={styles.pageHeader}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h1 className={styles.pageTitle}>Rajesh Kumar</h1>
+                    <h1 className={styles.pageTitle}>{investorName}</h1>
                     <Link href="/dashboard/investor/settings" className="btn btn-secondary btn-sm" style={{ fontSize: '0.8125rem' }}>Edit Profile</Link>
                 </div>
                 <p className={styles.pageSubtitle}>Angel Investor & Venture Partner</p>
@@ -49,18 +57,18 @@ export default function InvestorProfilePage() {
                     {/* Left Column */}
                     <div className={styles.profileLeft}>
                         <div className={styles.profileIdentity}>
-                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face" alt="Rajesh Kumar" className={styles.profileAvatar} />
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face" alt={investorName} className={styles.profileAvatar} />
                             <div>
-                                <div className={styles.profileName}>Rajesh Kumar</div>
+                                <div className={styles.profileName}>{investorName}</div>
                                 <div className={styles.profileId}>Investor</div>
                             </div>
                         </div>
 
                         <div className={styles.profileSection}>
                             <div className={styles.profileSectionTitle}>Contact</div>
-                            <div className={styles.detailItem}><Mail size={14} /> <span>rajesh@example.com</span></div>
-                            <div className={styles.detailItem}><Linkedin size={14} /> <span>linkedin.com/in/rajeshk</span></div>
-                            <div className={styles.detailItem}><Globe size={14} /> <span>rajeshventures.com</span></div>
+                            <div className={styles.detailItem}><Mail size={14} /> <span>{investorEmail}</span></div>
+                            <div className={styles.detailItem}><Linkedin size={14} /> <span>{investorLinkedin}</span></div>
+                            <div className={styles.detailItem}><Globe size={14} /> <span>{investorWebsite}</span></div>
                         </div>
 
                         <div className={styles.profileSection}>
@@ -72,7 +80,7 @@ export default function InvestorProfilePage() {
                         <div className={styles.profileSection}>
                             <div className={styles.profileSectionTitle}>About</div>
                             <p style={{ fontSize: '0.8125rem', color: '#475467', lineHeight: 1.6, margin: 0 }}>
-                                Experienced angel investor with a passion for deep tech and sustainability. Former CTO at a unicorn startup. I back founders solving hard problems.
+                                {investorBio}
                             </p>
                         </div>
                     </div>
@@ -124,7 +132,7 @@ export default function InvestorProfilePage() {
                         <div className={styles.profileSection}>
                             <div className={styles.profileSectionTitle}>Focus Sectors</div>
                             <div className={styles.skillTags}>
-                                {focusAreas.map(s => <span key={s} className={styles.skill}>{s}</span>)}
+                                {defaultFocusAreas.map(s => <span key={s} className={styles.skill}>{s}</span>)}
                             </div>
                         </div>
                     </div>

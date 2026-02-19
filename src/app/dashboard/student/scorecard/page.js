@@ -1,6 +1,7 @@
 'use client';
-import { motion } from 'framer-motion';
-import { Share2, Download, Award, Shield, Code, Zap, GitBranch, ExternalLink, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Share2, Download, Award, Shield, Code, Zap, GitBranch, ExternalLink, Calendar, CheckCircle } from 'lucide-react';
 import styles from './scorecard.module.css';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.05 } }) };
@@ -12,8 +13,29 @@ const projects = [
 ];
 
 export default function ScorecardPage() {
+    const [toast, setToast] = useState('');
+
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setToast('Link copied to clipboard!');
+        setTimeout(() => setToast(''), 3000);
+    };
+
+    const handleDownload = () => {
+        window.print();
+    };
+
     return (
         <div className={styles.container}>
+            {/* Toast */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div className={styles.toast} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                        <CheckCircle size={18} /> {toast}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Header */}
             <div className={styles.header}>
                 <div>
@@ -21,8 +43,8 @@ export default function ScorecardPage() {
                     <p>Your official proof-of-work report. Share this with recruiters.</p>
                 </div>
                 <div className={styles.actions}>
-                    <button className="btn btn-outline"><Share2 size={16} /> Share</button>
-                    <button className="btn btn-primary"><Download size={16} /> Download PDF</button>
+                    <button className="btn btn-outline" onClick={handleShare}><Share2 size={16} /> Share</button>
+                    <button className="btn btn-primary" onClick={handleDownload}><Download size={16} /> Download PDF</button>
                 </div>
             </div>
 

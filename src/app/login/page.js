@@ -13,21 +13,24 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [role, setRole] = useState('student');
+    const [error, setError] = useState('');
     const { login } = useAuth();
     const router = useRouter();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
         try {
             const { user } = await login(email, password, role);
             if (user) {
-                if (user.role === 'company') router.push('/dashboard/company');
+                if (user.role === 'admin') router.push('/admin');
+                else if (user.role === 'company') router.push('/dashboard/company');
                 else if (user.role === 'investor') router.push('/dashboard/investor');
                 else router.push('/dashboard/student');
             }
-        } catch (error) {
-            console.error('Login failed:', error);
+        } catch (err) {
+            setError(err.message || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
         }
@@ -142,6 +145,7 @@ export default function LoginPage() {
                         <button type="submit" className={styles.submitBtn} disabled={loading}>
                             {loading ? 'Logging in...' : 'Login'}
                         </button>
+                        {error && <p style={{ color: '#D92D20', fontSize: '0.875rem', marginTop: 8, textAlign: 'center' }}>{error}</p>}
                     </form>
 
                     <div className={styles.divider}><span>OR</span></div>

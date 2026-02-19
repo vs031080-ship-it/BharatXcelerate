@@ -88,7 +88,7 @@
 }
 
 .socialLinks a:hover {
-    color: #6941C6;
+    color: #0D9488;
 }
 
 /* Grid Layout */
@@ -223,7 +223,7 @@
 .applyLink {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #6941C6;
+    color: #0D9488;
     display: flex;
     align-items: center;
     gap: 4px;
