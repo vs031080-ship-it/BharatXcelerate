@@ -25,6 +25,8 @@ const ProjectSchema = new mongoose.Schema({
         type: { type: String, enum: ['doc', 'video', 'repo', 'other'], default: 'doc' },
         url: { type: String }
     }],
+    startDate: { type: Date },
+    deadline: { type: Date },
     status: { type: String, enum: ['active', 'draft', 'archived'], default: 'active' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });

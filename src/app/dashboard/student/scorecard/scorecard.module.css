@@ -1,388 +1,461 @@
 /* ============================================
-   SCORECARD — PROFESSIONAL CLEAN
+   SCORECARD — PREMIUM REDESIGN
    ============================================ */
 
 .container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
+    padding-bottom: 60px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
 }
 
+/* ---- Loading / Error ---- */
+.loading,
+.error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    font-size: 1rem;
+    color: #64748b;
+    gap: 12px;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+    color: #3b82f6;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---- Header Section ---- */
 .header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #EAECF0;
+    margin-bottom: 32px;
+    background: #FFFFFF;
+    padding: 24px 32px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
 }
 
 .header h1 {
     font-size: 1.5rem;
     font-weight: 700;
+    margin: 0 0 6px;
+    color: #0f172a;
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 4px;
-    color: #101828;
 }
 
 .verifiedBadge {
-    font-size: 0.75rem;
-    background: #ECFDF3;
-    color: #039855;
-    padding: 3px 10px;
-    border-radius: 16px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
+    background: #ecfccb;
+    color: #4d7c0f;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
     font-weight: 600;
-    border: 1px solid #D1FADF;
 }
 
 .header p {
-    color: #475467;
-    font-size: 0.875rem;
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9375rem;
 }
 
 .actions {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
-/* Main Score Section */
+.btnOutline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: #FFFFFF;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.btnOutline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btnPrimary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btnPrimary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+/* ---- Main Score Grid ---- */
 .mainScoreSection {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 40px;
-    background: #FFFFFF;
-    padding: 32px;
-    border-radius: 12px;
-    border: 1px solid #EAECF0;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
     margin-bottom: 32px;
-    align-items: center;
 }
 
-.scoreCircleWrapper {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 0 auto;
-}
-
-.circularChart {
-    display: block;
-    margin: 0 auto;
-    max-width: 100%;
-    max-height: 100%;
-}
-
-.circleBg {
-    fill: none;
-    stroke: #F2F4F7;
-    stroke-width: 2;
-}
-
-.circle {
-    fill: none;
-    stroke: #6941C6;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-dasharray: 85, 100;
-    transition: stroke-dasharray 1s ease-out;
-}
-
-.scoreText {
-    position: absolute;
-    inset: 0;
+/* Radial Score Card */
+.scoreCard {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
     text-align: center;
 }
 
-.scoreLabel {
-    text-transform: uppercase;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: #98A2B3;
-    margin-bottom: 4px;
+.circularChart {
+    width: 160px;
+    height: 160px;
+    transform: rotate(-90deg);
+    /* Start at top */
+    margin-bottom: 20px;
 }
 
-.scoreText strong {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #101828;
+.circleBg {
+    fill: none;
+    stroke: #f1f5f9;
+    stroke-width: 2.5;
+}
+
+.circle {
+    fill: none;
+    stroke: #3b82f6;
+    /* or gradient via id */
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease;
+}
+
+.scoreValue {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
     line-height: 1;
     margin-bottom: 4px;
 }
 
-.totalPoints {
+.scoreLabel {
     font-size: 0.875rem;
-    color: #6941C6;
     font-weight: 600;
-    background: #F9F5FF;
-    padding: 3px 10px;
-    border-radius: 16px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.scoreMetrics {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.levelBadge {
+    margin-top: 16px;
+    display: inline-block;
+    background: #eff6ff;
+    color: #3b82f6;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.875rem;
 }
 
-.metricCard {
+/* Metrics & Badges */
+.metricsGrid {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 24px;
+}
+
+.statsRow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.statItem {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-.metricIcon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+.statIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    font-size: 1.25rem;
 }
 
 .iconBlue {
-    background: #EFF4FF;
-    color: #3538CD;
+    background: #eff6ff;
+    color: #3b82f6;
 }
 
 .iconPurple {
-    background: #F9F5FF;
-    color: #6941C6;
+    background: #f3e8ff;
+    color: #a855f7;
 }
 
-.iconGreen {
-    background: #ECFDF3;
-    color: #039855;
-}
-
-.metricCard>div:last-child {
-    flex: 1;
-}
-
-.metricCard h4 {
+.statInfo h4 {
+    margin: 0;
     font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-    color: #344054;
-}
-
-.bar {
-    height: 6px;
-    background: #F2F4F7;
-    border-radius: 100px;
-    margin-bottom: 2px;
-    overflow: hidden;
-}
-
-.bar div {
-    height: 100%;
-    background: currentColor;
-    border-radius: 100px;
-}
-
-.metricCard span {
-    font-size: 0.6875rem;
-    color: #98A2B3;
     font-weight: 500;
-    float: right;
+    color: #64748b;
 }
 
-/* Projects List */
-.projectsSection h3 {
+.statInfo strong {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+/* Badges Area */
+.badgesCard {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+}
+
+.badgesCard h3 {
+    margin: 0 0 20px;
     font-size: 1.125rem;
     font-weight: 700;
-    margin-bottom: 16px;
-    color: #101828;
+    color: #0f172a;
+}
+
+.badgesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.badgeItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    width: 100px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.badgeItem:hover {
+    background: #fff;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.badgeIcon {
+    color: #eab308;
+}
+
+.badgeName {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    line-height: 1.2;
+}
+
+
+/* ---- Projects Section ---- */
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .projectList {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
-.projectRow {
+.projectCard {
     background: #FFFFFF;
-    border: 1px solid #EAECF0;
-    border-radius: 12px;
-    padding: 16px 20px;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
     gap: 24px;
-    transition: all 150ms ease;
+    transition: all 0.2s;
 }
 
-.projectRow:hover {
-    border-color: #D6BBFB;
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+.projectCard:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08);
+}
+
+.projectIcon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: #f0f9ff;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
 .projectInfo {
-    flex: 2;
+    flex: 1;
 }
 
 .projectInfo h4 {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #101828;
+    margin: 0 0 6px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
 }
 
 .projectMeta {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: #98A2B3;
+    gap: 12px;
+    font-size: 0.8125rem;
+    color: #64748b;
 }
 
 .dot {
-    color: #D0D5DD;
-}
-
-.date {
-    display: flex;
-    align-items: center;
-    gap: 3px;
+    width: 4px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 50%;
 }
 
 .projectSkills {
-    flex: 2;
     display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
 }
 
-.projectSkills span {
-    font-size: 0.6875rem;
-    background: #F9FAFB;
-    padding: 3px 7px;
-    border-radius: 4px;
-    color: #475467;
+.skillTag {
+    font-size: 0.75rem;
     font-weight: 500;
-    border: 1px solid #EAECF0;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
 .projectScore {
-    text-align: center;
-    min-width: 50px;
+    text-align: right;
+    padding-left: 24px;
+    border-left: 1px solid #f1f5f9;
 }
 
-.projectScore strong {
+.scoreNum {
     display: block;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #6941C6;
-    line-height: 1;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #10b981;
 }
 
-.projectScore span {
-    font-size: 0.6875rem;
-    color: #98A2B3;
-}
-
-.viewBtn {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: #98A2B3;
-    transition: all 150ms ease;
-}
-
-.viewBtn:hover {
-    background: #F9F5FF;
-    color: #6941C6;
-}
-
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .mainScoreSection {
-        grid-template-columns: 1fr;
-        gap: 24px;
-        padding: 20px;
-    }
-
-    .projectRow {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        position: relative;
-    }
-
-    .projectSkills,
-    .projectScore {
-        width: 100%;
-        text-align: left;
-    }
-
-    .projectScore {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-    }
-
-    .viewBtn {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-    }
+.scoreCaption {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
 }
 
 /* Toast */
 .toast {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 500;
-    background: #039855;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #10b981;
     color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-size: 0.9375rem;
+    gap: 8px;
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+    z-index: 100;
     font-weight: 500;
-    box-shadow: 0 8px 24px rgba(3, 152, 85, 0.3);
 }
 
-@media print {
 
-    .actions,
-    .viewBtn {
-        display: none !important;
+/* Mobile */
+@media (max-width: 768px) {
+    .mainScoreSection {
+        grid-template-columns: 1fr;
     }
 
-    .container {
-        max-width: 100%;
-        margin: 0;
+    .projectCard {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
     }
 
-    .header h1 {
-        color: black;
-    }
-
-    .verifiedBadge {
-        border-color: black;
-        color: black;
+    .projectScore {
+        padding-left: 0;
+        border-left: none;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 16px;
+        border-top: 1px solid #f1f5f9;
     }
 }

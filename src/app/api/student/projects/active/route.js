@@ -28,6 +28,23 @@ export async function GET(request) {
             const completedSteps = sub.completedSteps?.length || 0;
             const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
+            // Determine display status for calendar
+            let displayStatus = 'upcoming'; // Default (Red)
+
+            if (sub.status === 'completed') {
+                displayStatus = 'accepted'; // Green
+            } else if (sub.status === 'submitted') {
+                // Check if any step is rejected
+                const hasRejected = sub.stepSubmissions?.some(s => s.status === 'rejected');
+                const isPending = sub.stepSubmissions?.some(s => s.status === 'pending');
+
+                if (hasRejected) displayStatus = 'rejected'; // Red
+                else if (isPending) displayStatus = 'pending'; // Yellow
+                else displayStatus = 'accepted'; // Green
+            } else if (sub.status === 'started') {
+                displayStatus = 'upcoming'; // Red
+            }
+
             return {
                 id: project._id.toString(),
                 title: project.title,
@@ -37,7 +54,10 @@ export async function GET(request) {
                 progress: progress,
                 submissionId: sub._id.toString(),
                 status: sub.status,
-                currentStep: sub.currentStep
+                displayStatus, // New field for UI logic
+                currentStep: sub.currentStep,
+                deadline: project.deadline,
+                startDate: project.startDate
             };
         }).filter(Boolean);
 

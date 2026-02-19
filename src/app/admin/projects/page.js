@@ -9,7 +9,7 @@ import styles from '../admin.module.css';
 const domains = ['Full Stack', 'AI/ML', 'Blockchain', 'Backend', 'Frontend', 'Data Science', 'Mobile', 'DevOps', 'Cloud', 'Cybersecurity'];
 const difficulties = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
-const emptyForm = { title: '', description: '', domain: 'Full Stack', difficulty: 'Intermediate', points: 100, image: '', skills: '' };
+const emptyForm = { title: '', description: '', domain: 'Full Stack', difficulty: 'Intermediate', points: 100, image: '', skills: '', startDate: '', deadline: '' };
 
 export default function AdminProjectsPage() {
     const router = useRouter(); // Add router
@@ -225,6 +225,16 @@ export default function AdminProjectsPage() {
                                     <div className={styles.formGroup}>
                                         <label>Skills (comma-separated)</label>
                                         <input type="text" value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="React, Node.js, MongoDB" />
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                        <div className={styles.formGroup}>
+                                            <label>Start Date</label>
+                                            <input type="date" value={form.startDate ? new Date(form.startDate).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, startDate: e.target.value })} />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Deadline</label>
+                                            <input type="date" value={form.deadline ? new Date(form.deadline).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, deadline: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className={styles.formActions}>

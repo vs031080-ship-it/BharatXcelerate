@@ -286,14 +286,54 @@
     color: #0369a1;
 }
 
-.dayPending::after {
-    content: '';
+.dotRed {
     position: absolute;
     bottom: 4px;
     width: 4px;
     height: 4px;
-    background: #0ea5e9;
+    background: #ef4444;
     border-radius: 50%;
+}
+
+.dotGreen {
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    background: #22c55e;
+    border-radius: 50%;
+}
+
+.dotYellow {
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    background: #eab308;
+    border-radius: 50%;
+}
+
+.calendarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navBtn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
 

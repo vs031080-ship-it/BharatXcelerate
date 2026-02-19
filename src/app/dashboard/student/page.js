@@ -1,17 +1,28 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { FolderKanban, Target, Zap, ArrowRight, BookOpen, Trophy, TrendingUp, Star, ChevronRight, MoreHorizontal, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { FolderKanban, Target, Zap, ArrowRight, BookOpen, Trophy, TrendingUp, Star, ChevronRight, ChevronLeft, MoreHorizontal, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth, getAuthHeaders } from '@/context/AuthContext';
 import styles from './student.module.css';
 
 export default function StudentDashboardPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const firstName = user?.name?.split(' ')[0] || 'Student';
     const [activeProjects, setActiveProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const nextMonth = () => {
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    };
+
+    const prevMonth = () => {
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -39,13 +50,25 @@ export default function StudentDashboardPage() {
     const totalProgress = activeProjects.reduce((acc, curr) => acc + (curr.progress || 0), 0);
     const overallProgress = activeProjects.length > 0 ? Math.round(totalProgress / activeProjects.length) : 0;
 
-    // Domain Stats (Mock calculation based on active projects)
-    const domainStats = {
-        'Web Dev': 75,
-        'Data Science': 40,
-        'AI/ML': 20,
-        'Blockchain': 10
-    };
+    // Calculate Dynamic Domain Stats
+    const domainMap = {};
+    activeProjects.forEach(p => {
+        if (!domainMap[p.domain]) {
+            domainMap[p.domain] = { totalProgress: 0, count: 0 };
+        }
+        domainMap[p.domain].totalProgress += (p.progress || 0);
+        domainMap[p.domain].count += 1;
+    });
+
+    const domainStats = Object.keys(domainMap).reduce((acc, domain) => {
+        acc[domain] = Math.round(domainMap[domain].totalProgress / domainMap[domain].count);
+        return acc;
+    }, {});
+
+    // If no projects, show default empty state or nothing
+    if (Object.keys(domainStats).length === 0) {
+        // Optional: Default/Empty state if needed, or leave empty to show nothing
+    }
 
     return (
         <div className={styles.container}>
@@ -84,7 +107,7 @@ export default function StudentDashboardPage() {
                 >
                     <div className={styles.cardHeader}>
                         <h3 className={styles.cardTitle}>My Progress</h3>
-                        <button className={styles.cardAction}>View Reports</button>
+                        <Link href="/dashboard/student/scorecard" className={styles.cardAction}>View Reports</Link>
                     </div>
 
                     <div className={styles.progressContainer}>
@@ -118,39 +141,91 @@ export default function StudentDashboardPage() {
                 >
                     <div className={styles.cardHeader}>
                         <h3 className={styles.cardTitle}>My Calendar</h3>
-                        <button className={styles.cardAction}>+ Add</button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className={styles.navBtn} onClick={prevMonth}><ChevronLeft size={16} /></button>
+                            <button className={styles.navBtn} onClick={nextMonth}><ChevronRight size={16} /></button>
+                        </div>
                     </div>
 
                     <div className={styles.calendarWidget}>
-                        <div className={styles.calendarGrid}>
-                            <div className={styles.dayLabel}>Mon</div>
-                            <div className={styles.dayLabel}>Tue</div>
-                            <div className={styles.dayLabel}>Wed</div>
-                            <div className={styles.dayLabel}>Thu</div>
-                            <div className={styles.dayLabel}>Fri</div>
-                            <div className={styles.dayLabel}>Sat</div>
-                            <div className={styles.dayLabel}>Sun</div>
-
-                            {/* Mock Days */}
-                            <div className={styles.dayCell}>28</div>
-                            <div className={styles.dayCell}>29</div>
-                            <div className={styles.dayCell}>30</div>
-                            <div className={styles.dayCell}>1</div>
-                            <div className={styles.dayCell}>2</div>
-                            <div className={styles.dayCell}>3</div>
-                            <div className={styles.dayCell}>4</div>
-                            <div className={styles.dayCell}>5</div>
-                            <div className={`${styles.dayCell} ${styles.dayActive}`}>6</div>
-                            <div className={styles.dayCell}>7</div>
-                            <div className={`${styles.dayCell} ${styles.dayPending}`}>8</div>
-                            <div className={styles.dayCell}>9</div>
-                            <div className={styles.dayCell}>10</div>
-                            <div className={styles.dayCell}>11</div>
+                        <div className={styles.calendarHeader} style={{ justifyContent: 'center', marginBottom: '12px' }}>
+                            <span style={{ fontWeight: 600 }}>
+                                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </span>
                         </div>
-                        <div style={{ marginTop: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Clock size={16} color="#f97316" />
-                            <strong>Upcoming:</strong>
-                            <span style={{ color: '#64748b' }}>Project Submission (Feb 8)</span>
+                        <div className={styles.calendarGrid}>
+                            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                                <div key={i} className={styles.dayLabel}>{d}</div>
+                            ))}
+
+                            {(() => {
+                                const year = currentDate.getFullYear();
+                                const month = currentDate.getMonth();
+                                const firstDay = new Date(year, month, 1).getDay(); // 0 = Sun
+                                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                                // Adjust for Monday start (Mon=0, Sun=6)
+                                const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+                                const days = [];
+                                for (let i = 0; i < startOffset; i++) {
+                                    days.push(<div key={`empty-${i}`} className={styles.dayCell}></div>);
+                                }
+
+                                for (let d = 1; d <= daysInMonth; d++) {
+                                    const dateObj = new Date(year, month, d);
+                                    const isToday = new Date().toDateString() === dateObj.toDateString();
+
+                                    // Check projects
+                                    const relevantProject = activeProjects.find(p => {
+                                        if (!p.deadline) return false;
+                                        const dd = new Date(p.deadline);
+                                        return dd.getDate() === d && dd.getMonth() === month && dd.getFullYear() === year;
+                                    });
+
+                                    // Determine dot color based on displayStatus
+                                    let dotClass = '';
+                                    if (relevantProject) {
+                                        const status = relevantProject.displayStatus;
+                                        if (status === 'accepted') {
+                                            dotClass = styles.dotGreen;
+                                        } else if (status === 'pending') {
+                                            dotClass = styles.dotYellow;
+                                        } else {
+                                            dotClass = styles.dotRed; // active, upcoming, or rejected
+                                        }
+                                    }
+
+                                    days.push(
+                                        <div
+                                            key={d}
+                                            className={`${styles.dayCell} ${isToday ? styles.dayActive : ''}`}
+                                            onClick={() => {
+                                                if (relevantProject) router.push(`/dashboard/student/projects/${relevantProject.id}`);
+                                            }}
+                                            style={relevantProject ? { cursor: 'pointer', background: isToday ? '' : '#f8fafc' } : {}}
+                                            title={relevantProject ? `${relevantProject.title} (${relevantProject.status})` : ''}
+                                        >
+                                            {d}
+                                            {dotClass && <div className={dotClass}></div>}
+                                        </div>
+                                    );
+                                }
+                                return days;
+                            })()}
+                        </div>
+
+                        {/* Legend */}
+                        <div style={{ display: 'flex', gap: '16px', fontSize: '0.75rem', color: '#64748b', marginTop: '12px', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }}></div> Upcoming/Rejected
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#eab308' }}></div> Pending
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }}></div> Accepted
+                            </div>
                         </div>
                     </div>
                 </motion.div>
@@ -266,6 +341,6 @@ export default function StudentDashboardPage() {
                     </div>
                 </motion.div>
             </div>
-        </div>
+        </div >
     );
 }
