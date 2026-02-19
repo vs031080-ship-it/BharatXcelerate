@@ -827,3 +827,9 @@
 .btnReject:hover {
     background: #FEF2F2;
 }
+
+.btnRejectedActive {
+    background: #DC2626 !important;
+    color: white !important;
+    border-color: #DC2626 !important;
+}

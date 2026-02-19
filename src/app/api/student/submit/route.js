@@ -59,6 +59,18 @@ export async function POST(req) {
                 return NextResponse.json({ error: 'Project not started' }, { status: 400 });
             }
 
+            // Enforce mandatory feedback (notes)
+            try {
+                const parsed = JSON.parse(content);
+                if (!parsed.notes || parsed.notes.trim().length < 10) {
+                    return NextResponse.json({ error: 'Please provide detailed implementation notes (min 10 characters)' }, { status: 400 });
+                }
+            } catch (e) {
+                if (!content || content.trim().length < 10) {
+                    return NextResponse.json({ error: 'Please provide implementation notes' }, { status: 400 });
+                }
+            }
+
             // Check if this step is already submitted/approved
             const existingStepSub = submission.stepSubmissions.find(s => s.stepIndex === stepIndex);
             if (existingStepSub && existingStepSub.status === 'approved') {

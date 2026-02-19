@@ -59,9 +59,16 @@ export default function SubmissionDetailPage({ params }) {
     };
 
     const handleStepAction = async (stepIndex, status) => {
+        const feedback = stepFeedbacks[stepIndex] || '';
+
+        if (status === 'rejected' && (!feedback || feedback.trim().length < 5)) {
+            setToast('Feedback is mandatory when rejecting a step.');
+            setTimeout(() => setToast(''), 3000);
+            return;
+        }
+
         setActionLoading(true);
         try {
-            const feedback = stepFeedbacks[stepIndex] || '';
             const res = await fetch('/api/admin/submissions', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
@@ -269,9 +276,9 @@ export default function SubmissionDetailPage({ params }) {
                                                     <button
                                                         onClick={() => handleStepAction(i, 'rejected')}
                                                         disabled={actionLoading}
-                                                        className={styles.btnReject}
+                                                        className={`${styles.btnReject} ${isRejected ? styles.btnRejectedActive : ''}`}
                                                     >
-                                                        <XCircle size={14} /> Reject
+                                                        <XCircle size={14} /> {isRejected ? 'Rejected' : 'Reject'}
                                                     </button>
                                                 </div>
                                             </div>

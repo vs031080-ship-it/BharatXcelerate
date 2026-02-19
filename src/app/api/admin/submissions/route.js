@@ -1,3 +1,4 @@
+import Notification from '@/models/Notification';
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Submission from '@/models/Submission';
@@ -73,7 +74,19 @@ export async function PUT(req) {
                     submission.completedSteps.push(stepIndex);
                 }
             } else if (stepStatus === 'rejected') {
+                if (!stepFeedback || stepFeedback.trim().length < 5) {
+                    return NextResponse.json({ error: 'Feedback is mandatory when rejecting a step' }, { status: 400 });
+                }
                 submission.completedSteps = submission.completedSteps.filter(i => i !== stepIndex);
+                submission.status = 'rejected';
+
+                // Send Notification to student
+                await Notification.create({
+                    type: 'project_rejected',
+                    message: `Step ${stepIndex + 1} of project "${submission.project?.title}" was rejected. Please check feedback.`,
+                    forRole: 'student',
+                    forUserId: submission.student,
+                });
             }
 
             // Recalculate current step (next available step)

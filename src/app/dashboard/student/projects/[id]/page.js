@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, ArrowRight, Clock, Code, FileText, Link as LinkIcon,
     Github, Send, CheckCircle, AlertCircle, Loader, Target, Download,
-    Zap, BookOpen, Video, Globe, Layers, Award, Sparkles, ExternalLink, Calendar
+    Zap, BookOpen, Video, Globe, Layers, Award, Sparkles, ExternalLink, Calendar,
+    XCircle, SendHorizontal
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -138,6 +139,7 @@ export default function ProjectDetailPage() {
 
         // Check overall status
         if (submission.status === 'completed') return { label: 'Completed', class: styles.statusGraded, desc: 'You have completed this project!' };
+        if (submission.status === 'rejected') return { label: 'Rejected', class: styles.statusRejected, desc: 'Review feedback and re-submit' };
 
         // Calculate progress
         const totalSteps = project?.steps?.length || 0;
@@ -251,8 +253,9 @@ export default function ProjectDetailPage() {
                                     // Determine step status
                                     const stepSub = submission.stepSubmissions?.find(s => s.stepIndex === index);
                                     const isCompleted = submission.completedSteps?.includes(index);
+                                    const isRejected = stepSub && stepSub.status === 'rejected';
                                     const isPending = stepSub && stepSub.status === 'pending';
-                                    const isLocked = index > (submission.currentStep || 0) && !isCompleted;
+                                    const isLocked = index > (submission.currentStep || 0) && !isCompleted && !isRejected;
                                     const isActive = activeStep === index;
 
                                     // Parse content if JSON
@@ -268,7 +271,7 @@ export default function ProjectDetailPage() {
                                     }
 
                                     return (
-                                        <div key={index} className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isLocked ? styles.stepLocked : ''} ${isCompleted ? styles.stepCompleted : ''}`}>
+                                        <div key={index} className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isLocked ? styles.stepLocked : ''} ${isCompleted ? styles.stepCompleted : ''} ${isRejected ? styles.stepRejected : ''}`}>
                                             {/* Vertical Line */}
                                             {index < project.steps.length - 1 && <div className={styles.stepLine} />}
 
@@ -278,8 +281,9 @@ export default function ProjectDetailPage() {
                                                 onClick={() => !isLocked && setActiveStep(index)}
                                             >
                                                 {isCompleted ? <CheckCircle size={18} /> :
-                                                    isLocked ? <div className={styles.lockedDot} /> :
-                                                        index + 1}
+                                                    isRejected ? <XCircle size={18} /> :
+                                                        isLocked ? <div className={styles.lockedDot} /> :
+                                                            index + 1}
                                             </div>
 
                                             {/* Step Content */}
@@ -291,6 +295,7 @@ export default function ProjectDetailPage() {
                                                     </div>
                                                     <div className={styles.stepStatusBadge}>
                                                         {isCompleted && <span className={styles.badgeSuccess}>Completed</span>}
+                                                        {isRejected && <span className={styles.badgeRejected}>Rejected</span>}
                                                         {isPending && <span className={styles.badgeWarning}>In Review</span>}
                                                         {isLocked && <span className={styles.badgeLocked}>Locked</span>}
                                                         <ArrowRight size={16} className={`${styles.stepArrow} ${isActive ? styles.rotate90 : ''}`} />
@@ -309,6 +314,16 @@ export default function ProjectDetailPage() {
 
                                                             {/* Submission Form / View */}
                                                             <div className={styles.submissionArea}>
+                                                                {isRejected && stepSub?.feedback && (
+                                                                    <div className={`${styles.feedbackBanner} ${styles.rejectedFeedback}`}>
+                                                                        <div className={styles.feedbackBannerHeader}>
+                                                                            <AlertCircle size={18} />
+                                                                            <strong>Rejection Feedback:</strong>
+                                                                        </div>
+                                                                        <p>{stepSub.feedback}</p>
+                                                                    </div>
+                                                                )}
+
                                                                 {!isCompleted && !isPending ? (
                                                                     <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
                                                                         <h5>Submit Your Work</h5>
@@ -339,8 +354,8 @@ export default function ProjectDetailPage() {
                                                                         </div>
 
                                                                         <button type="submit" className={styles.submitBtn} disabled={stepSubmitting}>
-                                                                            {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : <Send size={16} />}
-                                                                            {stepSubmitting ? 'Submitting...' : 'Submit Review'}
+                                                                            {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : <SendHorizontal size={16} />}
+                                                                            {stepSubmitting ? 'Submitting...' : isRejected ? 'Re-submit Work' : 'Submit Review'}
                                                                         </button>
                                                                     </form>
                                                                 ) : (
