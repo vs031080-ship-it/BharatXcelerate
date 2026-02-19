@@ -11,6 +11,11 @@ export async function POST(req) {
         const user = await getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        // Validate role - Only students can submit/accept projects
+        if (user.role !== 'student') {
+            return NextResponse.json({ error: 'Only students can accept or submit projects' }, { status: 403 });
+        }
+
         const body = await req.json();
         const { projectId, action, stepIndex, content } = body;
 
@@ -96,6 +101,11 @@ export async function GET(req) {
         await connectDB();
         const user = await getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        // Validate role
+        if (user.role !== 'student') {
+            return NextResponse.json({ error: 'Only students can access their submissions' }, { status: 403 });
+        }
 
         const { searchParams } = new URL(req.url);
         const projectId = searchParams.get('projectId');
