@@ -150,7 +150,7 @@ export default function AdminProjectsPage() {
                                 <th>Difficulty</th>
                                 <th>Points</th>
                                 <th>Status</th>
-                                <th>Created</th>
+                                <th>Deadline</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -165,7 +165,7 @@ export default function AdminProjectsPage() {
                                         }`}>{project.difficulty}</span></td>
                                     <td>{project.points}</td>
                                     <td><span className={`${styles.badge} ${project.status === 'active' ? styles.badgeActive : styles.badgePending}`}>{project.status}</span></td>
-                                    <td>{new Date(project.createdAt).toLocaleDateString()}</td>
+                                    <td>{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No Deadline'}</td>
                                     <td>
                                         <div className={styles.btnGroup}>
                                             <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => openEdit(project)}><Pencil size={14} /></button>
@@ -226,15 +226,9 @@ export default function AdminProjectsPage() {
                                         <label>Skills (comma-separated)</label>
                                         <input type="text" value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="React, Node.js, MongoDB" />
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                        <div className={styles.formGroup}>
-                                            <label>Start Date</label>
-                                            <input type="date" value={form.startDate ? new Date(form.startDate).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, startDate: e.target.value })} />
-                                        </div>
-                                        <div className={styles.formGroup}>
-                                            <label>Deadline</label>
-                                            <input type="date" value={form.deadline ? new Date(form.deadline).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, deadline: e.target.value })} />
-                                        </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Project Deadline (Syncs to Student Calendar) *</label>
+                                        <input type="date" value={form.deadline ? new Date(form.deadline).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, deadline: e.target.value })} required />
                                     </div>
                                 </div>
                                 <div className={styles.formActions}>

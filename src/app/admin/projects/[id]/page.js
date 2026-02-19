@@ -32,7 +32,7 @@ export default function EditProjectPage() {
 
     const [form, setForm] = useState({
         title: '', description: '', domain: 'Full Stack', difficulty: 'Intermediate',
-        points: 100, image: '', skills: '', duration: '1 week', technologies: '',
+        points: 100, image: '', skills: '', deadline: '', technologies: '',
         detailedDocument: '', requirements: [], resources: [],
         steps: []
     });
@@ -53,7 +53,7 @@ export default function EditProjectPage() {
                         points: p.points,
                         image: p.image || '',
                         skills: (p.skills || []).join(', '),
-                        duration: p.duration || '1 week',
+                        deadline: p.deadline ? new Date(p.deadline).toISOString().split('T')[0] : '',
                         technologies: (p.technologies || []).join(', '),
                         detailedDocument: p.detailedDocument || '',
                         requirements: p.requirements || [],
@@ -320,14 +320,15 @@ export default function EditProjectPage() {
                         </div>
 
                         <div className={styles.formGroup}>
-                            <label>Duration</label>
+                            <label>Deadline (Admin Selection)</label>
                             <div style={{ position: 'relative' }}>
-                                <Clock size={16} style={{ position: 'absolute', left: 10, top: 12, color: '#94A3B8' }} />
+                                <Calendar size={16} style={{ position: 'absolute', left: 10, top: 12, color: '#94A3B8' }} />
                                 <input
+                                    type="date"
                                     className={styles.input}
                                     style={{ paddingLeft: 34 }}
-                                    value={form.duration}
-                                    onChange={e => handleChange('duration', e.target.value)}
+                                    value={form.deadline}
+                                    onChange={e => handleChange('deadline', e.target.value)}
                                 />
                             </div>
                         </div>

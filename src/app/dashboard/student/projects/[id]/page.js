@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, ArrowRight, Clock, Code, FileText, Link as LinkIcon,
     Github, Send, CheckCircle, AlertCircle, Loader, Target, Download,
-    Zap, BookOpen, Video, Globe, Layers, Award, Sparkles, ExternalLink
+    Zap, BookOpen, Video, Globe, Layers, Award, Sparkles, ExternalLink, Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -429,8 +429,10 @@ export default function ProjectDetailPage() {
                             <span className={styles.detailValue}>+{project.points}</span>
                         </div>
                         <div className={styles.detailRow}>
-                            <span className={styles.detailLabel}><Clock size={14} /> Duration</span>
-                            <span className={styles.detailValue}>{project.duration || 'Flexible'}</span>
+                            <span className={styles.detailLabel}><Calendar size={14} /> Deadline</span>
+                            <span className={styles.detailValue} style={{ color: '#ef4444', fontWeight: '600' }}>
+                                {project.deadline ? new Date(project.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Flexible'}
+                            </span>
                         </div>
                         <div className={styles.detailRow}>
                             <span className={styles.detailLabel}><Layers size={14} /> Domain</span>

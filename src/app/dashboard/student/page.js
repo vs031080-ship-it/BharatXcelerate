@@ -251,6 +251,7 @@ export default function StudentDashboardPage() {
                                     <th>Project Title</th>
                                     <th>Domain</th>
                                     <th>Status</th>
+                                    <th>Deadline</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -269,7 +270,19 @@ export default function StudentDashboardPage() {
                                                 </div>
                                             </td>
                                             <td style={{ color: '#64748b', fontSize: '0.875rem' }}>{project.domain}</td>
-                                            <td><span className={styles.statusBadge}>In Progress</span></td>
+                                            <td>
+                                                <span className={`${styles.badge} ${project.displayStatus === 'accepted' ? styles.badgeActive :
+                                                        project.displayStatus === 'pending' ? styles.badgePending :
+                                                            styles.badgeRejected
+                                                    }`}>
+                                                    {project.displayStatus === 'accepted' ? 'Accepted' :
+                                                        project.displayStatus === 'pending' ? 'Reviewing' :
+                                                            'In Progress'}
+                                                </span>
+                                            </td>
+                                            <td style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                                                {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'N/A'}
+                                            </td>
                                             <td>
                                                 <Link href={`/dashboard/student/projects/${project.id}`} className={styles.btnStart}>
                                                     Continue
