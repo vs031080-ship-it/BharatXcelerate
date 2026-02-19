@@ -1,78 +1,154 @@
 'use client';
-import { motion } from 'framer-motion';
-import { Search, Filter, Clock, CheckCircle, BarChart, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Clock, Target, Zap, ArrowRight, Loader,
+    CheckCircle, AlertCircle, BookOpen, Layers
+} from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getAuthHeaders } from '@/context/AuthContext';
 import styles from './projects.module.css';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.05 } }) };
+export default function MyProjectsPage() {
+    const [allProjects, setAllProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('active'); // 'active' | 'completed'
 
-const allProjects = [
-    { id: 1, title: 'E-Commerce Platform', domain: 'Full Stack', difficulty: 'Intermediate', points: 300, status: 'In Progress', progress: 65, image: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=100&h=100&fit=crop' },
-    { id: 2, title: 'AI Resume Screener', domain: 'AI/ML', difficulty: 'Intermediate', points: 200, status: 'Not Started', progress: 0, image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=100&h=100&fit=crop' },
-    { id: 3, title: 'DeFi Lending Protocol', domain: 'Blockchain', difficulty: 'Advanced', points: 350, status: 'Not Started', progress: 0, image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=100&h=100&fit=crop' },
-    { id: 4, title: 'Task Manager API', domain: 'Backend', difficulty: 'Beginner', points: 100, status: 'Completed', progress: 100, image: 'https://images.unsplash.com/photo-1540350394557-8d14678e7f91?w=100&h=100&fit=crop' },
-    { id: 5, title: 'Portfolio Website', domain: 'Frontend', difficulty: 'Beginner', points: 150, status: 'Completed', progress: 100, image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=100&h=100&fit=crop' },
-];
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const res = await fetch('/api/student/projects/active', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setAllProjects(data.projects || []);
+                }
+            } catch (error) {
+                console.error('Failed to fetch projects', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProjects();
+    }, []);
 
-export default function StudentProjectsPage() {
-    const [filter, setFilter] = useState('All');
+    // Filter projects based on tab
+    const filteredProjects = allProjects.filter(item => {
+        if (activeTab === 'active') {
+            return item.status !== 'completed' && item.status !== 'archived';
+        }
+        return item.status === 'completed';
+    });
 
-    const filteredProjects = filter === 'All' ? allProjects : allProjects.filter(p => p.status === filter);
+    if (loading) return (
+        <div className={styles.loading}>
+            <Loader className={styles.spinner} size={24} /> Loading your projects...
+        </div>
+    );
 
     return (
         <div className={styles.container}>
-            <div className={styles.header}>
-                <div>
-                    <h1>My Projects</h1>
-                    <p>Manage your active work and view your submission history.</p>
-                </div>
-                <Link href="/projects" className="btn btn-primary">Browse New Projects <ArrowRight size={16} /></Link>
+            {/* Banner */}
+            <motion.div className={styles.banner} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <h1>My Projects</h1>
+                <p>Track your progress, continue where you left off, and review your completed achievements.</p>
+            </motion.div>
+
+            {/* Tabs */}
+            <div className={styles.tabs}>
+                <button
+                    className={`${styles.tabBtn} ${activeTab === 'active' ? styles.tabActive : ''}`}
+                    onClick={() => setActiveTab('active')}
+                >
+                    In Progress ({allProjects.filter(p => p.status !== 'completed').length})
+                </button>
+                <button
+                    className={`${styles.tabBtn} ${activeTab === 'completed' ? styles.tabActive : ''}`}
+                    onClick={() => setActiveTab('completed')}
+                >
+                    Completed ({allProjects.filter(p => p.status === 'completed').length})
+                </button>
             </div>
 
-            <div className={styles.controls}>
-                <div className={styles.searchWrapper}>
-                    <Search size={18} />
-                    <input type="text" placeholder="Search your projects..." />
-                </div>
-                <div className={styles.filters}>
-                    {['All', 'In Progress', 'Completed', 'Not Started'].map(f => (
-                        <button key={f} className={`${styles.filterBtn} ${filter === f ? styles.activeFilter : ''}`} onClick={() => setFilter(f)}>
-                            {f}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
+            {/* Content Grid */}
             <div className={styles.grid}>
-                {filteredProjects.map((p, i) => (
-                    <motion.div key={p.id} className={styles.card} initial="hidden" animate="visible" variants={fadeUp} custom={i}>
-                        <div className={styles.cardHeader}>
-                            <img src={p.image} alt={p.title} className={styles.img} />
-                            <div className={styles.statusBadge} data-status={p.status}>{p.status}</div>
-                        </div>
-                        <div className={styles.cardBody}>
-                            <div className={styles.meta}>
-                                <span>{p.domain}</span>
-                                <span>{p.difficulty}</span>
+                <AnimatePresence mode="popLayout">
+                    {filteredProjects.map((item) => (
+                        <motion.div
+                            key={item.id}
+                            className={styles.card}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            layout
+                        >
+                            <div className={styles.cardHeader}>
+                                <span className={styles.domainBadge}>{item.domain}</span>
+                                {item.status === 'completed' ? (
+                                    <span className={`${styles.statusBadge} ${styles.statusCompleted}`}>Completed</span>
+                                ) : (
+                                    <span className={`${styles.statusBadge} ${styles.statusStarted}`}>
+                                        Step {(item.currentStep || 0) + 1}
+                                    </span>
+                                )}
                             </div>
-                            <h4>{p.title}</h4>
-                            <div className={styles.progressSection}>
-                                <div className={styles.progressBar}>
-                                    <div style={{ width: `${p.progress}%` }}></div>
+
+                            <Link href={`/dashboard/student/projects/${item.id}`} style={{ textDecoration: 'none' }}>
+                                <h3 className={styles.cardTitle}>{item.title}</h3>
+                            </Link>
+
+                            <div className={styles.cardMeta}>
+                                <div className={styles.metaItem}>
+                                    <Target size={14} /> <span>+{item.points} XP</span>
                                 </div>
-                                <span>{p.progress}%</span>
+                                <div className={styles.metaItem}>
+                                    <Zap size={14} /> <span>{item.difficulty}</span>
+                                </div>
                             </div>
-                            <div className={styles.pointsRow}>
-                                <span className={styles.points}><BarChart size={14} /> {p.points} XP</span>
-                                <Link href={`/dashboard/student/projects/${p.id}`} className={styles.actionLink}>
-                                    {p.status === 'Completed' ? 'View Submission' : 'Continue Working'} <ArrowRight size={14} />
-                                </Link>
+
+                            <div className={styles.progressContainer}>
+                                <div className={styles.progressLabel}>
+                                    <span>Progress</span>
+                                    <span>{item.progress}%</span>
+                                </div>
+                                <div className={styles.progressBarBg}>
+                                    <div
+                                        className={styles.progressBarFill}
+                                        style={{ width: `${item.progress}%` }}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
-                ))}
+
+                            <Link href={`/dashboard/student/projects/${item.id}`} className={styles.actionBtn}>
+                                {item.status === 'completed' ? 'View Certificate' : 'Continue Working'}
+                            </Link>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </div>
+
+            {/* Empty State */}
+            {filteredProjects.length === 0 && (
+                <motion.div className={styles.emptyState} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className={styles.emptyIcon}>
+                        {activeTab === 'active' ? <Layers size={48} /> : <CheckCircle size={48} />}
+                    </div>
+                    <h3>
+                        {activeTab === 'active'
+                            ? "No active projects"
+                            : "No completed projects yet"}
+                    </h3>
+                    <p>
+                        {activeTab === 'active'
+                            ? "Explore the project library to find your next challenge!"
+                            : "Complete projects to earn XP and build your portfolio."}
+                    </p>
+                    {activeTab === 'active' && (
+                        <Link href="/dashboard/student/explore" className={styles.browseBtn}>
+                            Browse Projects <ArrowRight size={16} />
+                        </Link>
+                    )}
+                </motion.div>
+            )}
         </div>
     );
 }

@@ -11,6 +11,12 @@ const UserSchema = new mongoose.Schema({
     location: { type: String, default: '' },
     skills: [{ type: String }],
     avatar: { type: String, default: '' },
+
+    // Gamification & Stats
+    xp: { type: Number, default: 0 },
+    avgScore: { type: Number, default: 0 },
+    projectsCompleted: { type: Number, default: 0 },
+    projectsInProgress: { type: Number, default: 0 },
     // Social links
     github: { type: String, default: '' },
     linkedin: { type: String, default: '' },

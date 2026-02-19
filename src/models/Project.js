@@ -8,6 +8,13 @@ const ProjectSchema = new mongoose.Schema({
     points: { type: Number, default: 100 },
     image: { type: String, default: '' },
     skills: [{ type: String }],
+
+    // Steps for the project
+    steps: [{
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        points: { type: Number, default: 0 },
+    }],
     // Extended details
     duration: { type: String, default: '1 week' },
     technologies: [{ type: String }],

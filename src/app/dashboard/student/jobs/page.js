@@ -12,7 +12,7 @@ const jobTypes = ['All Types', 'Full-time', 'Internship', 'Contract', 'Part-time
 const locations = ['All Locations', 'Mumbai', 'Bangalore', 'Delhi', 'Pune', 'Remote'];
 
 export default function StudentJobsPage() {
-    const { jobs, applications, applyToJob } = useData();
+    const { jobs, applications, applyToJob, revokeApplication } = useData();
     const { user } = useAuth();
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('All Types');
@@ -28,9 +28,13 @@ export default function StudentJobsPage() {
         return matchesSearch && matchesType && matchesLocation;
     });
 
-    const handleApply = (jobId) => {
-        if (!appliedJobIds.includes(jobId)) {
-            applyToJob(jobId, user?.name || 'Student');
+    const handleApply = async (jobId) => {
+        if (appliedJobIds.includes(jobId)) {
+            if (window.confirm('Are you sure you want to withdraw your application?')) {
+                await revokeApplication(jobId, user?.name);
+            }
+        } else {
+            await applyToJob(jobId, user?.name || 'Student');
         }
     };
 
@@ -82,9 +86,10 @@ export default function StudentJobsPage() {
             {/* Job Listings */}
             <div className={styles.jobList}>
                 {filteredJobs.map((job, i) => {
-                    const isApplied = appliedJobIds.includes(job.id);
+                    const jobId = job.id || job._id;
+                    const isApplied = appliedJobIds.includes(jobId);
                     return (
-                        <motion.div key={job.id} className={styles.jobCard} initial="hidden" animate="visible" variants={fadeUp} custom={i + 4}>
+                        <motion.div key={jobId} className={styles.jobCard} initial="hidden" animate="visible" variants={fadeUp} custom={i + 4}>
                             <div className={styles.jobCardLeft}>
                                 <div className={styles.companyBadge}>
                                     <Building2 size={20} />
@@ -109,10 +114,9 @@ export default function StudentJobsPage() {
                                 </div>
                                 <button
                                     className={`${styles.applyBtn} ${isApplied ? styles.appliedBtn : ''}`}
-                                    onClick={() => handleApply(job.id)}
-                                    disabled={isApplied}
+                                    onClick={() => handleApply(jobId)}
                                 >
-                                    {isApplied ? <><CheckCircle size={16} /> Applied</> : <>Apply Now <ArrowRight size={16} /></>}
+                                    {isApplied ? <><X size={16} /> Withdraw</> : <>Apply Now <ArrowRight size={16} /></>}
                                 </button>
                                 <button className={styles.detailsBtn} onClick={() => setSelectedJob(job)}>
                                     View Details

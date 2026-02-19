@@ -7,7 +7,7 @@ import styles from './detail.module.css';
 import {
     ArrowLeft, User, Mail, Calendar, Clock, Zap, Target, BookOpen,
     Github, ExternalLink, CheckCircle, XCircle, FileText, Code, Star,
-    Award, Send, AlertCircle, Loader2
+    Award, Send, AlertCircle, Loader2, ListChecks
 } from 'lucide-react';
 
 export default function SubmissionDetailPage({ params }) {
@@ -19,6 +19,7 @@ export default function SubmissionDetailPage({ params }) {
     const [grade, setGrade] = useState('');
     const [feedback, setFeedback] = useState('');
     const [toast, setToast] = useState('');
+    const [stepFeedbacks, setStepFeedbacks] = useState({});
 
     useEffect(() => {
         const fetchSubmission = async () => {
@@ -52,6 +53,30 @@ export default function SubmissionDetailPage({ params }) {
                 setSubmission(data.submission);
                 setToast(`Submission ${newStatus === 'accepted' ? 'accepted' : 'rejected'} successfully!`);
                 setTimeout(() => setToast(''), 4000);
+            }
+        } catch (e) { console.error(e); }
+        setActionLoading(false);
+    };
+
+    const handleStepAction = async (stepIndex, status) => {
+        setActionLoading(true);
+        try {
+            const feedback = stepFeedbacks[stepIndex] || '';
+            const res = await fetch('/api/admin/submissions', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    id: submission._id,
+                    stepIndex,
+                    stepStatus: status,
+                    stepFeedback: feedback
+                }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSubmission(data.submission);
+                setToast(`Step ${status === 'approved' ? 'approved' : 'rejected'} successfully!`);
+                setTimeout(() => setToast(''), 3000);
             }
         } catch (e) { console.error(e); }
         setActionLoading(false);
@@ -165,6 +190,68 @@ export default function SubmissionDetailPage({ params }) {
                             <ol className={styles.reqList}>
                                 {project.requirements.map((r, i) => <li key={i}>{r}</li>)}
                             </ol>
+                        </div>
+                    )}
+
+                    {/* Step-by-Step Review */}
+                    {project?.steps?.length > 0 && (
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <ListChecks size={18} /> Step-by-Step Review
+                            </div>
+                            <div className={styles.stepsList}>
+                                {project.steps.map((step, i) => {
+                                    const sub = submission.stepSubmissions?.find(s => s.stepIndex === i);
+                                    const isApproved = sub?.status === 'approved';
+                                    const isRejected = sub?.status === 'rejected';
+
+                                    return (
+                                        <div key={i} className={styles.stepReviewItem}>
+                                            <div className={styles.stepHeader}>
+                                                <h4>Step {i + 1}: {step.title}</h4>
+                                                <span className={styles.stepPoints}>{step.points} XP</span>
+                                            </div>
+                                            <p className={styles.stepDesc}>{step.description}</p>
+
+                                            <div className={styles.submissionBox}>
+                                                <strong>Student Submission:</strong>
+                                                {sub ? (
+                                                    <div className={styles.contentPre}>{sub.content}</div>
+                                                ) : (
+                                                    <p className={styles.textMuted}>Not submitted yet.</p>
+                                                )}
+                                                {sub?.submittedAt && <div className={styles.timestamp}>Submitted: {new Date(sub.submittedAt).toLocaleString()}</div>}
+                                            </div>
+
+                                            {/* Review Controls */}
+                                            <div className={styles.reviewControls}>
+                                                <textarea
+                                                    placeholder="Feedback for this step..."
+                                                    value={stepFeedbacks[i] !== undefined ? stepFeedbacks[i] : (sub?.feedback || '')}
+                                                    onChange={e => setStepFeedbacks(prev => ({ ...prev, [i]: e.target.value }))}
+                                                    disabled={isApproved}
+                                                />
+                                                <div className={styles.buttons}>
+                                                    <button
+                                                        onClick={() => handleStepAction(i, 'approved')}
+                                                        disabled={actionLoading || isApproved}
+                                                        className={isApproved ? styles.btnApproved : styles.btnApprove}
+                                                    >
+                                                        <CheckCircle size={14} /> {isApproved ? 'Approved' : 'Approve'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleStepAction(i, 'rejected')}
+                                                        disabled={actionLoading}
+                                                        className={styles.btnReject}
+                                                    >
+                                                        <XCircle size={14} /> Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
 

@@ -15,35 +15,37 @@ const difficultyColors = {
     Expert: { bg: '#FEE2E2', color: '#991B1B' },
 };
 
-const sampleProjects = [
-    { id: 1, title: 'E-Commerce Platform', domain: 'Full Stack', difficulty: 'Intermediate', points: 300, progress: 65 },
-    { id: 2, title: 'AI Resume Screener', domain: 'AI/ML', difficulty: 'Intermediate', points: 200, progress: 40 },
-    { id: 3, title: 'Task Manager API', domain: 'Backend', difficulty: 'Beginner', points: 100, progress: 90 },
-];
-
 export default function StudentDashboardPage() {
     const { user } = useAuth();
     const firstName = user?.name?.split(' ')[0] || 'Student';
-    const [acceptedCount, setAcceptedCount] = useState(0);
+    const [activeProjects, setActiveProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAccepted = async () => {
+        const fetchDashboardData = async () => {
             try {
-                const res = await fetch('/api/student/submit', { headers: getAuthHeaders() });
+                const res = await fetch('/api/student/projects/active', { headers: getAuthHeaders() });
                 if (res.ok) {
                     const data = await res.json();
-                    setAcceptedCount((data.submissions || []).length);
+                    setActiveProjects(data.projects || []);
                 }
-            } catch { /* ignore */ }
+            } catch (error) {
+                console.error('Failed to fetch dashboard data', error);
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchAccepted();
+        fetchDashboardData();
     }, []);
 
-    const totalXP = sampleProjects.reduce((acc, p) => acc + Math.round(p.points * p.progress / 100), 0);
+    // Stats from User Profile + Active Projects
+    const totalXP = user?.xp || 0;
+    const avgScore = user?.avgScore || 0;
+    const nearCompletionCount = activeProjects.filter(p => p.progress >= 80).length;
 
     return (
         <div className={styles.container}>
-            {/* Welcome Banner — Upstream style */}
+            {/* Welcome Banner */}
             <motion.div className={styles.banner} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className={styles.bannerContent}>
                     <span className={styles.bannerBreadcrumb}>Student · Dashboard</span>
@@ -55,12 +57,12 @@ export default function StudentDashboardPage() {
                 </Link>
             </motion.div>
 
-            {/* Stats — Compact icon-left */}
+            {/* Stats Grid */}
             <div className={styles.statsGrid}>
                 <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={0}>
                     <div className={styles.statIcon} style={{ background: '#F0F9FF', color: '#0EA5E9' }}><FolderKanban size={20} /></div>
                     <div className={styles.statContent}>
-                        <span className={styles.statValue}>{acceptedCount || sampleProjects.length}</span>
+                        <span className={styles.statValue}>{activeProjects.length}</span>
                         <span className={styles.statLabel}>Active Projects</span>
                     </div>
                     <TrendingUp size={14} className={styles.statTrend} />
@@ -75,60 +77,70 @@ export default function StudentDashboardPage() {
                 <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={2}>
                     <div className={styles.statIcon} style={{ background: '#FEF3C7', color: '#F59E0B' }}><Trophy size={20} /></div>
                     <div className={styles.statContent}>
-                        <span className={styles.statValue}>{sampleProjects.filter(p => p.progress >= 80).length}</span>
+                        <span className={styles.statValue}>{nearCompletionCount}</span>
                         <span className={styles.statLabel}>Near Completion</span>
                     </div>
                 </motion.div>
                 <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={3}>
                     <div className={styles.statIcon} style={{ background: '#F5F3FF', color: '#8B5CF6' }}><Star size={20} /></div>
                     <div className={styles.statContent}>
-                        <span className={styles.statValue}>4.2</span>
+                        <span className={styles.statValue}>{avgScore}</span>
                         <span className={styles.statLabel}>Avg. Score</span>
                     </div>
                 </motion.div>
             </div>
 
-            {/* Active Projects — Horizontal cards like Upstream Events list */}
+            {/* Active Projects List */}
             <motion.div className={styles.section} initial="hidden" animate="visible" variants={fadeUp} custom={4}>
                 <div className={styles.sectionHeader}>
                     <h2>Active Projects</h2>
                     <Link href="/dashboard/student/explore" className={styles.viewAll}>Explore More <ArrowRight size={14} /></Link>
                 </div>
                 <div className={styles.projectList}>
-                    {sampleProjects.map((project, i) => {
-                        const dc = difficultyColors[project.difficulty] || {};
-                        return (
-                            <motion.div key={project.id} className={styles.projectCard} variants={fadeUp} custom={i + 5}>
-                                <div className={styles.projectAvatar} style={{ background: dc.bg, color: dc.color }}>
-                                    {project.title.charAt(0)}
-                                </div>
-                                <div className={styles.projectInfo}>
-                                    <h4>{project.title}</h4>
-                                    <div className={styles.projectMeta}>
-                                        <span className={styles.domainBadge}>{project.domain}</span>
-                                        <span className={styles.diffBadge} style={{ background: dc.bg, color: dc.color }}>
-                                            <Zap size={10} /> {project.difficulty}
-                                        </span>
+                    {loading ? (
+                        <div className={styles.emptyState}>Loading projects...</div>
+                    ) : activeProjects.length === 0 ? (
+                        <div className={styles.emptyState}>
+                            <p>No active projects yet. Start by exploring!</p>
+                            <Link href="/dashboard/student/explore" className={styles.btnPrimary}>Explore Projects</Link>
+                        </div>
+                    ) : (
+                        activeProjects.map((project, i) => {
+                            const dc = difficultyColors[project.difficulty] || difficultyColors.Intermediate;
+                            return (
+                                <motion.div key={project.id} className={styles.projectCard} variants={fadeUp} custom={i + 5}>
+                                    <div className={styles.projectAvatar} style={{ background: dc.bg, color: dc.color }}>
+                                        {project.title.charAt(0)}
                                     </div>
-                                </div>
-                                <div className={styles.projectProgress}>
-                                    <div className={styles.progressBar}>
-                                        <div className={styles.progressFill} style={{ width: `${project.progress}%` }} />
+                                    <div className={styles.projectInfo}>
+                                        <h4>{project.title}</h4>
+                                        <div className={styles.projectMeta}>
+                                            <span className={styles.domainBadge}>{project.domain}</span>
+                                            <span className={styles.diffBadge} style={{ background: dc.bg, color: dc.color }}>
+                                                <Zap size={10} /> {project.difficulty}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span className={styles.progressLabel}>{project.progress}%</span>
-                                </div>
-                                <div className={styles.projectXP}>
-                                    <strong>+{project.points}</strong>
-                                    <span>XP</span>
-                                </div>
-                                <Link href={`/dashboard/student/projects/${project.id}`} className={styles.projectViewBtn}>
-                                    <ArrowRight size={16} />
-                                </Link>
-                            </motion.div>
-                        );
-                    })}
+                                    <div className={styles.projectProgress}>
+                                        <div className={styles.progressBar}>
+                                            <div className={styles.progressFill} style={{ width: `${project.progress}%` }} />
+                                        </div>
+                                        <span className={styles.progressLabel}>{project.progress}%</span>
+                                    </div>
+                                    <div className={styles.projectXP}>
+                                        <strong>+{project.points}</strong>
+                                        <span>XP</span>
+                                    </div>
+                                    <Link href={`/dashboard/student/projects/${project.id}`} className={styles.projectViewBtn}>
+                                        <ArrowRight size={16} />
+                                    </Link>
+                                </motion.div>
+                            );
+                        })
+                    )}
                 </div>
             </motion.div>
+
 
             {/* Recommended Actions */}
             <motion.div className={styles.quickActions} initial="hidden" animate="visible" variants={fadeUp} custom={8}>

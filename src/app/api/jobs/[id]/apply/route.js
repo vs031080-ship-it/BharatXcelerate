@@ -49,4 +49,34 @@ export async function POST(request, { params }) {
         console.error('Apply error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
+
+}
+
+export async function DELETE(request, { params }) {
+    try {
+        await connectDB();
+        const decoded = await getUserFromRequest(request);
+        if (!decoded) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id } = params;
+
+        const job = await Job.findById(id);
+        if (!job) {
+            return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+        }
+
+        // Remove from job applicants
+        job.applicants = job.applicants.filter(a => a !== decoded.name);
+        await job.save();
+
+        // Delete application record
+        await Application.findOneAndDelete({ jobId: id, userId: decoded.userId });
+
+        return NextResponse.json({ success: true, message: 'Application revoked' });
+    } catch (error) {
+        console.error('Revoke error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
 }

@@ -31,11 +31,6 @@ export default function ProjectDetailPage() {
     const [accepting, setAccepting] = useState(false);
     const [toast, setToast] = useState('');
 
-    /* Submission form state */
-    const [githubUrl, setGithubUrl] = useState('');
-    const [description, setDescription] = useState('');
-    const [submitting, setSubmitting] = useState(false);
-
     const id = params?.id;
 
     useEffect(() => {
@@ -52,8 +47,10 @@ export default function ProjectDetailPage() {
                         const sData = await sRes.json();
                         if (sData.submission) {
                             setSubmission(sData.submission);
-                            setGithubUrl(sData.submission.githubUrl || '');
-                            setDescription(sData.submission.description || '');
+                            // Set active step
+                            if (sData.submission.currentStep !== undefined) {
+                                setActiveStep(sData.submission.currentStep);
+                            }
                         }
                     }
                 } else {
@@ -69,7 +66,11 @@ export default function ProjectDetailPage() {
         loadData();
     }, [id]);
 
-    /* Accept Project */
+    /* Step Submission */
+    const [activeStep, setActiveStep] = useState(0);
+    const [stepContent, setStepContent] = useState('');
+    const [stepSubmitting, setStepSubmitting] = useState(false);
+
     const handleAccept = async () => {
         setAccepting(true);
         try {
@@ -81,7 +82,7 @@ export default function ProjectDetailPage() {
             const data = await res.json();
             if (res.ok) {
                 setSubmission(data.submission);
-                setToast('Project accepted! You can now start working on it.');
+                setToast('Project accepted! Get started.');
                 setTimeout(() => setToast(''), 4000);
             } else {
                 setToast(data.error || 'Failed to accept project');
@@ -94,42 +95,55 @@ export default function ProjectDetailPage() {
         setAccepting(false);
     };
 
-    /* Submit Work */
-    const handleSubmit = async (e) => {
+    const handleStepSubmit = async (e, stepIndex) => {
         e.preventDefault();
-        setSubmitting(true);
+        setStepSubmitting(true);
         try {
             const res = await fetch('/api/student/submit', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ projectId: id, githubUrl, description }),
+                body: JSON.stringify({
+                    projectId: id,
+                    action: 'submit_step',
+                    stepIndex,
+                    content: stepContent
+                }),
             });
             const data = await res.json();
             if (res.ok) {
                 setSubmission(data.submission);
-                setToast('Project submitted successfully!');
+                setToast('Step submitted for review!');
+                setStepContent('');
                 setTimeout(() => setToast(''), 4000);
             } else {
                 setToast(data.error || 'Submission failed');
                 setTimeout(() => setToast(''), 4000);
             }
         } catch {
-            setToast('Error submitting project');
+            setToast('Error submitting step');
             setTimeout(() => setToast(''), 4000);
         }
-        setSubmitting(false);
+        setStepSubmitting(false);
     };
 
     /* Helpers */
     const getStatusInfo = () => {
         if (!submission) return { label: 'Available', class: styles.statusAvailable, desc: 'Review the project and accept to begin' };
-        switch (submission.status) {
-            case 'accepted_by_student': return { label: 'Accepted', class: styles.statusAccepted, desc: 'You accepted this project — start working!' };
-            case 'submitted': return { label: 'Submitted', class: styles.statusSubmitted, desc: 'Your work has been submitted for review' };
-            case 'reviewed': case 'accepted': return { label: 'Graded ✓', class: styles.statusGraded, desc: 'Your submission has been reviewed' };
-            case 'rejected': return { label: 'Needs Revision', class: styles.statusRevision, desc: 'Please review feedback and resubmit' };
-            default: return { label: submission.status, class: '', desc: '' };
-        }
+
+        // Check overall status
+        if (submission.status === 'completed') return { label: 'Completed', class: styles.statusGraded, desc: 'You have completed this project!' };
+
+        // Calculate progress
+        const totalSteps = project?.steps?.length || 0;
+        const completed = submission.completedSteps?.length || 0;
+        const progress = totalSteps > 0 ? Math.round((completed / totalSteps) * 100) : 0;
+
+        return {
+            label: 'In Progress',
+            class: styles.statusAccepted,
+            desc: `${progress}% Completed`,
+            progress
+        };
     };
 
     const statusInfo = project ? getStatusInfo() : {};
@@ -165,9 +179,8 @@ export default function ProjectDetailPage() {
             {/* ======= HERO HEADER ======= */}
             <motion.div className={styles.heroHeader} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className={styles.heroLeft}>
-                    {/* Breadcrumbs */}
                     <div className={styles.heroBreadcrumb}>
-                        <span>Explore</span> <ArrowRight size={12} /> <span>Project Details</span>
+                        <span>Explore</span> <ArrowRight size={12} /> <span>{project.title}</span>
                     </div>
                     <h1>{project.title}</h1>
                     <div className={styles.heroBadges}>
@@ -177,21 +190,26 @@ export default function ProjectDetailPage() {
                         </span>
                     </div>
                     <div className={styles.heroMeta}>
-                        <span><Clock size={14} /> {project.duration || 'Flexible'}</span>
                         <span><Target size={14} /> +{project.points} XP</span>
-                        {project.technologies && project.technologies.length > 0 && (
-                            <span><Layers size={14} /> {project.technologies.length} Technologies</span>
+                        {submission && (
+                            <span className={styles.progressText}>
+                                Progress: {statusInfo.progress}%
+                            </span>
                         )}
                     </div>
                 </div>
                 <div className={styles.heroRight}>
-                    {/* Status Badge */}
                     <div className={styles.statusCard}>
                         <span className={styles.statusLabel}>Status</span>
                         <span className={`${styles.statusPill} ${statusInfo.class}`}>{statusInfo.label}</span>
                         <span className={styles.statusDesc}>{statusInfo.desc}</span>
+                        {/* Progress Bar for Accepted Projects */}
+                        {submission && (
+                            <div className={styles.miniProgressBar}>
+                                <div className={styles.miniProgressFill} style={{ width: `${statusInfo.progress}%` }} />
+                            </div>
+                        )}
                     </div>
-                    {/* Primary CTA — Accept button (only if not yet accepted) */}
                     {!submission && (
                         <button className={styles.acceptBtnLarge} onClick={handleAccept} disabled={accepting}>
                             {accepting ? <Loader size={18} className={styles.spinner} /> : <CheckCircle size={18} />}
@@ -201,133 +219,135 @@ export default function ProjectDetailPage() {
                 </div>
             </motion.div>
 
-            {/* ======= MAIN CONTENT 2-COLUMN ======= */}
+            {/* ======= CONTENT ======= */}
             <div className={styles.mainGrid}>
-                {/* LEFT COLUMN — Content */}
+                {/* LEFT COLUMN */}
                 <div className={styles.leftCol}>
-                    {/* Project Description */}
-                    <motion.div className={styles.card} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                        <div className={styles.cardHeader}>
-                            <BookOpen size={18} />
-                            <h3>Project Overview</h3>
-                            {project.detailedDocument && (
-                                <Link href={project.detailedDocument} target="_blank" className={styles.downloadBtn}>
-                                    <Download size={14} /> Problem Statement
-                                </Link>
-                            )}
-                        </div>
-                        <div className={styles.descriptionBody}>
-                            {project.description}
-                        </div>
-                    </motion.div>
 
-                    {/* Key Requirements */}
-                    {project.requirements && project.requirements.length > 0 && (
-                        <motion.div className={styles.card} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                            <div className={styles.cardHeader}>
-                                <CheckCircle size={18} />
-                                <h3>Key Requirements</h3>
-                                <span className={styles.countChip}>{project.requirements.length} items</span>
+                    {/* WORKSPACE VIEW (If Submitted/Accepted) */}
+                    {submission ? (
+                        <motion.div className={styles.workspace} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
+                            <div className={styles.workspaceHeader}>
+                                <Code size={18} />
+                                <h3>Project Workspace</h3>
                             </div>
-                            <ul className={styles.reqList}>
-                                {project.requirements.map((req, i) => (
-                                    <li key={i}>
-                                        <span className={styles.reqNumber}>{i + 1}</span>
-                                        <span>{req}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
-                    )}
 
-                    {/* Learning Resources */}
-                    {project.resources && project.resources.length > 0 && (
-                        <motion.div className={styles.card} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                            <div className={styles.cardHeader}>
-                                <BookOpen size={18} />
-                                <h3>Learning Resources</h3>
-                                <span className={styles.countChip}>{project.resources.length} resources</span>
-                            </div>
-                            <div className={styles.resourceGrid}>
-                                {project.resources.map((res, i) => {
-                                    const Icon = resIcons[res.type] || Globe;
+                            <div className={styles.stepsContainer}>
+                                {project.steps && project.steps.map((step, index) => {
+                                    // Determine step status
+                                    const stepSub = submission.stepSubmissions?.find(s => s.stepIndex === index);
+                                    const isCompleted = submission.completedSteps?.includes(index);
+                                    const isPending = stepSub && stepSub.status === 'pending';
+                                    const isLocked = index > (submission.currentStep || 0) && !isCompleted;
+                                    const isActive = activeStep === index;
+
                                     return (
-                                        <div key={i} className={styles.resourceCard}>
-                                            <div className={styles.resIcon}>
-                                                <Icon size={22} />
+                                        <div key={index} className={`${styles.stepCard} ${isActive ? styles.stepActive : ''} ${isLocked ? styles.stepLocked : ''}`}>
+                                            <div className={styles.stepHeader} onClick={() => !isLocked && setActiveStep(index)}>
+                                                <div className={styles.stepTitleRow}>
+                                                    <span className={`${styles.stepNumber} ${isCompleted ? styles.stepNumDone : ''}`}>
+                                                        {isCompleted ? <CheckCircle size={14} /> : index + 1}
+                                                    </span>
+                                                    <h4>{step.title}</h4>
+                                                </div>
+                                                <div className={styles.stepMeta}>
+                                                    <span className={styles.stepPoints}>+{step.points} XP</span>
+                                                    {isCompleted && <span className={styles.badgeSuccess}>Completed</span>}
+                                                    {isPending && <span className={styles.badgeWarning}>Pending Review</span>}
+                                                    {isLocked && <span className={styles.badgeLocked}>Locked</span>}
+                                                    <ArrowRight size={16} className={`${styles.stepArrow} ${isActive ? styles.stepArrowActive : ''}`} />
+                                                </div>
                                             </div>
-                                            <div className={styles.resContent}>
-                                                <span className={styles.resType}>{resLabels[res.type] || 'Resource'}</span>
-                                                <h4>{res.title || 'Untitled Resource'}</h4>
-                                                {res.url && (
-                                                    <Link href={res.url} target="_blank" className={styles.resLink}>
-                                                        Open Resource <ExternalLink size={12} />
-                                                    </Link>
+
+                                            {/* Expanded Step Content */}
+                                            <AnimatePresence>
+                                                {isActive && !isLocked && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className={styles.stepBody}
+                                                    >
+                                                        <p className={styles.stepDesc}>{step.description}</p>
+
+                                                        {/* Step Submission Form */}
+                                                        {!isCompleted && !isPending && (
+                                                            <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
+                                                                <label>Submit your work for this step:</label>
+                                                                <textarea
+                                                                    placeholder="Paste your code snippet, GitHub link, or explain your solution..."
+                                                                    value={stepContent}
+                                                                    onChange={(e) => setStepContent(e.target.value)}
+                                                                    required
+                                                                    className={styles.textarea}
+                                                                    rows={3}
+                                                                />
+                                                                <button type="submit" className={styles.submitBtnSmall} disabled={stepSubmitting}>
+                                                                    {stepSubmitting ? 'Submitting...' : 'Submit Step'} <Send size={14} />
+                                                                </button>
+                                                            </form>
+                                                        )}
+
+                                                        {isPending && (
+                                                            <div className={styles.pendingMsg}>
+                                                                <Clock size={16} />
+                                                                <p>Your submission for this step is under review. You&apos;ll be notified once it&apos;s approved.</p>
+                                                            </div>
+                                                        )}
+
+                                                        {stepSub?.feedback && (
+                                                            <div className={styles.feedbackBox}>
+                                                                <strong>Feedback:</strong> {stepSub.feedback}
+                                                            </div>
+                                                        )}
+                                                    </motion.div>
                                                 )}
-                                            </div>
+                                            </AnimatePresence>
                                         </div>
                                     );
                                 })}
                             </div>
                         </motion.div>
-                    )}
-
-                    {/* Submission Form — Only show if project is accepted */}
-                    {submission && submission.status !== 'rejected' && (
-                        <motion.div className={styles.card} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                            <div className={styles.cardHeader}>
-                                <Send size={18} />
-                                <h3>Submit Your Work</h3>
-                            </div>
-
-                            {submission.grade && (
-                                <div className={styles.gradeBox}>
-                                    <Award size={20} />
-                                    <div>
-                                        <strong>Grade: {submission.grade}</strong>
-                                        {submission.feedback && <p>{submission.feedback}</p>}
-                                    </div>
+                    ) : (
+                        /* OVERVIEW VIEW (Not Accepted) */
+                        <>
+                            <motion.div className={styles.card} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+                                <div className={styles.cardHeader}>
+                                    <BookOpen size={18} />
+                                    <h3>Project Overview</h3>
                                 </div>
-                            )}
+                                <div className={styles.descriptionBody}>
+                                    {project.description}
+                                </div>
+                            </motion.div>
 
-                            <form onSubmit={handleSubmit} className={styles.submitForm}>
-                                <div className={styles.formGroup}>
-                                    <label><Github size={14} /> GitHub Repository URL</label>
-                                    <input
-                                        type="url"
-                                        value={githubUrl}
-                                        onChange={e => setGithubUrl(e.target.value)}
-                                        placeholder="https://github.com/username/project-repo"
-                                        required
-                                        className={styles.input}
-                                    />
+                            {/* Show Steps Preview if not accepted */}
+                            <motion.div className={styles.card} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                                <div className={styles.cardHeader}>
+                                    <Layers size={18} />
+                                    <h3>Project Roadmap</h3>
+                                    <span className={styles.countChip}>{project.steps?.length || 0} Steps</span>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label><FileText size={14} /> Project Approach & Notes</label>
-                                    <textarea
-                                        rows={5}
-                                        value={description}
-                                        onChange={e => setDescription(e.target.value)}
-                                        placeholder="Describe your approach, features implemented, and any challenges..."
-                                        required
-                                        className={styles.textarea}
-                                    />
+                                <div className={styles.previewSteps}>
+                                    {project.steps?.map((step, i) => (
+                                        <div key={i} className={styles.previewStepRow}>
+                                            <span className={styles.previewStepNum}>{i + 1}</span>
+                                            <span>{step.title}</span>
+                                            <span className={styles.previewStepPoints}>+{step.points} XP</span>
+                                        </div>
+                                    ))}
                                 </div>
-                                <button type="submit" className={styles.submitBtn} disabled={submitting}>
-                                    <Send size={16} /> {submitting ? 'Submitting...' : submission.status === 'submitted' ? 'Update Submission' : 'Submit Project'}
-                                </button>
-                            </form>
-                        </motion.div>
+                            </motion.div>
+                        </>
                     )}
                 </div>
 
                 {/* RIGHT COLUMN — Sidebar */}
                 <div className={styles.rightCol}>
-                    {/* Quick Stats Card */}
-                    <motion.div className={styles.sidebarCard} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+                    <motion.div className={styles.sidebarCard}>
                         <h4>Project Details</h4>
                         <div className={styles.detailRow}>
-                            <span className={styles.detailLabel}><Target size={14} /> XP Points</span>
+                            <span className={styles.detailLabel}><Target size={14} /> Total XP</span>
                             <span className={styles.detailValue}>+{project.points}</span>
                         </div>
                         <div className={styles.detailRow}>
@@ -338,27 +358,11 @@ export default function ProjectDetailPage() {
                             <span className={styles.detailLabel}><Layers size={14} /> Domain</span>
                             <span className={styles.detailValue}>{project.domain}</span>
                         </div>
-                        <div className={styles.detailRow}>
-                            <span className={styles.detailLabel}><Zap size={14} /> Difficulty</span>
-                            <span className={styles.detailValueBadge} style={{ background: dc.bg, color: dc.color }}>{project.difficulty}</span>
-                        </div>
                     </motion.div>
-
-                    {/* Skills to Learn */}
-                    {project.skills && project.skills.length > 0 && (
-                        <motion.div className={styles.sidebarCard} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-                            <h4><Sparkles size={14} /> Skills You&apos;ll Learn</h4>
-                            <div className={styles.tagGrid}>
-                                {project.skills.map((skill, i) => (
-                                    <span key={i} className={styles.skillTag}>{skill}</span>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
 
                     {/* Tech Stack */}
                     {project.technologies && project.technologies.length > 0 && (
-                        <motion.div className={styles.sidebarCard} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
+                        <motion.div className={styles.sidebarCard}>
                             <h4><Code size={14} /> Tech Stack</h4>
                             <div className={styles.tagGrid}>
                                 {project.technologies.map((tech, i) => (
@@ -368,9 +372,8 @@ export default function ProjectDetailPage() {
                         </motion.div>
                     )}
 
-                    {/* Accept CTA — Sidebar version for non-accepted projects */}
                     {!submission && (
-                        <motion.div className={styles.sidebarCTA} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                        <motion.div className={styles.sidebarCTA}>
                             <Sparkles size={24} />
                             <h4>Ready to start?</h4>
                             <p>Accept this project to begin working on it and track your progress.</p>

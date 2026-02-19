@@ -223,9 +223,27 @@ export function DataProvider({ children }) {
         return notifications.filter(n => n.forRole === role && !n.read).length;
     }, [notifications]);
 
+    const revokeApplication = useCallback(async (jobId, studentName = 'Student') => {
+        try {
+            const res = await fetch(`/api/jobs/${jobId}/apply`, {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+            });
+            if (res.ok) {
+                setJobs(prev => prev.map(j => (j.id === jobId || j._id === jobId) ? { ...j, applicants: j.applicants.filter(a => a !== studentName) } : j));
+                setApplications(prev => prev.filter(a => a.jobId !== jobId));
+                return;
+            }
+        } catch { /* fallback below */ }
+
+        // Fallback
+        setApplications(prev => prev.filter(a => a.jobId !== jobId));
+        setJobs(prev => prev.map(j => (j.id === jobId || j._id === jobId) ? { ...j, applicants: j.applicants.filter(a => a !== studentName) } : j));
+    }, []);
+
     const value = {
         jobs, ideas, shortlist, applications, notifications,
-        addJob, applyToJob, submitIdea, toggleLikeIdea,
+        addJob, applyToJob, revokeApplication, submitIdea, toggleLikeIdea,
         shortlistCandidate, removeShortlist, updateShortlistStatus,
         addNotification, markNotificationRead, markAllNotificationsRead, getUnreadCount,
     };
