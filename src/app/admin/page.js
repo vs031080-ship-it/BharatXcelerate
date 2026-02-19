@@ -1,71 +1,145 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, BookOpen, AlertCircle, CheckCircle, Database, Settings } from 'lucide-react';
+import { Users, FolderKanban, Briefcase, Lightbulb, Clock, CheckCircle, Shield, ArrowRight, Star, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { getAuthHeaders } from '@/context/AuthContext';
+import styles from './admin.module.css';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.05 } }) };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.04 } }) };
 
-const stats = [
-    { label: 'Total Users', value: '12,543', icon: Users, color: 'Blue' },
-    { label: 'Active Projects', value: '1,205', icon: BookOpen, color: 'Purple' },
-    { label: 'Pending Approvals', value: '45', icon: AlertCircle, color: 'Yellow' },
-    { label: 'Verified Skills', value: '8,900', icon: CheckCircle, color: 'Green' },
-];
+export default function AdminDashboardPage() {
+    const [stats, setStats] = useState(null);
+    const [pending, setPending] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-export default function AdminDashboard() {
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await fetch('/api/admin/stats', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setStats(data.stats);
+                    setPending(data.recentPending || []);
+                }
+            } catch (e) { console.error(e); }
+            setLoading(false);
+        };
+        load();
+    }, []);
+
+    const handleVerify = async (userId) => {
+        try {
+            const res = await fetch('/api/admin/users', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ userId, status: 'verified' }),
+            });
+            if (res.ok) {
+                setPending(prev => prev.filter(u => u._id !== userId));
+                setStats(prev => prev ? { ...prev, pendingVerifications: prev.pendingVerifications - 1 } : prev);
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    if (loading) return <div className={styles.loadingScreen}><div className={styles.loadingIcon}><Shield size={40} /></div><p>Loading dashboard...</p></div>;
+
+    const statCards = [
+        { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: '#0EA5E9', bg: '#F0F9FF' },
+        { label: 'Pending', value: stats?.pendingVerifications || 0, icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
+        { label: 'Projects', value: stats?.totalProjects || 0, icon: FolderKanban, color: '#8B5CF6', bg: '#F5F3FF' },
+        { label: 'Jobs', value: stats?.totalJobs || 0, icon: Briefcase, color: '#0D9488', bg: '#F0FDFA' },
+    ];
+
     return (
-        <div style={{ padding: '32px' }}>
-            <div style={{ marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '8px' }}>Admin Overview</h1>
-                <p style={{ color: 'var(--color-text-secondary)' }}>System status and content moderation.</p>
+        <div>
+            {/* Gradient Header Banner — Upstream style */}
+            <div className={styles.gradientBanner}>
+                <div className={styles.bannerContent}>
+                    <span className={styles.bannerBreadcrumb}>Admin · Overview</span>
+                    <h1>Dashboard</h1>
+                    <p>Overview of platform activity and pending actions.</p>
+                </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '40px' }}>
-                {stats.map((s, i) => (
-                    <motion.div key={s.label} initial="hidden" animate="visible" variants={fadeUp} custom={i} style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                            <span style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{s.label}</span>
-                            <strong style={{ fontSize: '1.75rem', fontWeight: 800 }}>{s.value}</strong>
-                        </div>
-                        <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-md)', background: `var(--color-${s.color.toLowerCase() === 'purple' ? 'secondary' : s.color.toLowerCase() === 'yellow' ? 'accent' : 'primary'}-50)`, color: `var(--color-${s.color.toLowerCase() === 'purple' ? 'secondary' : s.color.toLowerCase() === 'yellow' ? 'accent' : 'primary'})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <s.icon size={24} />
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
-                <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '20px' }}>Pending Approvals</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
-                                <div>
-                                    <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, marginBottom: '2px' }}>New Investor Application</h4>
-                                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>Venture Capital Partners • Applied 2 hours ago</p>
-                                </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className="btn btn-outline btn-sm">Review</button>
-                                    <button className="btn btn-primary btn-sm">Approve</button>
-                                </div>
+            <div className={styles.pageContent}>
+                {/* Stat Cards — Upstream compact icon-left */}
+                <div className={styles.statsGrid}>
+                    {statCards.map((stat, i) => (
+                        <motion.div key={stat.label} className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={i}>
+                            <div className={styles.statIcon} style={{ background: stat.bg, color: stat.color }}><stat.icon size={20} /></div>
+                            <div className={styles.statContent}>
+                                <span className={styles.statValue}>{stat.value}</span>
+                                <span className={styles.statLabel}>{stat.label}</span>
                             </div>
-                        ))}
-                    </div>
+                            <TrendingUp size={14} className={styles.statTrend} />
+                        </motion.div>
+                    ))}
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '20px' }}>System Health</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9375rem' }}><Database size={16} /> Database</span>
-                            <span style={{ color: '#10B981', fontWeight: 600, fontSize: '0.875rem' }}>Healthy</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9375rem' }}><Settings size={16} /> API Latency</span>
-                            <span style={{ color: '#10B981', fontWeight: 600, fontSize: '0.875rem' }}>45ms</span>
-                        </div>
+                {/* Quick Actions Row — Notalx style */}
+                <motion.div className={styles.quickActions} initial="hidden" animate="visible" variants={fadeUp} custom={4}>
+                    <Link href="/admin/projects" className={styles.quickActionCard}>
+                        <FolderKanban size={20} />
+                        <span>Manage Projects</span>
+                        <ArrowRight size={14} />
+                    </Link>
+                    <Link href="/admin/users" className={styles.quickActionCard}>
+                        <Users size={20} />
+                        <span>Manage Users</span>
+                        <ArrowRight size={14} />
+                    </Link>
+                    <Link href="/admin/submissions" className={styles.quickActionCard}>
+                        <Star size={20} />
+                        <span>Submissions</span>
+                        <ArrowRight size={14} />
+                    </Link>
+                </motion.div>
+
+                {/* Pending Verifications — Upstream Reports table */}
+                <motion.div className={styles.tableCard} initial="hidden" animate="visible" variants={fadeUp} custom={5}>
+                    <div className={styles.tableHeader}>
+                        <h3>Pending Verifications <span className={styles.countBadge}>{pending.length}</span></h3>
+                        <Link href="/admin/users" className={styles.btnGhost}>View All <ArrowRight size={14} /></Link>
                     </div>
-                </div>
+                    {pending.length === 0 ? (
+                        <div className={styles.empty}><CheckCircle size={32} /><h3>All clear</h3><p>No pending verifications at this time.</p></div>
+                    ) : (
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Registered</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pending.map(user => (
+                                    <tr key={user._id}>
+                                        <td>
+                                            <div className={styles.userCell}>
+                                                <div className={styles.userAvatar}>{user.name?.charAt(0)?.toUpperCase() || 'U'}</div>
+                                                <span className={styles.userName}>{user.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className={styles.textSecondary}>{user.email}</td>
+                                        <td><span className={`${styles.badge} ${user.role === 'company' ? styles.badgeCompany : user.role === 'investor' ? styles.badgeInvestor : styles.badgeStudent}`}>{user.role}</span></td>
+                                        <td className={styles.textSecondary}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                                        <td>
+                                            <div className={styles.btnGroup}>
+                                                <button className={styles.btnSuccess} onClick={() => handleVerify(user._id)}>
+                                                    <CheckCircle size={14} /> Verify
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </motion.div>
             </div>
         </div>
     );

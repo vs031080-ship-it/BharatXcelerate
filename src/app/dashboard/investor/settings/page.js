@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Bell, Shield, Eye, Save, Lock, Target, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Bell, Shield, Eye, Save, Lock, Target, DollarSign, CheckCircle } from 'lucide-react';
+import { useAuth, getAuthHeaders } from '@/context/AuthContext';
 import styles from '../../account.module.css';
 
 const tabs = [
@@ -12,20 +13,100 @@ const tabs = [
 ];
 
 export default function InvestorSettingsPage() {
+    const { user, updateUser } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
-    const handleSave = () => {
+    const [profile, setProfile] = useState({
+        name: '',
+        email: '',
+        bio: '',
+        location: '',
+        github: '',
+        linkedin: '',
+    });
+
+    useEffect(() => {
+        if (user) {
+            setProfile({
+                name: user.name || '',
+                email: user.email || '',
+                bio: user.bio || '',
+                location: user.location || '',
+                github: user.github || '',
+                linkedin: user.linkedin || '',
+            });
+        }
+    }, [user]);
+
+    const handleChange = (field, value) => {
+        setProfile(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const updates = {
+                name: profile.name,
+                bio: profile.bio,
+                location: profile.location,
+                github: profile.github,
+                linkedin: profile.linkedin,
+            };
+            const res = await fetch('/api/users/profile', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(updates),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                updateUser(data.user || updates);
+            } else {
+                updateUser(updates);
+            }
+        } catch {
+            updateUser({
+                name: profile.name,
+                bio: profile.bio,
+                location: profile.location,
+                github: profile.github,
+                linkedin: profile.linkedin,
+            });
+        }
+        setSaving(false);
+        setIsEditing(false);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
 
     return (
         <div className={styles.container}>
+            {/* Toast */}
+            <AnimatePresence>
+                {saved && (
+                    <motion.div className={styles.toast} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                        <CheckCircle size={18} /> Changes saved successfully!
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Page Header */}
             <div className={styles.pageHeader}>
-                <h1 className={styles.pageTitle}>Rajesh Kumar</h1>
+                <h1 className={styles.pageTitle}>{profile.name || 'Investor'}</h1>
                 <p className={styles.pageSubtitle}>Manage your investor profile and deal flow preferences.</p>
+                {activeTab === 'general' && (
+                    <div className={styles.headerActions}>
+                        {isEditing ? (
+                            <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                                <Save size={16} /> {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        ) : (
+                            <button className={styles.editBtnPrimary} onClick={() => setIsEditing(true)}>Edit Profile</button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Tab Bar */}
@@ -45,33 +126,42 @@ export default function InvestorSettingsPage() {
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Photo</div>
                         <div className={styles.rowValue}>
-                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face" alt="Rajesh" className={styles.avatarSmall} />
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face" alt="Avatar" className={styles.avatarSmall} />
                         </div>
                         <div className={styles.rowAction}><button className={styles.editBtn}>Change</button></div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Full Name</div>
-                        <div className={styles.rowValue}>Rajesh Kumar</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.name} onChange={(e) => handleChange('name', e.target.value)} /> : (profile.name || '—')}
+                        </div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Email</div>
-                        <div className={styles.rowValue}>rajesh@example.com</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowValue}>{profile.email || '—'}</div>
                     </div>
 
                     <div className={styles.settingsRow}>
-                        <div className={styles.rowLabel}>Title</div>
-                        <div className={styles.rowValue}>Angel Investor</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowLabel}>Website</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.github} placeholder="ventures.com" onChange={(e) => handleChange('github', e.target.value)} /> : (profile.github || '—')}
+                        </div>
+                    </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>LinkedIn</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.linkedin} placeholder="linkedin.com/in/username" onChange={(e) => handleChange('linkedin', e.target.value)} /> : (profile.linkedin || '—')}
+                        </div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Bio</div>
-                        <div className={styles.rowValue} style={{ maxWidth: 480 }}>Experienced angel investor with a passion for deep tech and sustainability. Former CTO at a unicorn startup.</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowValue} style={{ maxWidth: 480 }}>
+                            {isEditing ? <textarea className={styles.textarea} value={profile.bio} onChange={(e) => handleChange('bio', e.target.value)} /> : (profile.bio || '—')}
+                        </div>
                     </div>
                 </div>
             )}
@@ -84,25 +174,21 @@ export default function InvestorSettingsPage() {
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Min Check Size</div>
                         <div className={styles.rowValue}>₹1,00,000</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Max Check Size</div>
                         <div className={styles.rowValue}>₹10,00,000</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Preferred Stage</div>
                         <div className={styles.rowValue}>Pre-Seed, Seed</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Focus Sectors</div>
                         <div className={styles.rowValue}>Deep Tech, AI/ML, AgriTech, HealthTech</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
                     </div>
                 </div>
             )}

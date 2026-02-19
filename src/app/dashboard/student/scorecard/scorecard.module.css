@@ -346,3 +346,43 @@
         right: 16px;
     }
 }
+
+/* Toast */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 500;
+    background: #039855;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(3, 152, 85, 0.3);
+}
+
+@media print {
+
+    .actions,
+    .viewBtn {
+        display: none !important;
+    }
+
+    .container {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .header h1 {
+        color: black;
+    }
+
+    .verifiedBadge {
+        border-color: black;
+        color: black;
+    }
+}

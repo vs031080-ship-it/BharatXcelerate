@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Github, Linkedin, Globe, Calendar, Star, ArrowRight, Briefcase, GraduationCap, Code2 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import styles from '../../account.module.css';
 
 const tabs = [
@@ -12,7 +13,7 @@ const tabs = [
     { id: 'education', label: 'Education' },
 ];
 
-const skills = ['React', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', 'TypeScript', 'GraphQL', 'Redis', 'Kubernetes'];
+const defaultSkills = ['React', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', 'TypeScript', 'GraphQL', 'Redis', 'Kubernetes'];
 
 const education = [
     { degree: 'B.Tech Computer Science', institution: 'IIT Delhi', year: '2021 - 2025', gpa: '9.2 / 10' },
@@ -25,14 +26,24 @@ const projects = [
     { id: 3, title: 'DeFi Lending Protocol', domain: 'Blockchain', score: 840, status: 'Completed', date: 'Sep 2024' },
 ];
 
-const activity = [
-    { name: 'Arjun Sharma', action: 'completed E-Commerce Platform project', time: 'Jan 15, 2025 · 3:40 PM' },
-    { name: 'Arjun Sharma', action: 'updated profile skills', time: 'Jan 10, 2025 · 11:20 AM' },
-    { name: 'Arjun Sharma', action: 'submitted AI Resume Screener', time: 'Nov 22, 2024 · 5:36 PM' },
-];
-
 export default function StudentProfilePage() {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('overview');
+
+    const userName = user?.name || 'Student';
+    const userEmail = user?.email || 'student@example.com';
+    const userPhone = user?.phone || '+91 98765 43210';
+    const userBio = user?.bio || 'Passionate about building products that solve real-world problems.';
+    const userLocation = user?.location || 'New Delhi, India';
+    const userGithub = user?.github || 'github.com/arjunsharma';
+    const userLinkedin = user?.linkedin || 'linkedin.com/in/arjunsharma';
+    const userSkills = user?.skills?.length > 0 ? user.skills : defaultSkills;
+
+    const activity = [
+        { name: userName, action: 'completed E-Commerce Platform project', time: 'Jan 15, 2025 · 3:40 PM' },
+        { name: userName, action: 'updated profile skills', time: 'Jan 10, 2025 · 11:20 AM' },
+        { name: userName, action: 'submitted AI Resume Screener', time: 'Nov 22, 2024 · 5:36 PM' },
+    ];
 
     return (
         <div className={styles.container}>
@@ -59,24 +70,24 @@ export default function StudentProfilePage() {
                     {/* Left Column — Personal Details */}
                     <div className={styles.profileLeft}>
                         <div className={styles.profileIdentity}>
-                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face" alt="Arjun Sharma" className={styles.profileAvatar} />
+                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face" alt={userName} className={styles.profileAvatar} />
                             <div>
-                                <div className={styles.profileName}>Arjun Sharma</div>
+                                <div className={styles.profileName}>{userName}</div>
                                 <div className={styles.profileId}>Full Stack Developer & AI Enthusiast</div>
                             </div>
                         </div>
 
                         <div className={styles.profileSection}>
                             <div className={styles.profileSectionTitle}>About</div>
-                            <div className={styles.detailItem}><Phone size={14} /> <span>+91 98765 43210</span></div>
-                            <div className={styles.detailItem}><Mail size={14} /> <span>arjun@example.com</span></div>
-                            <div className={styles.detailItem}><Globe size={14} /> <span>github.com/arjunsharma</span></div>
-                            <div className={styles.detailItem}><Linkedin size={14} /> <span>linkedin.com/in/arjunsharma</span></div>
+                            <div className={styles.detailItem}><Phone size={14} /> <span>{userPhone}</span></div>
+                            <div className={styles.detailItem}><Mail size={14} /> <span>{userEmail}</span></div>
+                            <div className={styles.detailItem}><Globe size={14} /> <span>{userGithub}</span></div>
+                            <div className={styles.detailItem}><Linkedin size={14} /> <span>{userLinkedin}</span></div>
                         </div>
 
                         <div className={styles.profileSection}>
                             <div className={styles.profileSectionTitle}>Address</div>
-                            <div className={styles.detailItem}><MapPin size={14} /> <span>New Delhi, India</span></div>
+                            <div className={styles.detailItem}><MapPin size={14} /> <span>{userLocation}</span></div>
                         </div>
 
                         <div className={styles.profileSection}>
@@ -106,7 +117,7 @@ export default function StudentProfilePage() {
                         <div className={styles.profileSection}>
                             <div className={styles.profileSectionTitle}>Bio</div>
                             <p style={{ fontSize: '0.8125rem', color: '#475467', lineHeight: 1.6, margin: 0 }}>
-                                Passionate about building products that solve real-world problems. Currently exploring the intersection of AI and blockchain. 3x hackathon winner.
+                                {userBio}
                             </p>
                         </div>
                     </div>
@@ -154,7 +165,7 @@ export default function StudentProfilePage() {
                             <div>
                                 <div className={styles.profileColTitle}>Skills</div>
                                 <div className={styles.skillTags}>
-                                    {skills.map(s => <span key={s} className={styles.skill}>{s}</span>)}
+                                    {userSkills.map(s => <span key={s} className={styles.skill}>{s}</span>)}
                                 </div>
                                 <div style={{ marginTop: 20 }}>
                                     <div className={styles.profileColTitle}>Education</div>
@@ -210,7 +221,7 @@ export default function StudentProfilePage() {
                     <div className={styles.card}>
                         <h3>Technical Skills</h3>
                         <div className={styles.skillTags}>
-                            {skills.map(s => <span key={s} className={styles.skill}>{s}</span>)}
+                            {userSkills.map(s => <span key={s} className={styles.skill}>{s}</span>)}
                         </div>
                     </div>
                 </div>

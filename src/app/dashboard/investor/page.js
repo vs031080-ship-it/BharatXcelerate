@@ -1,50 +1,113 @@
 'use client';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lightbulb, TrendingUp, ThumbsUp, ArrowRight } from 'lucide-react';
+import { TrendingUp, Lightbulb, ArrowRight, Eye, Sparkles, BarChart3 } from 'lucide-react';
+import Link from 'next/link';
+import { useData } from '@/context/DataContext';
+import { useAuth } from '@/context/AuthContext';
 import styles from './investor.module.css';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.05 } }) };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.04 } }) };
 
-const ideas = [
-    { id: 1, title: 'AgriTech Drone Solution', student: 'Rohan Gupta', domain: 'Agriculture', stage: 'Prototype', summary: 'Autonomous drones for precision pesticide spraying in small farms.', image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=400&h=200&fit=crop' },
-    { id: 2, title: 'Decentralized Identity Vault', student: 'Priya Nair', domain: 'Blockchain', stage: 'Idea', summary: 'Self-sovereign identity management system for gig workers.', image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=200&fit=crop' },
-];
+const stageColors = {
+    'Idea': { bg: '#FEF3C7', color: '#92400E' },
+    'Prototype': { bg: '#DBEAFE', color: '#1E40AF' },
+    'MVP': { bg: '#D1FAE5', color: '#065F46' },
+};
 
-export default function InvestorDashboard() {
+export default function InvestorDashboardPage() {
+    const { ideas, shortlist } = useData();
+    const { user } = useAuth();
+    const firstName = user?.name?.split(' ')[0] || 'Investor';
+
+    const newestIdeas = ideas.slice(0, 4);
+
     return (
         <div className={styles.container}>
-            <div className={styles.banner}>
-                <div>
-                    <h1>Discover the next big thing 💡</h1>
-                    <p>3 new student ideas match your <strong>Deep Tech</strong> focus area.</p>
+            {/* Welcome Banner — Upstream style */}
+            <motion.div className={styles.banner} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <div className={styles.bannerContent}>
+                    <span className={styles.bannerBreadcrumb}>Investor · Dashboard</span>
+                    <h1>Welcome back, {firstName} 👋</h1>
+                    <p>Discover the latest student innovations and investment opportunities.</p>
                 </div>
-                <button className="btn btn-white">Browse All Ideas</button>
+                <Link href="/dashboard/investor/explore" className={styles.browseBtn}>
+                    <Sparkles size={18} /> Browse All Ideas
+                </Link>
+            </motion.div>
+
+            {/* Stats — Compact icon-left */}
+            <div className={styles.statsRow}>
+                <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={0}>
+                    <div className={styles.statIcon} style={{ background: '#EFF6FF', color: '#2563EB' }}><Lightbulb size={20} /></div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>{ideas.length}</span>
+                        <span className={styles.statLabel}>Ideas Pipeline</span>
+                    </div>
+                    <TrendingUp size={14} className={styles.statTrend} />
+                </motion.div>
+                <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={1}>
+                    <div className={styles.statIcon} style={{ background: '#D1FAE5', color: '#059669' }}><TrendingUp size={20} /></div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>{ideas.filter(i => i.likes?.length > 0).length}</span>
+                        <span className={styles.statLabel}>Active Investments</span>
+                    </div>
+                </motion.div>
+                <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={2}>
+                    <div className={styles.statIcon} style={{ background: '#F9F5FF', color: '#6941C6' }}><BarChart3 size={20} /></div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>+18.5%</span>
+                        <span className={styles.statLabel}>Avg. ROI</span>
+                    </div>
+                </motion.div>
             </div>
 
-            <div className={styles.sectionHeader}>
-                <h3>Fresh Ideas for You</h3>
-            </div>
-
-            <div className={styles.grid}>
-                {ideas.map((idea, i) => (
-                    <motion.div key={idea.id} className={styles.card} initial="hidden" animate="visible" variants={fadeUp} custom={i}>
-                        <div className={styles.cardImg}>
-                            <img src={idea.image} alt={idea.title} />
-                            <span className={styles.stageBadge}>{idea.stage}</span>
-                        </div>
-                        <div className={styles.cardContent}>
-                            <span className={styles.domain}>{idea.domain}</span>
-                            <h4>{idea.title}</h4>
-                            <p className={styles.summary}>{idea.summary}</p>
-                            <div className={styles.meta}>
-                                <span>By {idea.student}</span>
-                                <button className={styles.actionBtn}><ThumbsUp size={16} /></button>
+            {/* Newest Ideas — Upstream Events-inspired cards */}
+            <motion.div className={styles.section} initial="hidden" animate="visible" variants={fadeUp} custom={3}>
+                <div className={styles.sectionHeader}>
+                    <h2>Newest Ideas</h2>
+                    <Link href="/dashboard/investor/explore" className={styles.viewAll}>View All <ArrowRight size={14} /></Link>
+                </div>
+                <div className={styles.ideaGrid}>
+                    {newestIdeas.map((idea, i) => (
+                        <motion.div key={idea.id} className={styles.ideaCard} variants={fadeUp} custom={i + 4}>
+                            {/* Card Header */}
+                            <div className={styles.ideaHeader}>
+                                <div className={styles.ideaAvatar} style={{ background: stageColors[idea.stage]?.bg || '#F1F5F9', color: stageColors[idea.stage]?.color || '#475569' }}>
+                                    {idea.title?.charAt(0)?.toUpperCase() || 'I'}
+                                </div>
+                                <div>
+                                    <h4>{idea.title}</h4>
+                                    <span className={styles.ideaAuthor}>By {idea.author}</span>
+                                </div>
                             </div>
-                            <button className="btn btn-outline btn-sm" style={{ width: '100%', marginTop: '12px' }}>View Pitch <ArrowRight size={14} /></button>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+
+                            <p className={styles.ideaDesc}>{idea.description}</p>
+
+                            {/* Badges */}
+                            <div className={styles.ideaBadges}>
+                                <span className={styles.stageBadge} style={{ background: stageColors[idea.stage]?.bg, color: stageColors[idea.stage]?.color }}>{idea.stage}</span>
+                                <span className={styles.categoryBadge}>{idea.category}</span>
+                            </div>
+
+                            {/* Footer — Vendors style */}
+                            <div className={styles.ideaFooter}>
+                                <div className={styles.ideaStat}>
+                                    <strong>{idea.likes.length}</strong>
+                                    <span>Likes</span>
+                                </div>
+                                <div className={styles.ideaStat}>
+                                    <strong>{idea.stage}</strong>
+                                    <span>Stage</span>
+                                </div>
+                                <Link href="/dashboard/investor/explore" className={styles.viewPitchBtn}>
+                                    <Eye size={14} /> View
+                                </Link>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
         </div>
     );
 }

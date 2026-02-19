@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Bell, Shield, Eye, Camera, Save, Lock, Smartphone, Monitor } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Bell, Shield, Eye, Camera, Save, Lock, Smartphone, Monitor, CheckCircle } from 'lucide-react';
+import { useAuth, getAuthHeaders } from '@/context/AuthContext';
 import styles from '../../account.module.css';
 
 const tabs = [
@@ -12,20 +13,100 @@ const tabs = [
 ];
 
 export default function CompanySettingsPage() {
+    const { user, updateUser } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
-    const handleSave = () => {
+    const [profile, setProfile] = useState({
+        name: '',
+        email: '',
+        bio: '',
+        location: '',
+        github: '',
+        linkedin: '',
+    });
+
+    useEffect(() => {
+        if (user) {
+            setProfile({
+                name: user.name || '',
+                email: user.email || '',
+                bio: user.bio || '',
+                location: user.location || '',
+                github: user.github || '',
+                linkedin: user.linkedin || '',
+            });
+        }
+    }, [user]);
+
+    const handleChange = (field, value) => {
+        setProfile(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const updates = {
+                name: profile.name,
+                bio: profile.bio,
+                location: profile.location,
+                github: profile.github,
+                linkedin: profile.linkedin,
+            };
+            const res = await fetch('/api/users/profile', {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(updates),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                updateUser(data.user || updates);
+            } else {
+                updateUser(updates);
+            }
+        } catch {
+            updateUser({
+                name: profile.name,
+                bio: profile.bio,
+                location: profile.location,
+                github: profile.github,
+                linkedin: profile.linkedin,
+            });
+        }
+        setSaving(false);
+        setIsEditing(false);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
 
     return (
         <div className={styles.container}>
+            {/* Toast */}
+            <AnimatePresence>
+                {saved && (
+                    <motion.div className={styles.toast} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                        <CheckCircle size={18} /> Changes saved successfully!
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Page Header */}
             <div className={styles.pageHeader}>
-                <h1 className={styles.pageTitle}>TechNova Solutions</h1>
+                <h1 className={styles.pageTitle}>{profile.name || 'Company'}</h1>
                 <p className={styles.pageSubtitle}>Manage your company details and hiring preferences.</p>
+                {activeTab === 'general' && (
+                    <div className={styles.headerActions}>
+                        {isEditing ? (
+                            <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                                <Save size={16} /> {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        ) : (
+                            <button className={styles.editBtnPrimary} onClick={() => setIsEditing(true)}>Edit Profile</button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Tab Bar */}
@@ -46,7 +127,7 @@ export default function CompanySettingsPage() {
                         <div className={styles.rowLabel}>Logo</div>
                         <div className={styles.rowValue}>
                             <div className={styles.companyAvatar} style={{ background: 'linear-gradient(135deg, #10B981, #2563EB)' }}>
-                                <span style={{ color: 'white', fontWeight: 700 }}>TN</span>
+                                <span style={{ color: 'white', fontWeight: 700 }}>{(profile.name || 'CO').slice(0, 2).toUpperCase()}</span>
                             </div>
                         </div>
                         <div className={styles.rowAction}><button className={styles.editBtn}>Change</button></div>
@@ -54,62 +135,42 @@ export default function CompanySettingsPage() {
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Company Name</div>
-                        <div className={styles.rowValue}>TechNova Solutions</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.name} onChange={(e) => handleChange('name', e.target.value)} /> : (profile.name || '—')}
+                        </div>
                     </div>
 
                     <div className={styles.settingsRow}>
-                        <div className={styles.rowLabel}>Industry</div>
-                        <div className={styles.rowValue}>Enterprise Software</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowLabel}>Email</div>
+                        <div className={styles.rowValue}>{profile.email || '—'}</div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Website</div>
-                        <div className={styles.rowValue}>technova.com</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.github} placeholder="company.com" onChange={(e) => handleChange('github', e.target.value)} /> : (profile.github || '—')}
+                        </div>
+                    </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>LinkedIn</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.linkedin} placeholder="linkedin.com/company/name" onChange={(e) => handleChange('linkedin', e.target.value)} /> : (profile.linkedin || '—')}
+                        </div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Location</div>
-                        <div className={styles.rowValue}>Mumbai, India</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.location} onChange={(e) => handleChange('location', e.target.value)} /> : (profile.location || '—')}
+                        </div>
                     </div>
 
                     <div className={styles.settingsRow}>
                         <div className={styles.rowLabel}>Overview</div>
-                        <div className={styles.rowValue} style={{ maxWidth: 480 }}>Leading enterprise software company specializing in AI-driven automation and cloud infrastructure.</div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Edit</button></div>
-                    </div>
-
-                    <h3 className={styles.sectionHeading}>Team Members</h3>
-
-                    <div className={styles.settingsRow}>
-                        <div className={styles.rowLabel}>Admin</div>
-                        <div className={styles.rowValue}>
-                            <div className={styles.teamRow} style={{ padding: 0 }}>
-                                <div className={styles.teamIcon} style={{ width: 32, height: 32, fontSize: 12 }}>JD</div>
-                                <span>John Doe (You)</span>
-                            </div>
+                        <div className={styles.rowValue} style={{ maxWidth: 480 }}>
+                            {isEditing ? <textarea className={styles.textarea} value={profile.bio} onChange={(e) => handleChange('bio', e.target.value)} /> : (profile.bio || '—')}
                         </div>
-                        <div className={styles.rowAction}><span style={{ fontSize: '0.8125rem', color: '#98A2B3' }}>Owner</span></div>
-                    </div>
-
-                    <div className={styles.settingsRow}>
-                        <div className={styles.rowLabel}>Recruiters</div>
-                        <div className={styles.rowValue}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                <div className={styles.teamRow} style={{ padding: 0 }}>
-                                    <div className={styles.teamIcon} style={{ width: 32, height: 32, fontSize: 12 }}>AS</div>
-                                    <span>Alice Smith</span>
-                                </div>
-                                <div className={styles.teamRow} style={{ padding: 0 }}>
-                                    <div className={styles.teamIcon} style={{ width: 32, height: 32, fontSize: 12 }}>RK</div>
-                                    <span>Raj Kapoor</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className={styles.rowAction}><button className={styles.editBtn}>Manage</button></div>
                     </div>
                 </div>
             )}

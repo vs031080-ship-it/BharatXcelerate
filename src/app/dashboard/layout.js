@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Award, Lightbulb, User, Settings, LogOut, Menu, X, Bell, Search, ChevronDown, Bookmark, Compass } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Award, Lightbulb, User, Settings, LogOut, Menu, X, Bell, Search, ChevronDown, Bookmark, Compass, Briefcase, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { useData } from '@/context/DataContext';
 import styles from './dashboard.module.css';
 
 const sidebarLinks = {
@@ -12,6 +13,7 @@ const sidebarLinks = {
         { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/student' },
         { icon: Compass, label: 'Explore Projects', href: '/dashboard/student/explore' },
         { icon: FolderKanban, label: 'My Projects', href: '/dashboard/student/projects' },
+        { icon: Briefcase, label: 'Jobs', href: '/dashboard/student/jobs' },
         { icon: Award, label: 'My Scorecard', href: '/dashboard/student/scorecard' },
         { icon: Lightbulb, label: 'Idea Lab', href: '/dashboard/student/ideas' },
         { icon: User, label: 'Profile', href: '/dashboard/student/profile' },
@@ -36,13 +38,17 @@ const sidebarLinks = {
 export default function DashboardLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { logout } = useAuth();
-    // Determine role based on URL for demo purposes. In real app, comes from Auth context.
+    const { user, logout } = useAuth();
+    const { notifications, getUnreadCount, markNotificationRead, markAllNotificationsRead } = useData();
     const role = pathname.includes('/company') ? 'company' : pathname.includes('/investor') ? 'investor' : 'student';
     const links = sidebarLinks[role] || sidebarLinks.student;
 
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [notifOpen, setNotifOpen] = useState(false);
+
+    const unreadCount = getUnreadCount(role);
+    const roleNotifications = notifications.filter(n => n.forRole === role).slice(0, 10);
 
     return (
         <div className={styles.dashboardContainer}>
@@ -90,11 +96,56 @@ export default function DashboardLayout({ children }) {
                             <Search size={18} />
                             <input type="text" placeholder="Search..." />
                         </div>
-                        <button className={styles.iconBtn}><Bell size={20} /><span className={styles.badge}>2</span></button>
+                        <div style={{ position: 'relative' }}>
+                            <button className={styles.iconBtn} onClick={() => setNotifOpen(!notifOpen)}>
+                                <Bell size={20} />
+                                {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+                            </button>
+
+                            {/* Notification Dropdown */}
+                            <AnimatePresence>
+                                {notifOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className={styles.notifDropdown}
+                                    >
+                                        <div className={styles.notifHeader}>
+                                            <h4>Notifications</h4>
+                                            {unreadCount > 0 && (
+                                                <button className={styles.markAllRead} onClick={() => markAllNotificationsRead(role)}>
+                                                    Mark all read
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className={styles.notifList}>
+                                            {roleNotifications.length === 0 ? (
+                                                <div className={styles.notifEmpty}>No notifications yet</div>
+                                            ) : (
+                                                roleNotifications.map(n => (
+                                                    <div
+                                                        key={n.id}
+                                                        className={`${styles.notifItem} ${!n.read ? styles.notifUnread : ''}`}
+                                                        onClick={() => { markNotificationRead(n.id); }}
+                                                    >
+                                                        <div className={styles.notifDot}>{!n.read && <span />}</div>
+                                                        <div className={styles.notifContent}>
+                                                            <p>{n.message}</p>
+                                                            <span>{new Date(n.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                         <div className={styles.userMenu}>
                             <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" alt="User" />
                             <div className={styles.userInfo}>
-                                <span className={styles.userName}>Arjun Sharma</span>
+                                <span className={styles.userName}>{user?.name || (role === 'student' ? 'Student' : role === 'company' ? 'Company' : 'Investor')}</span>
                                 <span className={styles.userRole}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>
                             </div>
                             <ChevronDown size={16} />
@@ -110,6 +161,8 @@ export default function DashboardLayout({ children }) {
 
             {/* Mobile Overlay */}
             {mobileOpen && <div className={styles.overlay} onClick={() => setMobileOpen(false)} />}
+            {/* Click outside to close notification dropdown */}
+            {notifOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setNotifOpen(false)} />}
         </div>
     );
 }

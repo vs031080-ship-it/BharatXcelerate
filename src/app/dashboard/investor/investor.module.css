@@ -1,198 +1,329 @@
 /* ============================================
-   INVESTOR DASHBOARD — PROFESSIONAL CLEAN
+   INVESTOR DASHBOARD — UPSTREAM EVENTS INSPIRED
    ============================================ */
 
 .container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
+    padding-bottom: 40px;
 }
 
-/* Banner / Section Header */
+/* Welcome Banner */
 .banner {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    background: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 50%, #7DD3FC 100%);
+    border-radius: 16px;
+    padding: 32px 36px;
     margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #EAECF0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -8%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
 }
 
 .bannerContent {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    position: relative;
+    z-index: 1;
 }
 
-.bannerIcon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: #F9F5FF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6941C6;
-    flex-shrink: 0;
+.bannerBreadcrumb {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+    display: block;
 }
 
 .banner h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #101828;
-    margin-bottom: 2px;
+    margin: 0 0 4px;
 }
 
 .banner p {
+    font-size: 0.9375rem;
+    opacity: 0.85;
+    margin: 0;
+}
+
+.browseBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
     font-size: 0.875rem;
-    color: #475467;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.browseBtn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* Stats Row — Compact icon-left */
+.statsRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.statCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.statIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.statContent {
+    flex: 1;
+}
+
+.statValue {
+    display: block;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.2;
+}
+
+.statLabel {
+    display: block;
+    font-size: 0.75rem;
+    color: #94A3B8;
+    font-weight: 500;
+}
+
+.statTrend {
+    color: #22C55E;
+    flex-shrink: 0;
+}
+
+/* Section */
+.section {
+    margin-bottom: 24px;
 }
 
 .sectionHeader {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #EAECF0;
+    margin-bottom: 16px;
 }
 
-.sectionHeader h1,
-.sectionHeader h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #101828;
-    margin-bottom: 2px;
+.sectionHeader h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0;
 }
 
-/* Grid */
-.grid {
+.viewAll {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #0D9488;
+    text-decoration: none;
+}
+
+.viewAll:hover {
+    text-decoration: underline;
+}
+
+/* Idea Grid — Events-inspired cards */
+.ideaGrid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 16px;
 }
 
-/* Card */
-.card {
+.ideaCard {
     background: #FFFFFF;
-    border-radius: 12px;
-    border: 1px solid #EAECF0;
-    overflow: hidden;
-    transition: all 150ms ease;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
+    transition: all 0.25s;
 }
 
-.card:hover {
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
-    border-color: #D6BBFB;
+.ideaCard:hover {
+    border-color: #0EA5E9;
+    box-shadow: 0 8px 24px -4px rgba(14, 165, 233, 0.12);
+    transform: translateY(-3px);
 }
 
-.cardImg {
-    height: 160px;
-    position: relative;
-    width: 100%;
-}
-
-.cardImg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.stageBadge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(16, 24, 40, 0.7);
-    color: white;
-    font-size: 0.6875rem;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    backdrop-filter: blur(4px);
-}
-
-.cardContent {
-    padding: 16px 20px;
+/* Idea Header — Avatar + Title */
+.ideaHeader {
     display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.domain {
-    font-size: 0.6875rem;
-    color: #6941C6;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.cardContent h4 {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #101828;
-    line-height: 1.4;
-}
-
-.summary {
-    font-size: 0.8125rem;
-    color: #475467;
-    line-height: 1.6;
-    margin-bottom: 12px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.meta {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 0.8125rem;
-    color: #98A2B3;
-    padding-top: 12px;
-    border-top: 1px solid #F2F4F7;
-    margin-top: auto;
+    gap: 12px;
+    margin-bottom: 10px;
 }
 
-.actionBtn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+.ideaAvatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #F9FAFB;
-    color: #98A2B3;
-    transition: all 150ms ease;
-    border: none;
-    cursor: pointer;
+    font-size: 1.125rem;
+    font-weight: 700;
+    flex-shrink: 0;
 }
 
-.actionBtn:hover {
-    background: #F9F5FF;
-    color: #6941C6;
+.ideaHeader h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 2px;
 }
 
-@media (max-width: 1024px) {
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.ideaAuthor {
+    font-size: 0.75rem;
+    color: #94A3B8;
 }
 
+.ideaDesc {
+    font-size: 0.8125rem;
+    color: #64748B;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0 0 12px;
+    flex: 1;
+}
+
+.ideaBadges {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.stageBadge {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 16px;
+}
+
+.categoryBadge {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #64748B;
+    background: #F1F5F9;
+    padding: 3px 10px;
+    border-radius: 16px;
+}
+
+/* Idea Footer — Vendors style */
+.ideaFooter {
+    display: flex;
+    align-items: flex-end;
+    border-top: 1px solid #E2E8F0;
+    padding-top: 14px;
+    gap: 20px;
+}
+
+.ideaStat {
+    display: flex;
+    flex-direction: column;
+}
+
+.ideaStat strong {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.ideaStat span {
+    font-size: 0.6875rem;
+    color: #94A3B8;
+    font-weight: 500;
+}
+
+.viewPitchBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #0D9488;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.viewPitchBtn:hover {
+    background: #F0FDFA;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .banner {
         flex-direction: column;
-        gap: 12px;
+        align-items: flex-start;
+        gap: 16px;
     }
 
-    .grid {
+    .statsRow {
+        grid-template-columns: 1fr;
+    }
+
+    .ideaGrid {
         grid-template-columns: 1fr;
     }
 }

@@ -6,7 +6,7 @@ import Footer from './Footer/Footer';
 
 export default function LayoutWrapper({ children }) {
     const pathname = usePathname();
-    const isDashboard = pathname?.startsWith('/dashboard');
+    const isDashboard = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin');
 
     return (
         <>
