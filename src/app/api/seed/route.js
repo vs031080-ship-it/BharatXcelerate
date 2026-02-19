@@ -12,18 +12,27 @@ export async function POST() {
         await connectDB();
 
         // --- Seed Users ---
-        const existingUsers = await User.countDocuments();
-        if (existingUsers > 0) {
-            return NextResponse.json({ message: 'Database already seeded', users: existingUsers });
+        // --- 1. Ensure Admin User Exists ---
+        const adminEmail = 'admin@bharatxcelerate.com';
+        let adminUser = await User.findOne({ email: adminEmail });
+
+        if (!adminUser) {
+            const adminPassword = await bcrypt.hash('admin123', 10);
+            adminUser = await User.create({
+                name: 'BharatXcelerate Admin', email: adminEmail, password: adminPassword, role: 'admin', status: 'active',
+            });
+            console.log('Admin user created');
+        }
+
+        // --- 2. Check if Seed Data Exists (User: student@test.com) ---
+        const seedUser = await User.findOne({ email: 'student@test.com' });
+        if (seedUser) {
+            return NextResponse.json({ message: 'Seed data already exists (Admin ensured)', users: await User.countDocuments() });
         }
 
         const hashedPassword = await bcrypt.hash('password123', 10);
-        const adminPassword = await bcrypt.hash('admin123', 10);
 
-        // Admin user
-        await User.create({
-            name: 'BharatXcelerate Admin', email: 'admin@bharatxcelerate.com', password: adminPassword, role: 'admin', status: 'active',
-        });
+        // Removed Admin creation from here as it's done above
 
         const student = await User.create({
             name: 'Arjun Sharma', email: 'student@test.com', password: hashedPassword, role: 'student', status: 'active',
