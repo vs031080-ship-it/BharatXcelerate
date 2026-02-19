@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import dns from 'dns';
 
 // Force Google DNS for SRV lookups (fixes Atlas on restrictive networks)
-// dns.setServers(['8.8.8.8', '8.8.4.4']);
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bharatxcelerate';
 
@@ -18,13 +18,21 @@ if (!cached) {
 
 async function connectDB() {
     if (cached.conn) {
+        console.log('Using cached MongoDB connection');
         return cached.conn;
     }
 
     if (!cached.promise) {
         const opts = { bufferCommands: false };
+        console.log('Connecting to MongoDB Atlas...');
+        const start = Date.now();
         cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+            console.log(`MongoDB Connected in ${Date.now() - start}ms`);
             return mongoose;
+        }).catch(err => {
+            console.error('MongoDB Connection Error:', err);
+            cached.promise = null;
+            throw err;
         });
     }
 

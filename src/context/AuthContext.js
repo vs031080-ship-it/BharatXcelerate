@@ -121,7 +121,39 @@ export function AuthProvider({ children }) {
 
     return (
         <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser, getToken }}>
-            {loading ? null : children}
+            {loading ? (
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100vh',
+                    width: '100vw',
+                    backgroundColor: '#0f172a',
+                    color: '#f8fafc',
+                    fontFamily: 'system-ui, -apple-system, sans-serif'
+                }}>
+                    <div className="spinner" style={{
+                        width: '40px',
+                        height: '40px',
+                        border: '4px solid rgba(255, 255, 255, 0.1)',
+                        borderTop: '4px solid #f97316',
+                        borderRadius: '50%',
+                        marginBottom: '1rem'
+                    }} />
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '500' }}>Bharat Xcelerate</h2>
+                    <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Initialising secure connection...</p>
+                    <style>{`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                        .spinner {
+                            animation: spin 1s linear infinite;
+                        }
+                    `}</style>
+                </div>
+            ) : children}
         </AuthContext.Provider>
     );
 }

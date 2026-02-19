@@ -35,35 +35,31 @@ export function DataProvider({ children }) {
     // Load data from API on mount
     useEffect(() => {
         const loadData = async () => {
+            // Fetch jobs (critical for some pages)
             try {
-                const headers = getAuthHeaders();
-                const [jobsRes, ideasRes, shortlistRes, notifsRes] = await Promise.all([
-                    fetch('/api/jobs').catch(() => null),
-                    fetch('/api/ideas').catch(() => null),
-                    fetch('/api/shortlist').catch(() => null),
-                    fetch('/api/notifications', { headers }).catch(() => null),
-                ]);
-
-                if (jobsRes?.ok) {
+                const jobsRes = await fetch('/api/jobs');
+                if (jobsRes.ok) {
                     const data = await jobsRes.json();
                     if (data.jobs?.length > 0) setJobs(data.jobs);
                     setApiAvailable(true);
                 }
-                if (ideasRes?.ok) {
-                    const data = await ideasRes.json();
-                    if (data.ideas?.length > 0) setIdeas(data.ideas);
-                }
-                if (shortlistRes?.ok) {
-                    const data = await shortlistRes.json();
-                    if (data.shortlist?.length > 0) setShortlist(data.shortlist);
-                }
-                if (notifsRes?.ok) {
-                    const data = await notifsRes.json();
+            } catch (e) { console.warn('Failed to load jobs:', e); }
+
+            // Fetch other data in background without blocking
+            const headers = getAuthHeaders();
+
+            fetch('/api/ideas').then(res => res.ok && res.json()).then(data => {
+                if (data?.ideas?.length > 0) setIdeas(data.ideas);
+            }).catch(() => { });
+
+            fetch('/api/shortlist').then(res => res.ok && res.json()).then(data => {
+                if (data?.shortlist?.length > 0) setShortlist(data.shortlist);
+            }).catch(() => { });
+
+            if (headers.Authorization) {
+                fetch('/api/notifications', { headers }).then(res => res.ok && res.json()).then(data => {
                     setNotifications(data.notifications || []);
-                }
-            } catch {
-                // API unavailable, using fallback data
-                console.log('API unavailable, using fallback data');
+                }).catch(() => { });
             }
         };
 
