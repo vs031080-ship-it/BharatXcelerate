@@ -35,7 +35,7 @@ export async function PUT(req) {
         }
 
         const body = await req.json();
-        const { id, status, grade, feedback, stepIndex, stepStatus, stepFeedback } = body;
+        const { id, status, grade, feedback, stepIndex, stepStatus, stepFeedback, totalScore } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 });
@@ -91,6 +91,9 @@ export async function PUT(req) {
                 if (!grade) {
                     return NextResponse.json({ error: 'Grade is mandatory to accept and complete project' }, { status: 400 });
                 }
+                if (totalScore === undefined || totalScore === null) {
+                    return NextResponse.json({ error: 'Total Score is mandatory to accept and complete project' }, { status: 400 });
+                }
                 if (!feedback || feedback.trim().length < 10) {
                     return NextResponse.json({ error: 'Detailed feedback (min 10 chars) is mandatory for final project review' }, { status: 400 });
                 }
@@ -99,6 +102,7 @@ export async function PUT(req) {
             if (status) submission.status = status;
             if (grade !== undefined) submission.grade = grade;
             if (feedback !== undefined) submission.feedback = feedback;
+            if (totalScore !== undefined) submission.totalScore = totalScore;
         }
 
         await submission.save();

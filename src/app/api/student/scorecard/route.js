@@ -37,7 +37,7 @@ export async function GET(req) {
                 title: sub.project.title,
                 domain: sub.project.domain,
                 difficulty: sub.project.difficulty,
-                score: sub.score || 95, // Default score if not in schema
+                score: sub.totalScore || 0,
                 date: sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently',
                 skills: sub.project.skills || []
             };

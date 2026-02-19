@@ -17,6 +17,7 @@ export default function SubmissionDetailPage({ params }) {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [grade, setGrade] = useState('');
+    const [totalScore, setTotalScore] = useState('');
     const [feedback, setFeedback] = useState('');
     const [toast, setToast] = useState('');
     const [stepFeedbacks, setStepFeedbacks] = useState({});
@@ -31,6 +32,7 @@ export default function SubmissionDetailPage({ params }) {
                     if (found) {
                         setSubmission(found);
                         setGrade(found.grade || '');
+                        setTotalScore(found.totalScore !== undefined ? found.totalScore.toString() : '');
                         setFeedback(found.feedback || '');
                     }
                 }
@@ -47,6 +49,11 @@ export default function SubmissionDetailPage({ params }) {
                 setTimeout(() => setToast(''), 3000);
                 return;
             }
+            if (totalScore === '' || isNaN(totalScore)) {
+                setToast('Valid Total Score is mandatory for final acceptance.');
+                setTimeout(() => setToast(''), 3000);
+                return;
+            }
             if (!feedback.trim() || feedback.trim().length < 10) {
                 setToast('Detailed feedback (min 10 chars) is mandatory for final acceptance.');
                 setTimeout(() => setToast(''), 3000);
@@ -59,7 +66,7 @@ export default function SubmissionDetailPage({ params }) {
             const res = await fetch('/api/admin/submissions', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id: submission._id, status: newStatus, grade, feedback }),
+                body: JSON.stringify({ id: submission._id, status: newStatus, grade, totalScore: Number(totalScore), feedback }),
             });
             if (res.ok) {
                 const data = await res.json();
@@ -350,6 +357,18 @@ export default function SubmissionDetailPage({ params }) {
                                 />
                             </div>
                             <div className={styles.fieldRow}>
+                                <label htmlFor="totalScore">Total Score <span className={styles.requiredLabel}>(Required)</span></label>
+                                <input
+                                    id="totalScore"
+                                    type="number"
+                                    value={totalScore}
+                                    onChange={e => setTotalScore(e.target.value)}
+                                    className={styles.input}
+                                    placeholder="e.g. 95"
+                                    disabled={submission.status === 'accepted_by_student'}
+                                />
+                            </div>
+                            <div className={styles.fieldRow}>
                                 <label htmlFor="feedback">Feedback <span className={styles.requiredLabel}>(Required)</span></label>
                                 <textarea
                                     id="feedback"
@@ -388,6 +407,7 @@ export default function SubmissionDetailPage({ params }) {
                                         {submission.status === 'accepted' ? 'Accepted' : 'Rejected'}
                                     </span>
                                     {submission.grade && <div><strong>Grade:</strong> {submission.grade}</div>}
+                                    {submission.totalScore !== undefined && <div><strong>Score:</strong> {submission.totalScore}</div>}
                                     {submission.feedback && <div className={styles.feedbackText}><strong>Feedback:</strong> {submission.feedback}</div>}
                                 </div>
                             )}

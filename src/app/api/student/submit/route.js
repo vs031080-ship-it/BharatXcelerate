@@ -100,6 +100,31 @@ export async function POST(req) {
             return NextResponse.json({ success: true, submission, message: 'Step submitted for review' });
         }
 
+        // Handle "complete project" (Final Submission)
+        if (action === 'complete') {
+            const { githubUrl, description } = body;
+            if (!githubUrl || !description || description.trim().length < 20) {
+                return NextResponse.json({ error: 'GitHub URL and detailed final notes (min 20 chars) are required' }, { status: 400 });
+            }
+
+            const submission = await Submission.findOne({ student: user.userId, project: projectId });
+            if (!submission) {
+                return NextResponse.json({ error: 'Project not started' }, { status: 400 });
+            }
+
+            // Verify all steps are approved
+            if (submission.completedSteps.length < project.steps.length) {
+                return NextResponse.json({ error: 'All project steps must be approved before final submission' }, { status: 400 });
+            }
+
+            submission.githubUrl = githubUrl;
+            submission.description = description;
+            submission.status = 'submitted';
+
+            await submission.save();
+            return NextResponse.json({ success: true, submission, message: 'Final submission successful! Mentor will review it.' });
+        }
+
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 
     } catch (error) {

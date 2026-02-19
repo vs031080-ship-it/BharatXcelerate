@@ -72,6 +72,11 @@ export default function ProjectDetailPage() {
     const [stepContent, setStepContent] = useState('');
     const [stepSubmitting, setStepSubmitting] = useState(false);
 
+    /* Final Submission */
+    const [finalGithubUrl, setFinalGithubUrl] = useState('');
+    const [finalNotes, setFinalNotes] = useState('');
+    const [finalSubmitting, setFinalSubmitting] = useState(false);
+
     const handleAccept = async () => {
         setAccepting(true);
         try {
@@ -131,6 +136,36 @@ export default function ProjectDetailPage() {
             setTimeout(() => setToast(''), 4000);
         }
         setStepSubmitting(false);
+    };
+
+    const handleFinalSubmit = async (e) => {
+        e.preventDefault();
+        setFinalSubmitting(true);
+        try {
+            const res = await fetch('/api/student/submit', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    projectId: id,
+                    action: 'complete',
+                    githubUrl: finalGithubUrl,
+                    description: finalNotes
+                }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setSubmission(data.submission);
+                setToast('Final project submitted! Great job.');
+                setTimeout(() => setToast(''), 4000);
+            } else {
+                setToast(data.error || 'Submission failed');
+                setTimeout(() => setToast(''), 4000);
+            }
+        } catch {
+            setToast('Error submitting project');
+            setTimeout(() => setToast(''), 4000);
+        }
+        setFinalSubmitting(false);
     };
 
     /* Helpers */
@@ -400,6 +435,61 @@ export default function ProjectDetailPage() {
                                     );
                                 })}
                             </div>
+
+                            {/* Final Submission Card — Show after all steps are approved */}
+                            {project.steps && submission.completedSteps?.length === project.steps.length && submission.status !== 'completed' && (
+                                <motion.div className={styles.finalSubmissionCard} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                                    <div className={styles.finalHeader}>
+                                        <Sparkles size={20} color="#F97316" />
+                                        <h3>Final Project Submission</h3>
+                                    </div>
+                                    <p className={styles.finalDesc}>
+                                        All your steps are approved! Now submit your final repository link and implementation notes to get your certificate and XP.
+                                    </p>
+
+                                    {submission.status === 'submitted' ? (
+                                        <div className={styles.pendingFinalBanner}>
+                                            <Clock size={18} />
+                                            <div>
+                                                <strong>Awaiting Final Review</strong>
+                                                <p>Your mentor is reviewing your final submission and assigning your grade.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleFinalSubmit} className={styles.finalForm}>
+                                            <div className={styles.formGroup}>
+                                                <label>Main GitHub Repository URL</label>
+                                                <div className={styles.inputWrapper}>
+                                                    <Github size={16} />
+                                                    <input
+                                                        type="url"
+                                                        placeholder="https://github.com/username/final-project-repo"
+                                                        value={finalGithubUrl}
+                                                        onChange={e => setFinalGithubUrl(e.target.value)}
+                                                        required
+                                                        className={styles.input}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className={styles.formGroup}>
+                                                <label>Comprehensive Implementation Notes</label>
+                                                <textarea
+                                                    placeholder="Summarize your overall project, tech stack used, and any extra features you implemented..."
+                                                    value={finalNotes}
+                                                    onChange={e => setFinalNotes(e.target.value)}
+                                                    required
+                                                    className={styles.textarea}
+                                                    rows={5}
+                                                />
+                                            </div>
+                                            <button type="submit" className={styles.finalSubmitBtn} disabled={finalSubmitting}>
+                                                {finalSubmitting ? <Loader size={18} className={styles.spinner} /> : <Award size={18} />}
+                                                {finalSubmitting ? 'Submitting...' : 'Complete Project'}
+                                            </button>
+                                        </form>
+                                    )}
+                                </motion.div>
+                            )}
                         </motion.div>
                     ) : (
                         /* OVERVIEW VIEW (Not Accepted) */

@@ -862,6 +862,88 @@
     }
 }
 
+/* Final Submission Section */
+.finalSubmissionCard {
+    background: #FFF7ED;
+    border: 2px solid #FED7AA;
+    border-radius: 16px;
+    padding: 30px;
+    margin-top: 30px;
+    box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.1);
+}
+
+.finalHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.finalHeader h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #9A3412;
+}
+
+.finalDesc {
+    color: #C2410C;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.finalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.finalSubmitBtn {
+    background: #F97316;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    transition: all 0.2s;
+    width: fit-content;
+}
+
+.finalSubmitBtn:hover:not(:disabled) {
+    background: #EA580C;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(249, 115, 22, 0.4);
+}
+
+.pendingFinalBanner {
+    background: #FEF3C7;
+    border: 1px solid #FCD34D;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    gap: 15px;
+    color: #92400E;
+}
+
+.pendingFinalBanner strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.pendingFinalBanner p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
 @media (max-width: 1024px) {
     .mainGrid {
         grid-template-columns: 1fr;
