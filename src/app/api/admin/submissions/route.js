@@ -47,28 +47,17 @@ export async function PUT(req) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
         }
 
-        // Handle Step-specific update
         if (stepIndex !== undefined) {
             const stepSub = submission.stepSubmissions.find(s => s.stepIndex === stepIndex);
 
             if (!stepSub) {
-                // Create if not exists (though usually it should exist if student submitted)
-                // But admin might want to approve a step even if student hasn't 'submitted' it efficiently?
-                // No, usually student submits.
-                // If not found, we can create one or error. Let's error or create if we want to force-pass.
-                // For now, let's assume it exists or we add it.
-                submission.stepSubmissions.push({
-                    stepIndex,
-                    status: stepStatus,
-                    feedback: stepFeedback,
-                    submittedAt: new Date()
-                });
-            } else {
-                if (stepStatus) stepSub.status = stepStatus;
-                if (stepFeedback !== undefined) stepSub.feedback = stepFeedback;
+                return NextResponse.json({ error: 'Cannot review a step that has not been submitted' }, { status: 400 });
             }
 
-            // Update completedSteps and currentStep
+            if (stepStatus) stepSub.status = stepStatus;
+            if (stepFeedback !== undefined) stepSub.feedback = stepFeedback;
+
+            // Update completedSteps/Submission Status
             if (stepStatus === 'approved') {
                 if (!submission.completedSteps.includes(stepIndex)) {
                     submission.completedSteps.push(stepIndex);
@@ -80,7 +69,6 @@ export async function PUT(req) {
                 submission.completedSteps = submission.completedSteps.filter(i => i !== stepIndex);
                 submission.status = 'rejected';
 
-                // Send Notification to student
                 await Notification.create({
                     type: 'project_rejected',
                     message: `Step ${stepIndex + 1} of project "${submission.project?.title}" was rejected. Please check feedback.`,
@@ -89,25 +77,22 @@ export async function PUT(req) {
                 });
             }
 
-            // Recalculate current step (next available step)
             const maxCompleted = submission.completedSteps.length > 0 ? Math.max(...submission.completedSteps) : -1;
             submission.currentStep = maxCompleted + 1;
 
-            // Check if project is fully completed
             if (submission.project && submission.project.steps && submission.completedSteps.length >= submission.project.steps.length) {
                 submission.status = 'completed';
             }
-        }
-        // Handle Global update
-        else {
+        } else {
+            // Handle Global update
             if (status) submission.status = status;
             if (grade !== undefined) submission.grade = grade;
             if (feedback !== undefined) submission.feedback = feedback;
         }
 
         await submission.save();
-
         return NextResponse.json({ success: true, submission });
+
     } catch (error) {
         console.error('Update submission error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

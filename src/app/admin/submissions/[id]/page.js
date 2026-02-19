@@ -268,15 +268,17 @@ export default function SubmissionDetailPage({ params }) {
                                                 <div className={styles.buttons}>
                                                     <button
                                                         onClick={() => handleStepAction(i, 'approved')}
-                                                        disabled={actionLoading || isApproved}
+                                                        disabled={actionLoading || isApproved || !sub}
                                                         className={isApproved ? styles.btnApproved : styles.btnApprove}
+                                                        title={!sub ? "Wait for student submission" : ""}
                                                     >
                                                         <CheckCircle size={14} /> {isApproved ? 'Approved' : 'Approve'}
                                                     </button>
                                                     <button
                                                         onClick={() => handleStepAction(i, 'rejected')}
-                                                        disabled={actionLoading}
+                                                        disabled={actionLoading || isApproved || !sub}
                                                         className={`${styles.btnReject} ${isRejected ? styles.btnRejectedActive : ''}`}
+                                                        title={!sub ? "Wait for student submission" : ""}
                                                     >
                                                         <XCircle size={14} /> {isRejected ? 'Rejected' : 'Reject'}
                                                     </button>

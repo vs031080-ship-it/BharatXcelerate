@@ -16,7 +16,7 @@ export async function GET(request) {
         // Fetch active submissions
         const submissions = await Submission.find({
             student: user.userId,
-            status: { $in: ['started', 'submitted'] } // Not 'completed'
+            status: { $in: ['started', 'submitted', 'rejected'] } // Include rejected so they don't disappear
         }).populate('project');
 
         // Transform data for dashboard
@@ -33,12 +33,12 @@ export async function GET(request) {
 
             if (sub.status === 'completed') {
                 displayStatus = 'accepted'; // Green
-            } else if (sub.status === 'submitted') {
+            } else if (sub.status === 'submitted' || sub.status === 'rejected') {
                 // Check if any step is rejected
                 const hasRejected = sub.stepSubmissions?.some(s => s.status === 'rejected');
                 const isPending = sub.stepSubmissions?.some(s => s.status === 'pending');
 
-                if (hasRejected) displayStatus = 'rejected'; // Red
+                if (hasRejected || sub.status === 'rejected') displayStatus = 'rejected'; // Red
                 else if (isPending) displayStatus = 'pending'; // Yellow
                 else displayStatus = 'accepted'; // Green
             } else if (sub.status === 'started') {
