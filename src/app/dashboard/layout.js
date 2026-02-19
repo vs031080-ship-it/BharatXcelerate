@@ -244,13 +244,19 @@ export default function DashboardLayout({ children }) {
                         </div>
 
                         {/* Profile Dropdown */}
-                        <div className={styles.userMenu} style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setProfileOpen(!profileOpen)}>
-                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" alt="User" />
-                            <div className={styles.userInfo}>
-                                <span className={styles.userName}>{user?.name || (role === 'student' ? 'Student' : role === 'company' ? 'Company' : 'Investor')}</span>
-                                <span className={styles.userRole}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>
+                        {/* Profile Dropdown */}
+                        <div style={{ position: 'relative' }}>
+                            <div
+                                className={styles.userMenu}
+                                onClick={() => setProfileOpen(!profileOpen)}
+                            >
+                                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" alt="User" />
+                                <div className={styles.userInfo}>
+                                    <span className={styles.userName}>{user?.name || (role === 'student' ? 'Student' : role === 'company' ? 'Company' : 'Investor')}</span>
+                                    <span className={styles.userRole}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>
+                                </div>
+                                <ChevronDown size={16} />
                             </div>
-                            <ChevronDown size={16} />
 
                             <AnimatePresence>
                                 {profileOpen && (
@@ -270,20 +276,25 @@ export default function DashboardLayout({ children }) {
                                             padding: '8px',
                                             zIndex: 100
                                         }}
-                                        onClick={(e) => e.stopPropagation()}
                                     >
                                         <Link href={`/dashboard/${role}/profile`} className={styles.dropdownItem} style={{
                                             display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
                                             color: '#1e293b', textDecoration: 'none', borderRadius: '8px', fontSize: '0.9rem',
-                                            transition: 'background 0.2s'
-                                        }} onClick={() => setProfileOpen(false)}>
+                                            transition: 'background 0.2s', cursor: 'pointer'
+                                        }} onClick={() => setProfileOpen(false)}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                        >
                                             <User size={18} /> Profile
                                         </Link>
                                         <Link href={`/dashboard/${role}/settings`} className={styles.dropdownItem} style={{
                                             display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
                                             color: '#1e293b', textDecoration: 'none', borderRadius: '8px', fontSize: '0.9rem',
-                                            transition: 'background 0.2s'
-                                        }} onClick={() => setProfileOpen(false)}>
+                                            transition: 'background 0.2s', cursor: 'pointer'
+                                        }} onClick={() => setProfileOpen(false)}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                        >
                                             <Settings size={18} /> Settings
                                         </Link>
                                         <div style={{ height: '1px', background: '#e2e8f0', margin: '8px 0' }} />
@@ -292,7 +303,10 @@ export default function DashboardLayout({ children }) {
                                             color: '#ef4444', background: 'none', border: 'none', width: '100%',
                                             borderRadius: '8px', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left',
                                             transition: 'background 0.2s'
-                                        }}>
+                                        }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                        >
                                             <LogOut size={18} /> Log Out
                                         </button>
                                     </motion.div>
