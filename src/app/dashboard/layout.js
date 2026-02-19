@@ -51,6 +51,27 @@ export default function DashboardLayout({ children }) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+
+    // Refs for click outside
+    const notifRef = useRef(null);
+    const profileRef = useRef(null);
+
+    // Click outside handler
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (notifOpen && notifRef.current && !notifRef.current.contains(event.target)) {
+                setNotifOpen(false);
+            }
+            if (profileOpen && profileRef.current && !profileRef.current.contains(event.target)) {
+                setProfileOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [notifOpen, profileOpen]);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
 
@@ -196,10 +217,10 @@ export default function DashboardLayout({ children }) {
                         </div>
 
                         {/* Notifications */}
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative' }} ref={notifRef}>
                             <button className={styles.iconBtn} onClick={() => setNotifOpen(!notifOpen)}>
                                 <Bell size={20} />
-                                {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+                                <span className={styles.badge}>{unreadCount}</span>
                             </button>
 
                             {/* Notification Dropdown */}
@@ -245,7 +266,7 @@ export default function DashboardLayout({ children }) {
 
                         {/* Profile Dropdown */}
                         {/* Profile Dropdown */}
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative' }} ref={profileRef}>
                             <div
                                 className={styles.userMenu}
                                 onClick={() => setProfileOpen(!profileOpen)}
@@ -324,13 +345,7 @@ export default function DashboardLayout({ children }) {
             {/* Mobile Overlay */}
             {mobileOpen && <div className={styles.overlay} onClick={() => setMobileOpen(false)} />}
 
-            {/* Close Dropdowns on outside click */}
-            {(profileOpen || notifOpen) && (
-                <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 90 }}
-                    onClick={() => { setProfileOpen(false); setNotifOpen(false); }}
-                />
-            )}
-        </div>
+            {/* Close Dropdowns on outside click - REMOVED */}
+        </div >
     );
 }
