@@ -267,6 +267,7 @@
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
 }
 
 .dayCell:hover {
@@ -288,27 +289,33 @@
 
 .dotRed {
     position: absolute;
-    bottom: 4px;
-    width: 4px;
-    height: 4px;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
     background: #ef4444;
     border-radius: 50%;
 }
 
 .dotGreen {
     position: absolute;
-    bottom: 4px;
-    width: 4px;
-    height: 4px;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
     background: #22c55e;
     border-radius: 50%;
 }
 
 .dotYellow {
     position: absolute;
-    bottom: 4px;
-    width: 4px;
-    height: 4px;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
     background: #eab308;
     border-radius: 50%;
 }

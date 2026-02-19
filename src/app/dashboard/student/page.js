@@ -218,13 +218,13 @@ export default function StudentDashboardPage() {
                         {/* Legend */}
                         <div style={{ display: 'flex', gap: '16px', fontSize: '0.75rem', color: '#64748b', marginTop: '12px', justifyContent: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }}></div> Upcoming/Rejected
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }}></div> Upcoming/Rejected
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#eab308' }}></div> Pending
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#eab308' }}></div> Pending
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }}></div> Accepted
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }}></div> Accepted
                             </div>
                         </div>
                     </div>
@@ -272,8 +272,8 @@ export default function StudentDashboardPage() {
                                             <td style={{ color: '#64748b', fontSize: '0.875rem' }}>{project.domain}</td>
                                             <td>
                                                 <span className={`${styles.badge} ${project.displayStatus === 'accepted' ? styles.badgeActive :
-                                                        project.displayStatus === 'pending' ? styles.badgePending :
-                                                            styles.badgeRejected
+                                                    project.displayStatus === 'pending' ? styles.badgePending :
+                                                        styles.badgeRejected
                                                     }`}>
                                                     {project.displayStatus === 'accepted' ? 'Accepted' :
                                                         project.displayStatus === 'pending' ? 'Reviewing' :
