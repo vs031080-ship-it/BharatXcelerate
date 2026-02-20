@@ -4,6 +4,8 @@ import Submission from '@/models/Submission';
 import Project from '@/models/Project';
 import { getUserFromRequest } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     try {
         await connectDB();
@@ -16,8 +18,10 @@ export async function GET(request) {
         // Fetch active submissions
         const submissions = await Submission.find({
             student: user.userId,
-            status: { $in: ['started', 'submitted', 'rejected'] } // Include rejected so they don't disappear
+            status: { $in: ['started', 'submitted', 'rejected', 'accepted'] } // Include accepted as valid active state
         }).populate('project');
+
+        // Transform data for dashboard
 
         // Transform data for dashboard
         const activeProjects = submissions.map(sub => {
