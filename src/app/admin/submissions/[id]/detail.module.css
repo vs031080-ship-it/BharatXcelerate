@@ -907,3 +907,51 @@
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Final Step Review Highlight */
+.finalStepReview {
+    border: 2px solid #F97316;
+    background: #FFF7ED;
+    position: relative;
+    overflow: hidden;
+}
+
+.finalStepReview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: #F97316;
+}
+
+.finalStepBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #F97316;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 5px rgba(249, 115, 22, 0.3);
+}
+
+.finalReviewHeader {
+    background: #FED7AA;
+    color: #9A3412;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #FDBA74;
+}
+

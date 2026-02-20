@@ -963,3 +963,49 @@
         width: 100%;
     }
 }
+/* Final Step Styles */
+.finalBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #FFF7ED;
+    color: #F97316;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    border: 1px solid #FED7AA;
+}
+
+.finalSubmissionArea {
+    background: #FFFBEB;
+    border-color: #FCD34D;
+}
+
+.finalInstr {
+    color: #92400E;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.finalSubmitBtn {
+    background: #F97316;
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+.finalSubmitBtn:hover:not(:disabled) {
+    background: #EA580C;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+/* Admin Final Review Highlight */
+.finalStepReview {
+    border: 2px solid #F97316;
+    background: #FFF7ED;
+}
+
