@@ -143,6 +143,17 @@ export async function PUT(req) {
                     return NextResponse.json({ error: 'Total Score is mandatory to complete project' }, { status: 400 });
                 }
             }
+
+            // Sync completedSteps if project is fully accepted/completed
+            if ((status === 'accepted' || status === 'completed') && submission.project && submission.project.steps) {
+                // Ensure all steps are marked as completed
+                const totalSteps = submission.project.steps.length;
+                submission.completedSteps = Array.from({ length: totalSteps }, (_, i) => i);
+
+                // Also ensure the status is standardized to 'completed' for the final state
+                if (status === 'accepted') submission.status = 'completed';
+            }
+
         }
 
         await submission.save();
