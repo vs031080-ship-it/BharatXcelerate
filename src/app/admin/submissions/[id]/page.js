@@ -262,26 +262,36 @@ export default function SubmissionDetailPage({ params }) {
                     {project?.steps?.length > 0 && (
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
-                                <ListChecks size={18} /> Step-by-Step Review
+                                <ListChecks size={18} /> Detailed Verification Workflow
                             </div>
                             <div className={styles.stepsList}>
                                 {project.steps.map((step, i) => {
                                     const sub = submission.stepSubmissions?.find(s => s.stepIndex === i);
                                     const isApproved = sub?.status === 'approved';
                                     const isRejected = sub?.status === 'rejected';
+                                    const isPending = sub?.status === 'pending';
 
                                     const isLastStep = project.steps && i === project.steps.length - 1;
 
                                     return (
-                                        <div key={i} className={styles.stepReviewItem}>
+                                        <div key={i} className={`${styles.stepReviewItem} ${isApproved ? styles.stepReviewItemApproved : ''} ${isRejected ? styles.stepReviewItemRejected : ''}`}>
                                             <div className={styles.stepHeader}>
-                                                <h4>Step {i + 1}: {step.title}</h4>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: isApproved ? '#DEF7ED' : isRejected ? '#FEE2E2' : '#F1F5F9', border: '1px solid', borderColor: isApproved ? '#10B981' : isRejected ? '#EF4444' : '#E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: isApproved ? '#10B981' : isRejected ? '#EF4444' : '#64748B' }}>
+                                                        {isApproved ? <CheckCircle size={14} /> : isRejected ? <XCircle size={14} /> : i + 1}
+                                                    </div>
+                                                    <h4>{step.title}</h4>
+                                                </div>
                                                 <span className={styles.stepPoints}>{step.points} XP</span>
                                             </div>
                                             <p className={styles.stepDesc}>{step.description}</p>
 
                                             <div className={styles.submissionBox}>
-                                                <strong>Student Submission:</strong>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                                    <strong>Student Submission</strong>
+                                                    {sub?.submittedAt && <span style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{new Date(sub.submittedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>}
+                                                </div>
+
                                                 {sub ? (
                                                     (() => {
                                                         let content = { link: '', notes: '' };
@@ -295,64 +305,79 @@ export default function SubmissionDetailPage({ params }) {
 
                                                         return (
                                                             <div className={styles.contentStructured}>
-                                                                {content.link ? (
-                                                                    <div className={styles.contentRow}>
-                                                                        <span className={styles.label}>Link:</span>
-                                                                        <a href={content.link} target="_blank" rel="noopener noreferrer" className={styles.link}>
-                                                                            <ExternalLink size={12} /> {content.link}
+                                                                {content.link && (
+                                                                    <div style={{ marginBottom: 12 }}>
+                                                                        <a href={content.link} target="_blank" rel="noopener noreferrer" className={styles.githubLink} style={{ width: '100%' }}>
+                                                                            <ExternalLink size={14} /> View Work Reference
                                                                         </a>
                                                                     </div>
-                                                                ) : <div className={styles.textMuted}>No link provided</div>}
+                                                                )}
 
-                                                                <div className={styles.contentRow}>
-                                                                    <span className={styles.label}>Notes:</span>
-                                                                    <p className={styles.notes}>{content.notes || 'No notes provided'}</p>
+                                                                <div className={styles.notesBox} style={{ background: '#F8FAFC', border: '1px dashed #CBD5E1' }}>
+                                                                    {content.notes || 'No notes provided by student.'}
                                                                 </div>
                                                             </div>
                                                         );
                                                     })()
                                                 ) : (
-                                                    <p className={styles.textMuted}>Not submitted yet.</p>
+                                                    <div style={{ padding: '20px', textAlign: 'center', border: '1px dashed #E2E8F0', borderRadius: 8 }}>
+                                                        <Clock size={24} style={{ color: '#CBD5E1', marginBottom: 8 }} />
+                                                        <p className={styles.textMuted} style={{ margin: 0 }}>Step submission pending from student</p>
+                                                    </div>
                                                 )}
-                                                {sub?.submittedAt && <div className={styles.timestamp}>Submitted: {new Date(sub.submittedAt).toLocaleString()}</div>}
                                             </div>
 
-                                            {/* Final Step Grading Fields */}
-
                                             {/* Review Controls - Hide for last step to force global grading */}
-                                            {!isLastStep && (
+                                            {!isLastStep && sub && (
                                                 <div className={styles.reviewControls}>
-                                                    <textarea
-                                                        placeholder="Feedback for this step..."
-                                                        value={stepFeedbacks[i] !== undefined ? stepFeedbacks[i] : (sub?.feedback || '')}
-                                                        onChange={e => setStepFeedbacks(prev => ({ ...prev, [i]: e.target.value }))}
-                                                        disabled={isApproved}
-                                                        rows={2}
-                                                    />
+                                                    <div className={styles.fieldRow}>
+                                                        <label>Assessor Feedback</label>
+                                                        <textarea
+                                                            placeholder="Points of improvement or approval notes..."
+                                                            value={stepFeedbacks[i] !== undefined ? stepFeedbacks[i] : (sub?.feedback || '')}
+                                                            onChange={e => setStepFeedbacks(prev => ({ ...prev, [i]: e.target.value }))}
+                                                            disabled={isApproved || actionLoading}
+                                                            rows={2}
+                                                            className={styles.textarea}
+                                                            style={{ minHeight: 70 }}
+                                                        />
+                                                    </div>
                                                     <div className={styles.buttons}>
-                                                        <button
-                                                            onClick={() => handleStepAction(i, 'approved')}
-                                                            disabled={actionLoading || isApproved || !sub}
-                                                            className={isApproved ? styles.btnApproved : styles.btnApprove}
-                                                            title={!sub ? "Wait for student submission" : ""}
-                                                        >
-                                                            <CheckCircle size={14} /> {isApproved ? 'Approved' : 'Approve'}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleStepAction(i, 'rejected')}
-                                                            disabled={actionLoading || isApproved || !sub}
-                                                            className={`${styles.btnReject} ${isRejected ? styles.btnRejectedActive : ''}`}
-                                                            title={!sub ? "Wait for student submission" : ""}
-                                                        >
-                                                            <XCircle size={14} /> {isRejected ? 'Rejected' : 'Reject'}
-                                                        </button>
+                                                        {!isApproved && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleStepAction(i, 'approved')}
+                                                                    disabled={actionLoading || !sub}
+                                                                    className={styles.acceptBtn}
+                                                                    style={{ flex: 1, height: 40 }}
+                                                                >
+                                                                    <CheckCircle size={14} /> Approve Step
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleStepAction(i, 'rejected')}
+                                                                    disabled={actionLoading || !sub}
+                                                                    className={styles.rejectBtn}
+                                                                    style={{ flex: 1, height: 40 }}
+                                                                >
+                                                                    <XCircle size={14} /> Reject with Feedback
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {isApproved && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#059669', fontSize: '0.875rem', fontWeight: 600, padding: '8px 12px', background: '#DCFCE7', borderRadius: 8, width: '100%' }}>
+                                                                <CheckCircle size={16} /> Step Approved & XP Awarded
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
                                             {isLastStep && (
-                                                <div style={{ marginTop: 15, padding: 10, background: '#FFF7ED', borderRadius: 8, border: '1px solid #FFEDD5', color: '#C2410C', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <AlertCircle size={16} />
-                                                    Final Project Submission. Please review and grade in the section below.
+                                                <div className={styles.waitingNote} style={{ background: '#FFF7ED', color: '#C2410C', borderColor: '#FFEDD5', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                                                    <AlertCircle size={18} style={{ marginTop: 2 }} />
+                                                    <div>
+                                                        <div style={{ fontWeight: 600 }}>Final Step Verification</div>
+                                                        <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>This is the final milestone. Please use the Grading Dashboard below to synthesize the overall project performance.</div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -362,96 +387,133 @@ export default function SubmissionDetailPage({ params }) {
                         </div>
                     )}
 
-                    {/* Student Submission */}
-
-
-                    <div className={styles.card}>
-                        <div className={styles.cardHeader}>
-                            <Award size={18} /> Final Review & Grading
+                    <div className={styles.card} style={{ border: '2px solid #E2E8F0', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
+                        <div className={styles.cardHeader} style={{ background: '#F8FAFC', margin: '-24px -24px 20px -24px', padding: '16px 24px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Award size={18} style={{ color: '#0D9488' }} />
+                                <span style={{ fontWeight: 700 }}>Grading & Final Assessment</span>
+                            </div>
+                            {submission.status === 'accepted' && (
+                                <span className={styles.badgeVerified}>Certified</span>
+                            )}
                         </div>
-                        {/* Merged Student Submission Details */}
+
                         <div className={styles.gradingForm}>
-                            <div className={styles.submissionContent} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid #E5E7EB' }}>
+                            <div className={styles.submissionContent} style={{ padding: '0 0 20px 0', borderBottom: '1px solid #F1F5F9' }}>
                                 <div className={styles.fieldRow}>
-                                    <label>Final GitHub Repository</label>
-                                    {submission.githubUrl && submission.githubUrl !== 'pending' ? (
-                                        <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.githubLink} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px', background: '#F8FAFC', borderRadius: 6, border: '1px solid #E2E8F0', textDecoration: 'none', color: '#0284C7' }}>
-                                            <Github size={16} /> {submission.githubUrl} <ExternalLink size={14} />
-                                        </a>
-                                    ) : (
-                                        <span className={styles.pendingText}>Not submitted yet</span>
-                                    )}
+                                    <label>Overall Submission Artifact</label>
+                                    <div style={{ display: 'flex', gap: 12 }}>
+                                        {submission.githubUrl && submission.githubUrl !== 'pending' ? (
+                                            <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.githubLink} style={{ flex: 1, padding: '12px', background: '#F0F9FF', border: '1px solid #B9E6FE' }}>
+                                                <Github size={16} /> {submission.githubUrl}
+                                            </a>
+                                        ) : (
+                                            <div style={{ flex: 1, padding: '12px', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0', color: '#94A3B8', fontSize: '0.875rem' }}>
+                                                No final artifact link submitted yet
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className={styles.fieldRow} style={{ marginTop: 15 }}>
-                                    <label>Student Notes / Approach</label>
-                                    <div className={styles.notesBox} style={{ padding: 10, background: '#F9FAFB', borderRadius: 6, border: '1px solid #E5E7EB', minHeight: 60 }}>{submission.description || '—'}</div>
+                                    <label>Student Summary & Impact</label>
+                                    <div className={styles.notesBox} style={{ background: '#F9FAFB', border: '1px dashed #E5E7EB', color: '#475569' }}>
+                                        {submission.description || 'No final notes provided.'}
+                                    </div>
                                 </div>
                             </div>
-                            <div className={styles.fieldRow}>
-                                <label htmlFor="grade">Grade <span className={styles.requiredLabel}>(Required)</span></label>
-                                <input
-                                    id="grade"
-                                    type="text"
-                                    value={grade}
-                                    onChange={e => setGrade(e.target.value)}
-                                    className={styles.input}
-                                    placeholder="e.g. A+, 95/100, Excellent"
-                                    disabled={submission.status === 'accepted_by_student'}
-                                />
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                                <div className={styles.fieldRow}>
+                                    <label>Letter Grade / Certification</label>
+                                    <input
+                                        type="text"
+                                        value={grade}
+                                        onChange={e => setGrade(e.target.value)}
+                                        className={styles.input}
+                                        style={{ height: 46, fontSize: '1rem', fontWeight: 600 }}
+                                        placeholder="e.g. Platinum, A+, Distinction"
+                                        disabled={submission.status === 'accepted' || actionLoading}
+                                    />
+                                </div>
+                                <div className={styles.fieldRow}>
+                                    <label>Quantitative Score (0-100)</label>
+                                    <input
+                                        type="number"
+                                        value={totalScore}
+                                        onChange={e => setTotalScore(e.target.value)}
+                                        className={styles.input}
+                                        style={{ height: 46, fontSize: '1rem', fontWeight: 600 }}
+                                        placeholder="e.g. 98"
+                                        disabled={submission.status === 'accepted' || actionLoading}
+                                    />
+                                </div>
                             </div>
+
                             <div className={styles.fieldRow}>
-                                <label htmlFor="totalScore">Total Score <span className={styles.requiredLabel}>(Required)</span></label>
-                                <input
-                                    id="totalScore"
-                                    type="number"
-                                    value={totalScore}
-                                    onChange={e => setTotalScore(e.target.value)}
-                                    className={styles.input}
-                                    placeholder="e.g. 95"
-                                    disabled={submission.status === 'accepted_by_student'}
-                                />
-                            </div>
-                            <div className={styles.fieldRow}>
-                                <label htmlFor="feedback">Feedback <span className={styles.requiredLabel}>(Required)</span></label>
+                                <label>Executive Feedback & Next Steps</label>
                                 <textarea
-                                    id="feedback"
                                     value={feedback}
                                     onChange={e => setFeedback(e.target.value)}
                                     className={styles.textarea}
-                                    rows={4}
-                                    placeholder="Write detailed feedback for the student (min 10 chars)..."
-                                    disabled={submission.status === 'accepted_by_student'}
+                                    rows={5}
+                                    placeholder="Provide a comprehensive summary of the student's work and areas for professional growth..."
+                                    disabled={submission.status === 'accepted' || actionLoading}
                                 />
                             </div>
+
                             {(submission.status === 'submitted' || submission.status === 'accepted_by_student') && (
-                                <div className={styles.actionRow}>
+                                <div className={styles.actionRow} style={{ paddingTop: 10 }}>
                                     {submission.status === 'submitted' && (
                                         <>
-                                            <button className={styles.acceptBtn} onClick={() => handleStatusUpdate('accepted')} disabled={actionLoading}>
-                                                {actionLoading ? <Loader2 size={16} className={styles.spin} /> : <CheckCircle size={16} />}
-                                                Accept & Grade
+                                            <button
+                                                className={styles.acceptBtn}
+                                                onClick={() => handleStatusUpdate('accepted')}
+                                                disabled={actionLoading}
+                                                style={{ padding: '12px 32px', fontSize: '0.95rem' }}
+                                            >
+                                                {actionLoading ? <Loader2 size={18} className={styles.spin} /> : <CheckCircle size={18} />}
+                                                Finalize & Issue Certification
                                             </button>
-                                            <button className={styles.rejectBtn} onClick={() => handleStatusUpdate('rejected')} disabled={actionLoading}>
-                                                <XCircle size={16} /> Reject
+                                            <button
+                                                className={styles.rejectBtn}
+                                                onClick={() => handleStatusUpdate('rejected')}
+                                                disabled={actionLoading}
+                                                style={{ padding: '12px 24px' }}
+                                            >
+                                                <XCircle size={18} /> Request Re-submission
                                             </button>
                                         </>
                                     )}
                                     {submission.status === 'accepted_by_student' && (
-                                        <p className={styles.waitingNote}>
-                                            <AlertCircle size={14} /> Student has accepted the project but hasn&apos;t submitted work yet.
-                                        </p>
+                                        <div className={styles.waitingNote} style={{ width: '100%', justifyContent: 'center' }}>
+                                            <AlertCircle size={16} /> Waiting for Student Final Submission
+                                        </div>
                                     )}
                                 </div>
                             )}
-                            {(submission.status === 'accepted' || submission.status === 'rejected') && (
-                                <div className={styles.resultBox}>
-                                    <span className={`${styles.resultBadge} ${submission.status === 'accepted' ? styles.resultAccepted : styles.resultRejected}`}>
-                                        {submission.status === 'accepted' ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                                        {submission.status === 'accepted' ? 'Accepted' : 'Rejected'}
-                                    </span>
-                                    {submission.grade && <div><strong>Grade:</strong> {submission.grade}</div>}
-                                    {submission.totalScore !== undefined && <div><strong>Score:</strong> {submission.totalScore}</div>}
-                                    {submission.feedback && <div className={styles.feedbackText}><strong>Feedback:</strong> {submission.feedback}</div>}
+
+                            {submission.status === 'accepted' && (
+                                <div className={styles.resultBox} style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                        <span className={styles.resultAccepted} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>
+                                            <Award size={14} /> Project Certified
+                                        </span>
+                                        <span style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 500 }}>Graded on {new Date(submission.updatedAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                        <div style={{ padding: 12, background: '#FFFFFF', borderRadius: 10, border: '1px solid #DCFCE7' }}>
+                                            <label style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', marginBottom: 4 }}>GRADE</label>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>{submission.grade}</div>
+                                        </div>
+                                        <div style={{ padding: 12, background: '#FFFFFF', borderRadius: 10, border: '1px solid #DCFCE7' }}>
+                                            <label style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', marginBottom: 4 }}>SCORE</label>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>{submission.totalScore}%</div>
+                                        </div>
+                                    </div>
+                                    <div style={{ marginTop: 12, padding: 12, background: '#FFFFFF', borderRadius: 10, border: '1px solid #DCFCE7' }}>
+                                        <label style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', marginBottom: 4 }}>FEEDBACK</label>
+                                        <p className={styles.feedbackText} style={{ margin: 0 }}>{submission.feedback}</p>
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { getAuthHeaders } from '@/context/AuthContext';
 import styles from '../admin.module.css';
 import Link from 'next/link';
-import { Search, Eye, CheckCircle, XCircle, Github, FileText, Calendar, User, ExternalLink } from 'lucide-react';
+import { Search, Eye, CheckCircle, XCircle, Github, FileText, Calendar, User, ExternalLink, Send, Clock } from 'lucide-react';
 
 export default function AdminSubmissionsPage() {
     const [submissions, setSubmissions] = useState([]);
@@ -106,41 +106,77 @@ export default function AdminSubmissionsPage() {
         <div>
             {/* Gradient Header Banner */}
             <div className={styles.gradientBanner}>
-                <h1>Submissions <span className={styles.bannerCount}>{submissions.length}</span></h1>
-                <p>Review and grade project submissions from students.</p>
+                <div className={styles.bannerContent}>
+                    <span className={styles.bannerBreadcrumb}>Admin Dashboard</span>
+                    <h1>Submissions Review <span className={styles.bannerCount}>{submissions.length}</span></h1>
+                    <p>Review, grade, and provide feedback on student project submissions.</p>
+                </div>
             </div>
 
             <div className={styles.pageContent}>
-                {/* Filter Tabs */}
-                <div className={styles.filterTabs}>
-                    {[
-                        { key: 'all', label: 'All Submissions', count: counts.all },
-                        { key: 'started', label: 'In Progress', count: counts.started },
-                        { key: 'submitted', label: 'Pending Review', count: counts.submitted },
-                        { key: 'completed', label: 'Completed', count: counts.completed },
-                        { key: 'rejected', label: 'Rejected', count: counts.rejected },
-                    ].map(tab => (
-                        <button
-                            key={tab.key}
-                            className={`${styles.filterTab} ${filter === tab.key ? styles.filterTabActive : ''}`}
-                            onClick={() => setFilter(tab.key)}
-                        >
-                            {tab.label}
-                            <span className={styles.tabCount}>{tab.count}</span>
-                        </button>
-                    ))}
+                {/* Stats Grid */}
+                <div className={styles.statsGrid}>
+                    <div className={styles.statCard}>
+                        <div className={styles.statIcon} style={{ background: '#F0FDFA', color: '#0D9488' }}><Send size={20} /></div>
+                        <div className={styles.statContent}>
+                            <span className={styles.statLabel}>Pending Review</span>
+                            <span className={styles.statValue}>{counts.submitted}</span>
+                        </div>
+                    </div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statIcon} style={{ background: '#EFF6FF', color: '#2563EB' }}><CheckCircle size={20} /></div>
+                        <div className={styles.statContent}>
+                            <span className={styles.statLabel}>Completed</span>
+                            <span className={styles.statValue}>{counts.completed}</span>
+                        </div>
+                    </div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statIcon} style={{ background: '#FFF7ED', color: '#EA580C' }}><Clock size={20} /></div>
+                        <div className={styles.statContent}>
+                            <span className={styles.statLabel}>In Progress</span>
+                            <span className={styles.statValue}>{counts.started}</span>
+                        </div>
+                    </div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statIcon} style={{ background: '#FEF2F2', color: '#DC2626' }}><XCircle size={20} /></div>
+                        <div className={styles.statContent}>
+                            <span className={styles.statLabel}>Rejected</span>
+                            <span className={styles.statValue}>{counts.rejected}</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Search */}
-                <div className={styles.filterBar}>
-                    <div className={styles.searchInput}>
-                        <Search size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search student or project..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                {/* Filter & Search Bar */}
+                <div className={styles.card} style={{ padding: '12px 20px', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+                        <div className={styles.filterTabs} style={{ margin: 0, border: 'none' }}>
+                            {[
+                                { key: 'all', label: 'All', count: counts.all },
+                                { key: 'submitted', label: 'Pending', count: counts.submitted },
+                                { key: 'started', label: 'Started', count: counts.started },
+                                { key: 'completed', label: 'Done', count: counts.completed },
+                                { key: 'rejected', label: 'Rejected', count: counts.rejected },
+                            ].map(tab => (
+                                <button
+                                    key={tab.key}
+                                    className={`${styles.filterTab} ${filter === tab.key ? styles.filterTabActive : ''}`}
+                                    onClick={() => setFilter(tab.key)}
+                                >
+                                    {tab.label}
+                                    <span className={styles.tabCount}>{tab.count}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className={styles.searchInput} style={{ width: 300 }}>
+                            <Search size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search student or project..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -149,64 +185,80 @@ export default function AdminSubmissionsPage() {
                         <thead>
                             <tr>
                                 <th>Student</th>
-                                <th>Project</th>
-                                <th>Submitted</th>
+                                <th>Project & Progress</th>
+                                <th>Submission Date</th>
                                 <th>Status</th>
-                                <th>GitHub</th>
+                                <th>Performance</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredSubmissions.length > 0 ? filteredSubmissions.map(submission => (
-                                <tr key={submission._id}>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#F0FDFA', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0D9488', fontWeight: 600, fontSize: '0.8125rem', flexShrink: 0 }}>
-                                                {submission.student?.name?.charAt(0)?.toUpperCase() || <User size={16} />}
+                            {filteredSubmissions.length > 0 ? filteredSubmissions.map(submission => {
+                                const totalSteps = submission.project?.steps?.length || 0;
+                                const completedSteps = submission.completedSteps?.length || 0;
+                                const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+                                return (
+                                    <tr key={submission._id}>
+                                        <td>
+                                            <div className={styles.userCell}>
+                                                <div className={styles.userAvatar}>
+                                                    {submission.student?.name?.charAt(0)?.toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div className={styles.userName}>{submission.student?.name || 'Unknown'}</div>
+                                                    <div className={styles.textSecondary} style={{ fontSize: '0.75rem' }}>{submission.student?.email}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div style={{ fontWeight: 500, color: '#0F172A' }}>{submission.student?.name || 'Unknown'}</div>
-                                                <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{submission.student?.email}</div>
+                                        </td>
+                                        <td>
+                                            <div style={{ fontWeight: 500, color: '#0F172A', marginBottom: 6 }}>{submission.project?.title || 'Unknown Project'}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <div style={{ flex: 1, height: 6, background: '#F1F5F9', borderRadius: 3, maxWidth: 120 }}>
+                                                    <div style={{ height: '100%', background: '#0D9488', borderRadius: 3, width: `${progress}%` }} />
+                                                </div>
+                                                <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>{progress}%</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td style={{ fontWeight: 500, color: '#0F172A' }}>{submission.project?.title || 'Unknown Project'}</td>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: '0.8125rem' }}>
-                                            <Calendar size={14} />
-                                            {new Date(submission.createdAt).toLocaleDateString()}
-                                        </div>
-                                    </td>
-                                    <td>{getStatusBadge(submission.status)}</td>
-                                    <td>
-                                        <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.btnGhost} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                            <Github size={16} /> Repo <ExternalLink size={12} />
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <div className={styles.btnGroup}>
-                                            <Link href={`/admin/submissions/${submission._id}`} className={styles.btnOutline} title="View Details">
-                                                <Eye size={16} />
-                                            </Link>
-                                            {submission.status === 'submitted' && (
-                                                <>
-                                                    <button className={styles.btnSuccess} onClick={() => handleStatusUpdate(submission._id, 'completed')} title="Approve Project" disabled={actionLoading}>
-                                                        <CheckCircle size={16} />
-                                                    </button>
-                                                    <button className={styles.btnDanger} onClick={() => handleStatusUpdate(submission._id, 'rejected')} title="Reject Project" disabled={actionLoading}>
-                                                        <XCircle size={16} />
-                                                    </button>
-                                                </>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: '0.8125rem' }}>
+                                                <Calendar size={14} />
+                                                {new Date(submission.updatedAt || submission.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                            </div>
+                                        </td>
+                                        <td>{getStatusBadge(submission.status)}</td>
+                                        <td>
+                                            {submission.status === 'completed' ? (
+                                                <div>
+                                                    <div style={{ fontWeight: 600, color: '#0F172A' }}>{submission.grade}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#059669' }}>Score: {submission.totalScore}</div>
+                                                </div>
+                                            ) : (
+                                                <span className={styles.textSecondary} style={{ fontSize: '0.75rem' }}>Pending Grading</span>
                                             )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            )) : (
+                                        </td>
+                                        <td>
+                                            <div className={styles.btnGroup}>
+                                                <Link href={`/admin/submissions/${submission._id}`} className={styles.btnOutline} title="View Details">
+                                                    <Eye size={16} /> Review
+                                                </Link>
+                                                {submission.status === 'submitted' && (
+                                                    <Link href={`/admin/submissions/${submission._id}`} className={styles.btnSuccess} style={{ padding: '6px 8px' }}>
+                                                        <CheckCircle size={16} />
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            }) : (
                                 <tr>
                                     <td colSpan="6" className={styles.empty}>
-                                        <FileText size={48} />
-                                        <h3>No submissions found</h3>
-                                        <p>Students have not submitted any projects yet.</p>
+                                        <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                                            <FileText size={48} style={{ color: '#CBD5E1', marginBottom: 16 }} />
+                                            <h3 style={{ color: '#475569', marginBottom: 8 }}>No submissions found</h3>
+                                            <p style={{ color: '#94A3B8' }}>Try adjusting your filters or wait for students to submit.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}

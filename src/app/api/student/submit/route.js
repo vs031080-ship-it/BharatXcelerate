@@ -112,9 +112,12 @@ export async function POST(req) {
                 return NextResponse.json({ error: 'Project not started' }, { status: 400 });
             }
 
-            // Verify all steps are approved
-            if (submission.completedSteps.length < project.steps.length) {
-                return NextResponse.json({ error: 'All project steps must be approved before final submission' }, { status: 400 });
+            // Verify all steps are submitted
+            const submittedStepIndices = (submission.stepSubmissions || []).map(s => s.stepIndex);
+            const allStepsSubmitted = project.steps.every((_, idx) => submittedStepIndices.includes(idx));
+
+            if (!allStepsSubmitted) {
+                return NextResponse.json({ error: 'All project steps must be submitted before final submission' }, { status: 400 });
             }
 
             submission.githubUrl = githubUrl;
