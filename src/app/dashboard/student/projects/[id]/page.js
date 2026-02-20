@@ -305,6 +305,8 @@ export default function ProjectDetailPage() {
                                         }
                                     }
 
+                                    const isLastStep = index === project.steps.length - 1;
+
                                     return (
                                         <div key={index} className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${isLocked ? styles.stepLocked : ''} ${isCompleted ? styles.stepCompleted : ''} ${isRejected ? styles.stepRejected : ''}`}>
                                             {/* Vertical Line */}
@@ -325,7 +327,7 @@ export default function ProjectDetailPage() {
                                             <div className={styles.stepContentWrapper}>
                                                 <div className={styles.stepHeaderRow} onClick={() => !isLocked && setActiveStep(index)}>
                                                     <div className={styles.stepTitleGroup}>
-                                                        <h4>{step.title}</h4>
+                                                        <h4>{step.title} {isLastStep && <span className={styles.finalBadge}><Sparkles size={12} /> Final Step</span>}</h4>
                                                         <span className={styles.stepPointsBadge}>+{step.points} XP</span>
                                                     </div>
                                                     <div className={styles.stepStatusBadge}>
@@ -348,7 +350,7 @@ export default function ProjectDetailPage() {
                                                             <p className={styles.stepDesc}>{step.description}</p>
 
                                                             {/* Submission Form / View */}
-                                                            <div className={styles.submissionArea}>
+                                                            <div className={`${styles.submissionArea} ${isLastStep ? styles.finalSubmissionArea : ''}`}>
                                                                 {isRejected && stepSub?.feedback && (
                                                                     <div className={`${styles.feedbackBanner} ${styles.rejectedFeedback}`}>
                                                                         <div className={styles.feedbackBannerHeader}>
@@ -361,15 +363,16 @@ export default function ProjectDetailPage() {
 
                                                                 {!isCompleted && !isPending ? (
                                                                     <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
-                                                                        <h5>Submit Your Work</h5>
+                                                                        <h5>{isLastStep ? 'Final Project Submission' : 'Submit Your Work'}</h5>
+                                                                        {isLastStep && <p className={styles.finalInstr}>Great job reaching the final step! Please submit your full project repository URL and a comprehensive summary of your work to complete the project.</p>}
 
                                                                         <div className={styles.formGroup}>
-                                                                            <label>Project Link / GitHub Repo</label>
+                                                                            <label>{isLastStep ? 'Main GitHub Repository URL' : 'Project Link / GitHub Repo'}</label>
                                                                             <div className={styles.inputWrapper}>
-                                                                                <LinkIcon size={16} />
+                                                                                {isLastStep ? <Github size={16} /> : <LinkIcon size={16} />}
                                                                                 <input
                                                                                     type="url"
-                                                                                    placeholder="https://github.com/username/repo"
+                                                                                    placeholder={isLastStep ? "https://github.com/username/final-project-repo" : "https://github.com/username/repo"}
                                                                                     required
                                                                                     className={styles.input}
                                                                                     name="link"
@@ -378,19 +381,19 @@ export default function ProjectDetailPage() {
                                                                         </div>
 
                                                                         <div className={styles.formGroup}>
-                                                                            <label>Implementation Notes</label>
+                                                                            <label>{isLastStep ? 'Comprehensive Implementation Notes' : 'Implementation Notes'}</label>
                                                                             <textarea
-                                                                                placeholder="Describe your approach, challenges faced, or key features..."
+                                                                                placeholder={isLastStep ? "Summarize your overall project, tech stack used, and any extra features you implemented..." : "Describe your approach, challenges faced, or key features..."}
                                                                                 required
                                                                                 className={styles.textarea}
-                                                                                rows={4}
+                                                                                rows={isLastStep ? 6 : 4}
                                                                                 name="notes"
                                                                             />
                                                                         </div>
 
-                                                                        <button type="submit" className={styles.submitBtn} disabled={stepSubmitting}>
-                                                                            {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : <SendHorizontal size={16} />}
-                                                                            {stepSubmitting ? 'Submitting...' : isRejected ? 'Re-submit Work' : 'Submit Review'}
+                                                                        <button type="submit" className={`${styles.submitBtn} ${isLastStep ? styles.finalSubmitBtn : ''}`} disabled={stepSubmitting}>
+                                                                            {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : (isLastStep ? <Award size={16} /> : <SendHorizontal size={16} />)}
+                                                                            {stepSubmitting ? 'Submitting...' : isRejected ? 'Re-submit Work' : (isLastStep ? 'Complete Project' : 'Submit Review')}
                                                                         </button>
                                                                     </form>
                                                                 ) : (
@@ -435,61 +438,6 @@ export default function ProjectDetailPage() {
                                     );
                                 })}
                             </div>
-
-                            {/* Final Submission Card — Show after all steps are approved */}
-                            {project.steps && submission.completedSteps?.length === project.steps.length && submission.status !== 'completed' && (
-                                <motion.div className={styles.finalSubmissionCard} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                                    <div className={styles.finalHeader}>
-                                        <Sparkles size={20} color="#F97316" />
-                                        <h3>Final Project Submission</h3>
-                                    </div>
-                                    <p className={styles.finalDesc}>
-                                        All your steps are approved! Now submit your final repository link and implementation notes to get your certificate and XP.
-                                    </p>
-
-                                    {submission.status === 'submitted' ? (
-                                        <div className={styles.pendingFinalBanner}>
-                                            <Clock size={18} />
-                                            <div>
-                                                <strong>Awaiting Final Review</strong>
-                                                <p>Your mentor is reviewing your final submission and assigning your grade.</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <form onSubmit={handleFinalSubmit} className={styles.finalForm}>
-                                            <div className={styles.formGroup}>
-                                                <label>Main GitHub Repository URL</label>
-                                                <div className={styles.inputWrapper}>
-                                                    <Github size={16} />
-                                                    <input
-                                                        type="url"
-                                                        placeholder="https://github.com/username/final-project-repo"
-                                                        value={finalGithubUrl}
-                                                        onChange={e => setFinalGithubUrl(e.target.value)}
-                                                        required
-                                                        className={styles.input}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className={styles.formGroup}>
-                                                <label>Comprehensive Implementation Notes</label>
-                                                <textarea
-                                                    placeholder="Summarize your overall project, tech stack used, and any extra features you implemented..."
-                                                    value={finalNotes}
-                                                    onChange={e => setFinalNotes(e.target.value)}
-                                                    required
-                                                    className={styles.textarea}
-                                                    rows={5}
-                                                />
-                                            </div>
-                                            <button type="submit" className={styles.finalSubmitBtn} disabled={finalSubmitting}>
-                                                {finalSubmitting ? <Loader size={18} className={styles.spinner} /> : <Award size={18} />}
-                                                {finalSubmitting ? 'Submitting...' : 'Complete Project'}
-                                            </button>
-                                        </form>
-                                    )}
-                                </motion.div>
-                            )}
                         </motion.div>
                     ) : (
                         /* OVERVIEW VIEW (Not Accepted) */
