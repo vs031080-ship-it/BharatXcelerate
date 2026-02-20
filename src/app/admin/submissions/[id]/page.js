@@ -318,62 +318,43 @@ export default function SubmissionDetailPage({ params }) {
                                             </div>
 
                                             {/* Final Step Grading Fields */}
-                                            {isLastStep && !isApproved && (
-                                                <div className={styles.gradingForm} style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #eee' }}>
-                                                    <h5 style={{ marginBottom: '10px', fontSize: '14px', color: '#333' }}>Final Grading (Mandatory)</h5>
-                                                    <div className={styles.fieldRow}>
-                                                        <label htmlFor="grade">Grade <span className={styles.requiredLabel}>*</span></label>
-                                                        <input
-                                                            id="grade"
-                                                            type="text"
-                                                            value={grade}
-                                                            onChange={e => setGrade(e.target.value)}
-                                                            className={styles.input}
-                                                            placeholder="e.g. A+, 95/100"
-                                                        />
-                                                    </div>
-                                                    <div className={styles.fieldRow}>
-                                                        <label htmlFor="totalScore">Total Score <span className={styles.requiredLabel}>*</span></label>
-                                                        <input
-                                                            id="totalScore"
-                                                            type="number"
-                                                            value={totalScore}
-                                                            onChange={e => setTotalScore(e.target.value)}
-                                                            className={styles.input}
-                                                            placeholder="e.g. 95"
-                                                        />
+
+                                            {/* Review Controls - Hide for last step to force global grading */}
+                                            {!isLastStep && (
+                                                <div className={styles.reviewControls}>
+                                                    <textarea
+                                                        placeholder="Feedback for this step..."
+                                                        value={stepFeedbacks[i] !== undefined ? stepFeedbacks[i] : (sub?.feedback || '')}
+                                                        onChange={e => setStepFeedbacks(prev => ({ ...prev, [i]: e.target.value }))}
+                                                        disabled={isApproved}
+                                                        rows={2}
+                                                    />
+                                                    <div className={styles.buttons}>
+                                                        <button
+                                                            onClick={() => handleStepAction(i, 'approved')}
+                                                            disabled={actionLoading || isApproved || !sub}
+                                                            className={isApproved ? styles.btnApproved : styles.btnApprove}
+                                                            title={!sub ? "Wait for student submission" : ""}
+                                                        >
+                                                            <CheckCircle size={14} /> {isApproved ? 'Approved' : 'Approve'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStepAction(i, 'rejected')}
+                                                            disabled={actionLoading || isApproved || !sub}
+                                                            className={`${styles.btnReject} ${isRejected ? styles.btnRejectedActive : ''}`}
+                                                            title={!sub ? "Wait for student submission" : ""}
+                                                        >
+                                                            <XCircle size={14} /> {isRejected ? 'Rejected' : 'Reject'}
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )}
-
-                                            {/* Review Controls */}
-                                            <div className={styles.reviewControls}>
-                                                <textarea
-                                                    placeholder={isLastStep ? "Final Feedback for the project..." : "Feedback for this step..."}
-                                                    value={stepFeedbacks[i] !== undefined ? stepFeedbacks[i] : (sub?.feedback || '')}
-                                                    onChange={e => setStepFeedbacks(prev => ({ ...prev, [i]: e.target.value }))}
-                                                    disabled={isApproved}
-                                                    rows={isLastStep ? 4 : 2}
-                                                />
-                                                <div className={styles.buttons}>
-                                                    <button
-                                                        onClick={() => handleStepAction(i, 'approved')}
-                                                        disabled={actionLoading || isApproved || !sub}
-                                                        className={isApproved ? styles.btnApproved : styles.btnApprove}
-                                                        title={!sub ? "Wait for student submission" : ""}
-                                                    >
-                                                        <CheckCircle size={14} /> {isApproved ? 'Approved' : (isLastStep ? 'Approve & Complete Project' : 'Approve')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleStepAction(i, 'rejected')}
-                                                        disabled={actionLoading || isApproved || !sub}
-                                                        className={`${styles.btnReject} ${isRejected ? styles.btnRejectedActive : ''}`}
-                                                        title={!sub ? "Wait for student submission" : ""}
-                                                    >
-                                                        <XCircle size={14} /> {isRejected ? 'Rejected' : 'Reject'}
-                                                    </button>
+                                            {isLastStep && (
+                                                <div style={{ marginTop: 15, padding: 10, background: '#FFF7ED', borderRadius: 8, border: '1px solid #FFEDD5', color: '#C2410C', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <AlertCircle size={16} />
+                                                    Final Project Submission. Please review and grade in the section below.
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -382,34 +363,30 @@ export default function SubmissionDetailPage({ params }) {
                     )}
 
                     {/* Student Submission */}
-                    <div className={styles.card}>
-                        <div className={styles.cardHeader}>
-                            <Send size={18} /> Student Submission
-                        </div>
-                        <div className={styles.submissionContent}>
-                            <div className={styles.fieldRow}>
-                                <label>GitHub Repository</label>
-                                {submission.githubUrl && submission.githubUrl !== 'pending' ? (
-                                    <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.githubLink}>
-                                        <Github size={15} /> {submission.githubUrl} <ExternalLink size={12} />
-                                    </a>
-                                ) : (
-                                    <span className={styles.pendingText}>Not submitted yet</span>
-                                )}
-                            </div>
-                            <div className={styles.fieldRow}>
-                                <label>Student Notes / Approach</label>
-                                <div className={styles.notesBox}>{submission.description || '—'}</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Grading Section */}
+
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
-                            <Award size={18} /> Grade & Feedback
+                            <Award size={18} /> Final Review & Grading
                         </div>
+                        {/* Merged Student Submission Details */}
                         <div className={styles.gradingForm}>
+                            <div className={styles.submissionContent} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid #E5E7EB' }}>
+                                <div className={styles.fieldRow}>
+                                    <label>Final GitHub Repository</label>
+                                    {submission.githubUrl && submission.githubUrl !== 'pending' ? (
+                                        <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" className={styles.githubLink} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px', background: '#F8FAFC', borderRadius: 6, border: '1px solid #E2E8F0', textDecoration: 'none', color: '#0284C7' }}>
+                                            <Github size={16} /> {submission.githubUrl} <ExternalLink size={14} />
+                                        </a>
+                                    ) : (
+                                        <span className={styles.pendingText}>Not submitted yet</span>
+                                    )}
+                                </div>
+                                <div className={styles.fieldRow} style={{ marginTop: 15 }}>
+                                    <label>Student Notes / Approach</label>
+                                    <div className={styles.notesBox} style={{ padding: 10, background: '#F9FAFB', borderRadius: 6, border: '1px solid #E5E7EB', minHeight: 60 }}>{submission.description || '—'}</div>
+                                </div>
+                            </div>
                             <div className={styles.fieldRow}>
                                 <label htmlFor="grade">Grade <span className={styles.requiredLabel}>(Required)</span></label>
                                 <input

@@ -132,8 +132,8 @@ export default function ProjectDetailPage() {
                 body: JSON.stringify({
                     projectId: project._id,
                     action: 'complete',
-                    finalGithubUrl,
-                    finalNotes
+                    githubUrl: finalGithubUrl,
+                    description: finalNotes
                 })
             });
 
