@@ -34,37 +34,38 @@ export default function ProjectDetailPage() {
 
     const id = params?.id;
 
-    useEffect(() => {
-        const loadData = async () => {
-            if (!id) return;
-            try {
-                const pRes = await fetch(`/api/admin/projects?id=${id}`, { headers: getAuthHeaders() });
-                if (pRes.ok) {
-                    const data = await pRes.json();
-                    setProject(data.project);
+    const fetchProject = async () => {
+        if (!id) return;
+        try {
+            const pRes = await fetch(`/api/admin/projects?id=${id}`, { headers: getAuthHeaders() });
+            if (pRes.ok) {
+                const data = await pRes.json();
+                setProject(data.project);
 
-                    const sRes = await fetch(`/api/student/submit?projectId=${id}`, { headers: getAuthHeaders() });
-                    if (sRes.ok) {
-                        const sData = await sRes.json();
-                        if (sData.submission) {
-                            setSubmission(sData.submission);
-                            // Set active step
-                            if (sData.submission.currentStep !== undefined) {
-                                setActiveStep(sData.submission.currentStep);
-                            }
+                const sRes = await fetch(`/api/student/submit?projectId=${id}`, { headers: getAuthHeaders() });
+                if (sRes.ok) {
+                    const sData = await sRes.json();
+                    if (sData.submission) {
+                        setSubmission(sData.submission);
+                        // Set active step
+                        if (sData.submission.currentStep !== undefined) {
+                            setActiveStep(sData.submission.currentStep);
                         }
                     }
-                } else {
-                    setError('Project not found');
                 }
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load project data');
-            } finally {
-                setLoading(false);
+            } else {
+                setError('Project not found');
             }
-        };
-        loadData();
+        } catch (err) {
+            console.error(err);
+            setError('Failed to load project data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProject();
     }, [id]);
 
     /* Step Submission */
@@ -150,7 +151,8 @@ export default function ProjectDetailPage() {
     const handleFinalSubmit = async (e) => {
         e.preventDefault();
         if (!finalGithubUrl || !finalNotes) {
-            toast.error("Please fill in all fields");
+            setToast("Please fill in all fields");
+            setTimeout(() => setToast(''), 3000);
             return;
         }
 
@@ -183,7 +185,8 @@ export default function ProjectDetailPage() {
             });
 
             if (completeRes.ok) {
-                toast.success("Project submitted successfully!");
+                setToast("Project submitted successfully!");
+                setTimeout(() => setToast(''), 3000);
                 setShowFinalModal(false);
                 fetchProject();
             } else {
@@ -191,7 +194,8 @@ export default function ProjectDetailPage() {
             }
         } catch (error) {
             console.error(error);
-            toast.error(error.message || "Submission failed");
+            setToast(error.message || "Submission failed");
+            setTimeout(() => setToast(''), 3000);
         } finally {
             setFinalSubmitting(false);
         }
