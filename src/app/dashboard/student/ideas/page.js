@@ -16,7 +16,7 @@ const stageColors = {
 };
 
 export default function IdeaLabPage() {
-    const { ideas, submitIdea } = useData();
+    const { ideas, submitIdea, loading } = useData();
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -24,16 +24,19 @@ export default function IdeaLabPage() {
     const [toast, setToast] = useState('');
     const { user } = useAuth();
     const userName = user?.name || 'Student';
+    const userId = user?.userId || user?.id;
     const [newIdea, setNewIdea] = useState({ title: '', category: 'AI/ML', stage: 'Idea', description: '', tags: '', teamSize: 1, author: '' });
 
-    const filtered = ideas.filter(idea => {
+    const filtered = (ideas || []).filter(idea => {
         const matchCat = activeCategory === 'All' || idea.category === activeCategory;
-        const matchSearch = idea.title.toLowerCase().includes(searchQuery.toLowerCase()) || idea.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchSearch = idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (idea.description || '').toLowerCase().includes(searchQuery.toLowerCase());
         return matchCat && matchSearch;
     });
 
-    const totalLikes = ideas.reduce((sum, i) => sum + i.likes.length, 0);
-    const totalTeam = ideas.reduce((sum, i) => sum + (i.teamSize || 0), 0);
+    const myIdeasCount = (ideas || []).filter(i => i.authorId === userId || i.author === userName).length;
+    const totalLikes = (ideas || []).reduce((sum, i) => sum + (i.likes?.length || 0), 0);
+    const totalTeam = (ideas || []).reduce((sum, i) => sum + (i.teamSize || 0), 0);
 
     const handleSubmitIdea = (e) => {
         e.preventDefault();
@@ -43,6 +46,18 @@ export default function IdeaLabPage() {
         setToast('Idea submitted successfully!');
         setTimeout(() => setToast(''), 3000);
     };
+
+    if (loading) {
+        return (
+            <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTopColor: '#2563EB', borderRadius: '50%' }}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
@@ -73,7 +88,7 @@ export default function IdeaLabPage() {
             <div className={styles.statsRow}>
                 <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={0}>
                     <div className={styles.statIcon} style={{ background: '#EFF6FF', color: '#2563EB' }}><Lightbulb size={20} /></div>
-                    <div><span className={styles.statValue}>{ideas.length}</span><span className={styles.statLabel}>My Ideas</span></div>
+                    <div><span className={styles.statValue}>{myIdeasCount}</span><span className={styles.statLabel}>My Ideas</span></div>
                 </motion.div>
                 <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={1}>
                     <div className={styles.statIcon} style={{ background: '#FEF3C7', color: '#D97706' }}><ThumbsUp size={20} /></div>
@@ -101,7 +116,7 @@ export default function IdeaLabPage() {
             {/* Ideas Grid */}
             <div className={styles.grid}>
                 {filtered.map((idea, i) => (
-                    <motion.div key={idea.id} className={styles.card} initial="hidden" animate="visible" variants={fadeUp} custom={i + 4}>
+                    <motion.div key={idea.id || idea._id} className={styles.card} initial="hidden" animate="visible" variants={fadeUp} custom={i + 4}>
                         <div className={styles.cardTop}>
                             <span className={styles.stageBadge} style={{ background: stageColors[idea.stage]?.bg, color: stageColors[idea.stage]?.color }}>{idea.stage}</span>
                             <span className={styles.categoryBadge}>{idea.category}</span>
@@ -109,13 +124,13 @@ export default function IdeaLabPage() {
                         <h3 className={styles.cardTitle}>{idea.title}</h3>
                         <p className={styles.cardDesc}>{idea.description}</p>
                         <div className={styles.cardTags}>
-                            {idea.tags.map(tag => <span key={tag} className={styles.tag}><Tag size={10} /> {tag}</span>)}
+                            {(idea.tags || []).map(tag => <span key={tag} className={styles.tag}><Tag size={10} /> {tag}</span>)}
                         </div>
                         <div className={styles.cardFooter}>
                             <div className={styles.cardMeta}>
-                                <span className={styles.likes}><ThumbsUp size={14} /> {idea.likes.length}</span>
-                                <span className={styles.teamSize}><Users size={14} /> {idea.teamSize}</span>
-                                <span className={styles.time}><Clock size={14} /> {idea.createdAt}</span>
+                                <span className={styles.likes}><ThumbsUp size={14} /> {idea.likes?.length || 0}</span>
+                                <span className={styles.teamSize}><Users size={14} /> {idea.teamSize || 1}</span>
+                                <span className={styles.time}><Clock size={14} /> {idea.createdAtFormatted || idea.createdAt}</span>
                             </div>
                             <button className={styles.viewBtn} onClick={() => setSelectedIdea(idea)}>View <ArrowRight size={14} /></button>
                         </div>
@@ -123,7 +138,7 @@ export default function IdeaLabPage() {
                 ))}
             </div>
 
-            {filtered.length === 0 && (
+            {filtered.length === 0 && !loading && (
                 <div className={styles.empty}>
                     <Lightbulb size={48} />
                     <h3>No ideas found</h3>

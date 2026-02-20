@@ -16,11 +16,25 @@ const stageColors = {
 };
 
 export default function InvestorDashboardPage() {
-    const { ideas, shortlist } = useData();
+    const { ideas, shortlist, loading } = useData();
     const { user } = useAuth();
+    const userId = user?.userId || user?.id;
     const firstName = user?.name?.split(' ')[0] || 'Investor';
 
-    const newestIdeas = ideas.slice(0, 4);
+    const newestIdeas = (ideas || []).slice(0, 4);
+    const activeInvestmentsCount = (ideas || []).filter(i => i.likes?.length > 0).length;
+
+    if (loading) {
+        return (
+            <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTopColor: '#2563EB', borderRadius: '50%' }}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
@@ -49,7 +63,7 @@ export default function InvestorDashboardPage() {
                 <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={1}>
                     <div className={styles.statIcon} style={{ background: '#D1FAE5', color: '#059669' }}><TrendingUp size={20} /></div>
                     <div className={styles.statContent}>
-                        <span className={styles.statValue}>{ideas.filter(i => i.likes?.length > 0).length}</span>
+                        <span className={styles.statValue}>{activeInvestmentsCount}</span>
                         <span className={styles.statLabel}>Active Investments</span>
                     </div>
                 </motion.div>
@@ -69,43 +83,47 @@ export default function InvestorDashboardPage() {
                     <Link href="/dashboard/investor/explore" className={styles.viewAll}>View All <ArrowRight size={14} /></Link>
                 </div>
                 <div className={styles.ideaGrid}>
-                    {newestIdeas.map((idea, i) => (
-                        <motion.div key={idea.id} className={styles.ideaCard} variants={fadeUp} custom={i + 4}>
-                            {/* Card Header */}
-                            <div className={styles.ideaHeader}>
-                                <div className={styles.ideaAvatar} style={{ background: stageColors[idea.stage]?.bg || '#F1F5F9', color: stageColors[idea.stage]?.color || '#475569' }}>
-                                    {idea.title?.charAt(0)?.toUpperCase() || 'I'}
+                    {newestIdeas.length > 0 ? (
+                        newestIdeas.map((idea, i) => (
+                            <motion.div key={idea.id || idea._id} className={styles.ideaCard} variants={fadeUp} custom={i + 4}>
+                                {/* Card Header */}
+                                <div className={styles.ideaHeader}>
+                                    <div className={styles.ideaAvatar} style={{ background: stageColors[idea.stage]?.bg || '#F1F5F9', color: stageColors[idea.stage]?.color || '#475569' }}>
+                                        {idea.title?.charAt(0)?.toUpperCase() || 'I'}
+                                    </div>
+                                    <div>
+                                        <h4>{idea.title}</h4>
+                                        <span className={styles.ideaAuthor}>By {idea.author}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4>{idea.title}</h4>
-                                    <span className={styles.ideaAuthor}>By {idea.author}</span>
-                                </div>
-                            </div>
 
-                            <p className={styles.ideaDesc}>{idea.description}</p>
+                                <p className={styles.ideaDesc}>{idea.description}</p>
 
-                            {/* Badges */}
-                            <div className={styles.ideaBadges}>
-                                <span className={styles.stageBadge} style={{ background: stageColors[idea.stage]?.bg, color: stageColors[idea.stage]?.color }}>{idea.stage}</span>
-                                <span className={styles.categoryBadge}>{idea.category}</span>
-                            </div>
+                                {/* Badges */}
+                                <div className={styles.ideaBadges}>
+                                    <span className={styles.stageBadge} style={{ background: stageColors[idea.stage]?.bg, color: stageColors[idea.stage]?.color }}>{idea.stage}</span>
+                                    <span className={styles.categoryBadge}>{idea.category}</span>
+                                </div>
 
-                            {/* Footer — Vendors style */}
-                            <div className={styles.ideaFooter}>
-                                <div className={styles.ideaStat}>
-                                    <strong>{idea.likes.length}</strong>
-                                    <span>Likes</span>
+                                {/* Footer — Vendors style */}
+                                <div className={styles.ideaFooter}>
+                                    <div className={styles.ideaStat}>
+                                        <strong>{idea.likes?.length || 0}</strong>
+                                        <span>Likes</span>
+                                    </div>
+                                    <div className={styles.ideaStat}>
+                                        <strong>{idea.stage}</strong>
+                                        <span>Stage</span>
+                                    </div>
+                                    <Link href="/dashboard/investor/explore" className={styles.viewPitchBtn}>
+                                        <Eye size={14} /> View
+                                    </Link>
                                 </div>
-                                <div className={styles.ideaStat}>
-                                    <strong>{idea.stage}</strong>
-                                    <span>Stage</span>
-                                </div>
-                                <Link href="/dashboard/investor/explore" className={styles.viewPitchBtn}>
-                                    <Eye size={14} /> View
-                                </Link>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        ))
+                    ) : (
+                        <p style={{ color: '#667085', fontSize: '0.9rem', textAlign: 'center', padding: '20px', gridColumn: '1 / -1' }}>No ideas in the pipeline yet.</p>
+                    )}
                 </div>
             </motion.div>
         </div>

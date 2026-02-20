@@ -25,10 +25,12 @@ export async function POST() {
             console.log('Admin user created');
         }
 
-        // 2. Clear Projects and Submissions (Requested: remove demo projects)
+        // 2. Clear Collections (Requested: remove demo data)
         await Project.deleteMany({});
         await Submission.deleteMany({});
-        console.log('Cleared Projects and Submissions');
+        await Job.deleteMany({});
+        await Idea.deleteMany({});
+        console.log('Cleared Projects, Submissions, Jobs, and Ideas');
 
         // 3. Ensure Seed Student and Company exist
         const hashedPassword = await bcrypt.hash('password123', 10);

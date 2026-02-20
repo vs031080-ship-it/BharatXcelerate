@@ -12,17 +12,20 @@ const jobTypes = ['All Types', 'Full-time', 'Internship', 'Contract', 'Part-time
 const locations = ['All Locations', 'Mumbai', 'Bangalore', 'Delhi', 'Pune', 'Remote'];
 
 export default function StudentJobsPage() {
-    const { jobs, applications, applyToJob, revokeApplication } = useData();
+    const { jobs, applications, applyToJob, revokeApplication, loading } = useData();
     const { user } = useAuth();
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('All Types');
     const [locationFilter, setLocationFilter] = useState('All Locations');
     const [selectedJob, setSelectedJob] = useState(null);
 
-    const appliedJobIds = applications.map(a => a.jobId);
+    // Filter jobs logic
+    const appliedJobIds = (applications || []).map(a => a.jobId);
 
-    const filteredJobs = jobs.filter(job => {
-        const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase()) || job.company.toLowerCase().includes(search.toLowerCase()) || job.description.toLowerCase().includes(search.toLowerCase());
+    const filteredJobs = (jobs || []).filter(job => {
+        const matchesSearch = job.title.toLowerCase().includes(search.toLowerCase()) ||
+            job.company.toLowerCase().includes(search.toLowerCase()) ||
+            (job.description || '').toLowerCase().includes(search.toLowerCase());
         const matchesType = typeFilter === 'All Types' || job.type === typeFilter;
         const matchesLocation = locationFilter === 'All Locations' || job.location === locationFilter;
         return matchesSearch && matchesType && matchesLocation;
@@ -37,6 +40,18 @@ export default function StudentJobsPage() {
             await applyToJob(jobId, user?.name || 'Student');
         }
     };
+
+    if (loading) {
+        return (
+            <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTopColor: '#2563EB', borderRadius: '50%' }}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
@@ -101,16 +116,16 @@ export default function StudentJobsPage() {
                                         <span><Briefcase size={13} /> {job.type}</span>
                                         <span><MapPin size={13} /> {job.location}</span>
                                         <span><DollarSign size={13} /> {job.salary}</span>
-                                        <span><Clock size={13} /> {job.postedDate}</span>
+                                        <span><Clock size={13} /> {job.postedDate || new Date(job.createdAt).toLocaleDateString()}</span>
                                     </div>
                                     <div className={styles.jobSkills}>
-                                        {job.skills.map(s => <span key={s}>{s}</span>)}
+                                        {(job.skills || []).map(s => <span key={s}>{s}</span>)}
                                     </div>
                                 </div>
                             </div>
                             <div className={styles.jobCardRight}>
                                 <div className={styles.applicantCount}>
-                                    {job.applicants.length} applicant{job.applicants.length !== 1 ? 's' : ''}
+                                    {job.applicants?.length || 0} applicant{(job.applicants?.length || 0) !== 1 ? 's' : ''}
                                 </div>
                                 <button
                                     className={`${styles.applyBtn} ${isApplied ? styles.appliedBtn : ''}`}
@@ -127,7 +142,7 @@ export default function StudentJobsPage() {
                 })}
             </div>
 
-            {filteredJobs.length === 0 && (
+            {filteredJobs.length === 0 && !loading && (
                 <div className={styles.empty}>
                     <Briefcase size={48} />
                     <h3>No jobs found</h3>

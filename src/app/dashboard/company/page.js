@@ -10,18 +10,18 @@ import styles from './company.module.css';
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.05 } }) };
 
 export default function CompanyDashboardPage() {
-    const { jobs, shortlist, applications, addJob } = useData();
+    const { jobs, shortlist, applications, addJob, loading } = useData();
     const [showPostModal, setShowPostModal] = useState(false);
     const { user } = useAuth();
     const companyName = user?.name || 'Company';
     const [saved, setSaved] = useState(false);
     const [newJob, setNewJob] = useState({ title: '', type: 'Full-time', location: '', salary: '', company: '', description: '', skills: '' });
 
-    const totalApplicants = applications.filter(a => a.status === 'Applied').length;
+    const totalApplicants = (applications || []).filter(a => a.status === 'Applied').length;
     const openRoles = jobs.length;
     const shortlistedCount = shortlist.length;
 
-    const topCandidates = shortlist.slice(0, 4);
+    const topCandidates = (shortlist || []).slice(0, 4);
 
     const handlePostJob = (e) => {
         e.preventDefault();
@@ -31,6 +31,18 @@ export default function CompanyDashboardPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
     };
+
+    if (loading) {
+        return (
+            <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTopColor: '#2563EB', borderRadius: '50%' }}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
@@ -89,38 +101,42 @@ export default function CompanyDashboardPage() {
                     <h2>Top Candidates</h2>
                     <Link href="/dashboard/company/talent" className={styles.viewAll}>View All Talent <ArrowRight size={14} /></Link>
                 </div>
-                <div className={styles.candidateGrid}>
-                    {topCandidates.map((c, i) => (
-                        <motion.div key={c.id} className={styles.candidateCard} variants={fadeUp} custom={i + 4}>
-                            <div className={styles.candidateHeader}>
-                                <div className={styles.candidateAvatar}>
-                                    {c.candidateName?.charAt(0)?.toUpperCase() || 'C'}
+                {topCandidates.length > 0 ? (
+                    <div className={styles.candidateGrid}>
+                        {topCandidates.map((c, i) => (
+                            <motion.div key={c.id || c._id} className={styles.candidateCard} variants={fadeUp} custom={i + 4}>
+                                <div className={styles.candidateHeader}>
+                                    <div className={styles.candidateAvatar}>
+                                        {c.candidateName?.charAt(0)?.toUpperCase() || 'C'}
+                                    </div>
+                                    <div>
+                                        <h4>{c.candidateName}</h4>
+                                        <span className={styles.candidateRole}>{c.role}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4>{c.candidateName}</h4>
-                                    <span className={styles.candidateRole}>{c.role}</span>
+                                <div className={styles.skillTags}>
+                                    {(c.skills || []).slice(0, 3).map(s => <span key={s}>{s}</span>)}
                                 </div>
-                            </div>
-                            <div className={styles.skillTags}>
-                                {c.skills.slice(0, 3).map(s => <span key={s}>{s}</span>)}
-                            </div>
-                            {/* Stats Footer — Vendors style */}
-                            <div className={styles.candidateFooter}>
-                                <div className={styles.candidateStat}>
-                                    <strong>{c.projects}</strong>
-                                    <span>Projects</span>
+                                {/* Stats Footer — Vendors style */}
+                                <div className={styles.candidateFooter}>
+                                    <div className={styles.candidateStat}>
+                                        <strong>{c.projects || 0}</strong>
+                                        <span>Projects</span>
+                                    </div>
+                                    <div className={styles.candidateStat}>
+                                        <strong>{c.score || 0}</strong>
+                                        <span>Score</span>
+                                    </div>
+                                    <Link href="/dashboard/company/shortlist" className={styles.candidateViewBtn}>
+                                        View <ArrowRight size={14} />
+                                    </Link>
                                 </div>
-                                <div className={styles.candidateStat}>
-                                    <strong>{c.score}</strong>
-                                    <span>Score</span>
-                                </div>
-                                <Link href="/dashboard/company/shortlist" className={styles.candidateViewBtn}>
-                                    View <ArrowRight size={14} />
-                                </Link>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <p style={{ color: '#667085', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>No candidates shortlisted yet.</p>
+                )}
             </motion.div>
 
             {/* Recent Jobs — Clean list */}
@@ -129,21 +145,25 @@ export default function CompanyDashboardPage() {
                     <h2>Recent Job Postings</h2>
                 </div>
                 <div className={styles.recentJobs}>
-                    {jobs.slice(0, 4).map((job, i) => (
-                        <div key={job._id || job.id || i} className={styles.recentJobRow}>
-                            <div className={styles.jobAvatar} style={{ background: '#F0F9FF', color: '#0EA5E9' }}>
-                                {job.title?.charAt(0)?.toUpperCase() || 'J'}
+                    {jobs.length > 0 ? (
+                        jobs.slice(0, 4).map((job, i) => (
+                            <div key={job._id || job.id || i} className={styles.recentJobRow}>
+                                <div className={styles.jobAvatar} style={{ background: '#F0F9FF', color: '#0EA5E9' }}>
+                                    {job.title?.charAt(0)?.toUpperCase() || 'J'}
+                                </div>
+                                <div className={styles.jobInfo}>
+                                    <h4>{job.title}</h4>
+                                    <p>{job.type} · {job.location} · {job.salary}</p>
+                                </div>
+                                <div className={styles.recentJobRight}>
+                                    <span className={styles.applicantBadge}>{job.applicants?.length || 0} applicant{(job.applicants?.length || 0) !== 1 ? 's' : ''}</span>
+                                    <span className={styles.jobDate}>{job.postedDate || new Date(job.createdAt).toLocaleDateString()}</span>
+                                </div>
                             </div>
-                            <div className={styles.jobInfo}>
-                                <h4>{job.title}</h4>
-                                <p>{job.type} · {job.location} · {job.salary}</p>
-                            </div>
-                            <div className={styles.recentJobRight}>
-                                <span className={styles.applicantBadge}>{job.applicants.length} applicant{job.applicants.length !== 1 ? 's' : ''}</span>
-                                <span className={styles.jobDate}>{job.postedDate}</span>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <p style={{ color: '#667085', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>No jobs posted yet.</p>
+                    )}
                 </div>
             </motion.div>
 

@@ -318,37 +318,24 @@ export default function StudentDashboardPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* Mock Recommendations */}
-                                <tr>
-                                    <td>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span className={styles.projectTitle}>AI Chatbot Assistant</span>
-                                            <span className={styles.projectSub}>Intermediate</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ color: '#64748b', fontSize: '0.875rem' }}>AI/ML</td>
-                                    <td style={{ fontWeight: '600', color: '#0f172a' }}>+500 XP</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span className={styles.projectTitle}>E-Commerce API</span>
-                                            <span className={styles.projectSub}>Advanced</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ color: '#64748b', fontSize: '0.875rem' }}>Backend</td>
-                                    <td style={{ fontWeight: '600', color: '#0f172a' }}>+800 XP</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span className={styles.projectTitle}>Portfolio Website</span>
-                                            <span className={styles.projectSub}>Beginner</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ color: '#64748b', fontSize: '0.875rem' }}>Frontend</td>
-                                    <td style={{ fontWeight: '600', color: '#0f172a' }}>+300 XP</td>
-                                </tr>
+                                {loading ? (
+                                    <tr><td colSpan="3" style={{ textAlign: 'center', color: '#94a3b8' }}>Loading...</td></tr>
+                                ) : activeProjects.length === 0 ? (
+                                    <tr><td colSpan="3" style={{ textAlign: 'center', color: '#94a3b8', padding: '16px' }}>Explore projects to get recommendations!</td></tr>
+                                ) : (
+                                    activeProjects.filter(p => p.progress < 100).slice(0, 3).map(p => (
+                                        <tr key={p.id}>
+                                            <td>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span className={styles.projectTitle}>{p.title}</span>
+                                                    <span className={styles.projectSub}>{p.difficulty}</span>
+                                                </div>
+                                            </td>
+                                            <td style={{ color: '#64748b', fontSize: '0.875rem' }}>{p.domain}</td>
+                                            <td style={{ fontWeight: '600', color: '#0f172a' }}>+{p.points} XP</td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
