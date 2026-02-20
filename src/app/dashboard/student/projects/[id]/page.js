@@ -102,6 +102,51 @@ export default function ProjectDetailPage() {
         setAccepting(false);
     };
 
+    const handleStepSubmit = async (e, stepIndex) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const link = formData.get('link');
+        const notes = formData.get('notes');
+
+        if (!link || !notes) {
+            setToast('Please complete all fields');
+            setTimeout(() => setToast(''), 3000);
+            return;
+        }
+
+        setStepSubmitting(true);
+        try {
+            const res = await fetch('/api/student/submit', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    projectId: id,
+                    stepIndex,
+                    content: JSON.stringify({ link, notes }),
+                    action: 'submit_step'
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setSubmission(data.submission);
+                setToast('Step submitted for review!');
+                setTimeout(() => setToast(''), 3000);
+                setActiveStep(stepIndex);
+            } else {
+                const err = await res.json();
+                setToast(err.error || 'Submission failed');
+                setTimeout(() => setToast(''), 3000);
+            }
+        } catch (e) {
+            console.error(e);
+            setToast('Network error');
+            setTimeout(() => setToast(''), 3000);
+        } finally {
+            setStepSubmitting(false);
+        }
+    };
+
     const handleFinalSubmit = async (e) => {
         e.preventDefault();
         if (!finalGithubUrl || !finalNotes) {
