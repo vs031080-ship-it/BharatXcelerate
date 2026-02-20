@@ -119,8 +119,26 @@ export function AuthProvider({ children }) {
         localStorage.setItem('user', JSON.stringify({ ...current, ...updates }));
     };
 
+    const getProfileCompletion = (user) => {
+        if (!user || user.role !== 'student') return 100;
+        const fields = [
+            'name', 'email', 'phone', 'bio', 'location', 'github', 'linkedin', 'skills',
+            'firstName', 'lastName', 'occupation', 'fatherName', 'motherName', 'dob',
+            'gender', 'religion', 'admissionDate', 'class', 'roll', 'studentId',
+            'civilStatus', 'subject', 'address'
+        ];
+        let filledCount = 0;
+        fields.forEach(field => {
+            const val = user[field];
+            if (val && (typeof val === 'string' ? val.trim().length > 0 : Array.isArray(val) ? val.length > 0 : true)) {
+                filledCount++;
+            }
+        });
+        return Math.round((filledCount / fields.length) * 100);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser, getToken }}>
+        <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser, getToken, getProfileCompletion }}>
             {loading ? (
                 <div style={{
                     display: 'flex',
