@@ -355,7 +355,7 @@ export default function ProjectDetailPage() {
                                                                             <div className={styles.finalStepCta}>
                                                                                 <div className={styles.finalStepInfo}>
                                                                                     <h4><Sparkles size={18} /> Ready to Submit?</h4>
-                                                                                    <p>You've reached the final milestone! Submit your project for review.</p>
+                                                                                    <p>You&apos;ve reached the final milestone! Submit your project for review.</p>
                                                                                 </div>
                                                                                 <button
                                                                                     className={styles.finalSubmitBtnLarge}
@@ -412,7 +412,7 @@ export default function ProjectDetailPage() {
                                                                         </div>
                                                                         <div className={styles.submittedField}>
                                                                             <span className={styles.fieldLabel}>Notes</span>
-                                                                            <p className={styles.lockedText}>It&apos;s okay to be stuck! Use our AI mentor or connect with peers.</p>
+                                                                            <p className={styles.notesDisplay}>{subContent.notes || 'No notes provided'}</p>
                                                                         </div>
 
                                                                         {isPending && (
