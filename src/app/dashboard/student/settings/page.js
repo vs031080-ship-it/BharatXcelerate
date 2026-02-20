@@ -126,125 +126,140 @@ export default function StudentSettingsPage() {
                 <p className={styles.pageSubtitle}>Update your profile information to reach 70% completion.</p>
             </div>
 
-            <div className={styles.card} style={{ padding: '32px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
-
-                    <div className={styles.formGroup}>
-                        <label>First Name</label>
-                        <input className={styles.input} value={profile.firstName} onChange={(e) => handleChange('firstName', e.target.value)} placeholder="Enter first name" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Last Name</label>
-                        <input className={styles.input} value={profile.lastName} onChange={(e) => handleChange('lastName', e.target.value)} placeholder="Enter last name" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Occupation</label>
-                        <input className={styles.input} value={profile.occupation} onChange={(e) => handleChange('occupation', e.target.value)} placeholder="e.g. Student, Developer" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Father Name</label>
-                        <input className={styles.input} value={profile.fatherName} onChange={(e) => handleChange('fatherName', e.target.value)} placeholder="Enter father's name" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Mother Name</label>
-                        <input className={styles.input} value={profile.motherName} onChange={(e) => handleChange('motherName', e.target.value)} placeholder="Enter mother's name" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Date Of Birth</label>
-                        <input type="date" className={styles.input} value={profile.dob} onChange={(e) => handleChange('dob', e.target.value)} />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Gender</label>
-                        <select className={styles.input} value={profile.gender} onChange={(e) => handleChange('gender', e.target.value)}>
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Religion</label>
-                        <input className={styles.input} value={profile.religion} onChange={(e) => handleChange('religion', e.target.value)} placeholder="Enter religion" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Admission Date</label>
-                        <input type="date" className={styles.input} value={profile.admissionDate} onChange={(e) => handleChange('admissionDate', e.target.value)} />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Class</label>
-                        <input className={styles.input} value={profile.class} onChange={(e) => handleChange('class', e.target.value)} placeholder="Enter class" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Roll Number</label>
-                        <input className={styles.input} value={profile.roll} onChange={(e) => handleChange('roll', e.target.value)} placeholder="Enter roll number" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Student ID</label>
-                        <input className={styles.input} value={profile.studentId} onChange={(e) => handleChange('studentId', e.target.value)} placeholder="Enter student ID" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Civil Status</label>
-                        <select className={styles.input} value={profile.civilStatus} onChange={(e) => handleChange('civilStatus', e.target.value)}>
-                            <option value="">Select Status</option>
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                        </select>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Subject</label>
-                        <input className={styles.input} value={profile.subject} onChange={(e) => handleChange('subject', e.target.value)} placeholder="Enter subject" />
-                    </div>
-
-                    <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
-                        <label>Address</label>
-                        <textarea className={styles.textarea} value={profile.address} onChange={(e) => handleChange('address', e.target.value)} placeholder="Enter full address" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Phone</label>
-                        <input className={styles.input} value={profile.phone} onChange={(e) => handleChange('phone', e.target.value)} placeholder="Enter phone number" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>Location (City, Country)</label>
-                        <input className={styles.input} value={profile.location} onChange={(e) => handleChange('location', e.target.value)} placeholder="e.g. New York, USA" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>GitHub Profile</label>
-                        <input className={styles.input} value={profile.github} onChange={(e) => handleChange('github', e.target.value)} placeholder="github.com/username" />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label>LinkedIn Profile</label>
-                        <input className={styles.input} value={profile.linkedin} onChange={(e) => handleChange('linkedin', e.target.value)} placeholder="linkedin.com/in/username" />
-                    </div>
-
-                    <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
-                        <label>Bio</label>
-                        <textarea className={styles.textarea} value={profile.bio} onChange={(e) => handleChange('bio', e.target.value)} placeholder="Tell us about yourself" />
-                    </div>
-                </div>
-
-                <div className={styles.saveActionRow} style={{ marginTop: '32px' }}>
-                    <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
-                        <Save size={18} /> {saving ? 'Saving...' : 'Save Profile'}
+            {/* Premium Tab Bar */}
+            <div className={styles.tabBar} style={{ marginBottom: '24px' }}>
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        {tab.label}
                     </button>
-                </div>
+                ))}
             </div>
+
+            {activeTab === 'general' && (
+                <div className={styles.card} style={{ padding: '32px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+
+                        <div className={styles.formGroup}>
+                            <label>First Name</label>
+                            <input className={styles.input} value={profile.firstName} onChange={(e) => handleChange('firstName', e.target.value)} placeholder="Enter first name" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Last Name</label>
+                            <input className={styles.input} value={profile.lastName} onChange={(e) => handleChange('lastName', e.target.value)} placeholder="Enter last name" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Occupation</label>
+                            <input className={styles.input} value={profile.occupation} onChange={(e) => handleChange('occupation', e.target.value)} placeholder="e.g. Student, Developer" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Father Name</label>
+                            <input className={styles.input} value={profile.fatherName} onChange={(e) => handleChange('fatherName', e.target.value)} placeholder="Enter father's name" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Mother Name</label>
+                            <input className={styles.input} value={profile.motherName} onChange={(e) => handleChange('motherName', e.target.value)} placeholder="Enter mother's name" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Date Of Birth</label>
+                            <input type="date" className={styles.input} value={profile.dob} onChange={(e) => handleChange('dob', e.target.value)} />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Gender</label>
+                            <select className={styles.input} value={profile.gender} onChange={(e) => handleChange('gender', e.target.value)}>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Religion</label>
+                            <input className={styles.input} value={profile.religion} onChange={(e) => handleChange('religion', e.target.value)} placeholder="Enter religion" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Admission Date</label>
+                            <input type="date" className={styles.input} value={profile.admissionDate} onChange={(e) => handleChange('admissionDate', e.target.value)} />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Class</label>
+                            <input className={styles.input} value={profile.class} onChange={(e) => handleChange('class', e.target.value)} placeholder="Enter class" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Roll Number</label>
+                            <input className={styles.input} value={profile.roll} onChange={(e) => handleChange('roll', e.target.value)} placeholder="Enter roll number" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Student ID</label>
+                            <input className={styles.input} value={profile.studentId} onChange={(e) => handleChange('studentId', e.target.value)} placeholder="Enter student ID" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Civil Status</label>
+                            <select className={styles.input} value={profile.civilStatus} onChange={(e) => handleChange('civilStatus', e.target.value)}>
+                                <option value="">Select Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Subject</label>
+                            <input className={styles.input} value={profile.subject} onChange={(e) => handleChange('subject', e.target.value)} placeholder="Enter subject" />
+                        </div>
+
+                        <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                            <label>Address</label>
+                            <textarea className={styles.textarea} value={profile.address} onChange={(e) => handleChange('address', e.target.value)} placeholder="Enter full address" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Phone</label>
+                            <input className={styles.input} value={profile.phone} onChange={(e) => handleChange('phone', e.target.value)} placeholder="Enter phone number" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Location (City, Country)</label>
+                            <input className={styles.input} value={profile.location} onChange={(e) => handleChange('location', e.target.value)} placeholder="e.g. New York, USA" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>GitHub Profile</label>
+                            <input className={styles.input} value={profile.github} onChange={(e) => handleChange('github', e.target.value)} placeholder="github.com/username" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>LinkedIn Profile</label>
+                            <input className={styles.input} value={profile.linkedin} onChange={(e) => handleChange('linkedin', e.target.value)} placeholder="linkedin.com/in/username" />
+                        </div>
+
+                        <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                            <label>Bio</label>
+                            <textarea className={styles.textarea} value={profile.bio} onChange={(e) => handleChange('bio', e.target.value)} placeholder="Tell us about yourself" />
+                        </div>
+                    </div>
+
+                    <div className={styles.saveActionRow} style={{ marginTop: '32px' }}>
+                        <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                            <Save size={18} /> {saving ? 'Saving...' : 'Save Profile'}
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {activeTab === 'education' && (
                 <div>
