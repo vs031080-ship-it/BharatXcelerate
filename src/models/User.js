@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
     location: { type: String, default: '' },
     skills: [{ type: String }],
     avatar: { type: String, default: '' },
+    banner: { type: String, default: '' },
 
     // Gamification & Stats
     xp: { type: Number, default: 0 },

@@ -43,7 +43,26 @@ export async function POST(request) {
 
         const response = NextResponse.json({
             success: true,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, status: user.status },
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                phone: user.phone,
+                bio: user.bio,
+                location: user.location,
+                skills: user.skills,
+                github: user.github,
+                linkedin: user.linkedin,
+                education: user.education,
+                avatar: user.avatar,
+                banner: user.banner,
+                companyName: user.companyName,
+                industry: user.industry,
+                investorTitle: user.investorTitle,
+                focusSectors: user.focusSectors
+            },
             token,
         });
 

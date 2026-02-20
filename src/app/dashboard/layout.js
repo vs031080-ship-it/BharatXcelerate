@@ -57,6 +57,31 @@ export default function DashboardLayout({ children }) {
         setMounted(true);
     }, []);
 
+    // Profile Completion Redirect Logic
+    useEffect(() => {
+        if (mounted && role === 'student' && user && pathname !== '/dashboard/student/settings') {
+            let filledFields = 0;
+            const fieldsToCheck = [
+                user.phone,
+                user.bio,
+                user.location,
+                user.github,
+                user.linkedin,
+                user.skills?.length > 0 ? true : '',
+                user.education?.length > 0 ? true : ''
+            ];
+            fieldsToCheck.forEach(field => {
+                if (field && typeof field === 'string' && field.trim() !== '') filledFields++;
+                else if (field === true) filledFields++;
+            });
+
+            if (filledFields < 5) { // 5/7 is approx 71%
+                router.push('/dashboard/student/settings');
+            }
+        }
+    }, [mounted, role, user, pathname, router]);
+
+
     // Refs for click outside
     const notifRef = useRef(null);
     const profileRef = useRef(null);
@@ -276,7 +301,7 @@ export default function DashboardLayout({ children }) {
                                 className={styles.userMenu}
                                 onClick={() => setProfileOpen(!profileOpen)}
                             >
-                                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" alt="User" />
+                                <img src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"} alt="User" />
                                 <div className={styles.userInfo}>
                                     <span className={styles.userName}>{user?.name || (role === 'student' ? 'Student' : role === 'company' ? 'Company' : 'Investor')}</span>
                                     <span className={styles.userRole}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>
