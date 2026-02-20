@@ -80,7 +80,7 @@ export async function PUT(req) {
                     }
 
                     // Finalize submission
-                    submission.status = 'accepted'; // Or completed, user asked for 'accepted' previously effectively
+                    submission.status = 'completed'; // Set to completed as per new workflow
                     submission.grade = grade;
                     submission.totalScore = totalScore;
                     if (body.finalFeedback) submission.feedback = body.finalFeedback;
@@ -133,6 +133,16 @@ export async function PUT(req) {
             if (grade !== undefined) submission.grade = grade;
             if (feedback !== undefined) submission.feedback = feedback;
             if (totalScore !== undefined) submission.totalScore = totalScore;
+
+            // If completing, ensure grade/score are present
+            if (status === 'completed') {
+                if (!submission.grade) {
+                    return NextResponse.json({ error: 'Grade is mandatory to complete project' }, { status: 400 });
+                }
+                if (submission.totalScore === undefined || submission.totalScore === null) {
+                    return NextResponse.json({ error: 'Total Score is mandatory to complete project' }, { status: 400 });
+                }
+            }
         }
 
         await submission.save();

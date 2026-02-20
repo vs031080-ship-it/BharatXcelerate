@@ -73,6 +73,7 @@ export default function ProjectDetailPage() {
     const [stepSubmitting, setStepSubmitting] = useState(false);
 
     /* Final Submission */
+    const [showFinalModal, setShowFinalModal] = useState(false);
     const [finalGithubUrl, setFinalGithubUrl] = useState('');
     const [finalNotes, setFinalNotes] = useState('');
     const [finalSubmitting, setFinalSubmitting] = useState(false);
@@ -101,72 +102,59 @@ export default function ProjectDetailPage() {
         setAccepting(false);
     };
 
-    const handleStepSubmit = async (e, stepIndex) => {
-        e.preventDefault();
-        setStepSubmitting(true);
-
-        // Get form data
-        const formData = new FormData(e.target);
-        const link = formData.get('link');
-        const notes = formData.get('notes');
-        const content = JSON.stringify({ link, notes });
-
-        try {
-            const res = await fetch('/api/student/submit', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({
-                    projectId: id,
-                    action: 'submit_step',
-                    stepIndex,
-                    content
-                }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setSubmission(data.submission);
-                setToast('Step submitted for review!');
-                setTimeout(() => setToast(''), 4000);
-            } else {
-                setToast(data.error || 'Submission failed');
-                setTimeout(() => setToast(''), 4000);
-            }
-        } catch {
-            setToast('Error submitting step');
-            setTimeout(() => setToast(''), 4000);
-        }
-        setStepSubmitting(false);
-    };
-
     const handleFinalSubmit = async (e) => {
         e.preventDefault();
+        if (!finalGithubUrl || !finalNotes) {
+            toast.error("Please fill in all fields");
+            return;
+        }
+
         setFinalSubmitting(true);
         try {
-            const res = await fetch('/api/student/submit', {
+            // First submit the final step
+            const stepRes = await fetch('/api/student/submit', {
                 method: 'POST',
-                headers: getAuthHeaders(),
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    projectId: id,
-                    action: 'complete',
-                    githubUrl: finalGithubUrl,
-                    description: finalNotes
-                }),
+                    projectId: project._id,
+                    stepIndex: project.steps.length - 1,
+                    content: JSON.stringify({ link: finalGithubUrl, notes: finalNotes }),
+                    action: 'submit_step'
+                })
             });
-            const data = await res.json();
-            if (res.ok) {
-                setSubmission(data.submission);
-                setToast('Final project submitted! Great job.');
-                setTimeout(() => setToast(''), 4000);
+
+            if (!stepRes.ok) throw new Error("Failed to submit final step");
+
+            // Then mark as complete (which sets status to submitted for review)
+            const completeRes = await fetch('/api/student/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId: project._id,
+                    action: 'complete',
+                    finalGithubUrl,
+                    finalNotes
+                })
+            });
+
+            if (completeRes.ok) {
+                toast.success("Project submitted successfully!");
+                setShowFinalModal(false);
+                fetchProject();
             } else {
-                setToast(data.error || 'Submission failed');
-                setTimeout(() => setToast(''), 4000);
+                throw new Error("Failed to complete project");
             }
-        } catch {
-            setToast('Error submitting project');
-            setTimeout(() => setToast(''), 4000);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Submission failed");
+        } finally {
+            setFinalSubmitting(false);
         }
-        setFinalSubmitting(false);
     };
+
+
+
+
 
     /* Helpers */
     const getStatusInfo = () => {
@@ -362,40 +350,56 @@ export default function ProjectDetailPage() {
                                                                 )}
 
                                                                 {!isCompleted && !isPending ? (
-                                                                    <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
-                                                                        <h5>{isLastStep ? 'Final Project Submission' : 'Submit Your Work'}</h5>
-                                                                        {isLastStep && <p className={styles.finalInstr}>Great job reaching the final step! Please submit your full project repository URL and a comprehensive summary of your work to complete the project.</p>}
-
-                                                                        <div className={styles.formGroup}>
-                                                                            <label>{isLastStep ? 'Main GitHub Repository URL' : 'Project Link / GitHub Repo'}</label>
-                                                                            <div className={styles.inputWrapper}>
-                                                                                {isLastStep ? <Github size={16} /> : <LinkIcon size={16} />}
-                                                                                <input
-                                                                                    type="url"
-                                                                                    placeholder={isLastStep ? "https://github.com/username/final-project-repo" : "https://github.com/username/repo"}
-                                                                                    required
-                                                                                    className={styles.input}
-                                                                                    name="link"
-                                                                                />
+                                                                    <>
+                                                                        {isLastStep ? (
+                                                                            <div className={styles.finalStepCta}>
+                                                                                <div className={styles.finalStepInfo}>
+                                                                                    <h4><Sparkles size={18} /> Ready to Submit?</h4>
+                                                                                    <p>You've reached the final milestone! Submit your project for review.</p>
+                                                                                </div>
+                                                                                <button
+                                                                                    className={styles.finalSubmitBtnLarge}
+                                                                                    onClick={() => setShowFinalModal(true)}
+                                                                                >
+                                                                                    Submit Final Project <ArrowRight size={18} />
+                                                                                </button>
                                                                             </div>
-                                                                        </div>
+                                                                        ) : (
+                                                                            <form onSubmit={(e) => handleStepSubmit(e, index)} className={styles.stepForm}>
+                                                                                <h5>Submit Your Work</h5>
 
-                                                                        <div className={styles.formGroup}>
-                                                                            <label>{isLastStep ? 'Comprehensive Implementation Notes' : 'Implementation Notes'}</label>
-                                                                            <textarea
-                                                                                placeholder={isLastStep ? "Summarize your overall project, tech stack used, and any extra features you implemented..." : "Describe your approach, challenges faced, or key features..."}
-                                                                                required
-                                                                                className={styles.textarea}
-                                                                                rows={isLastStep ? 6 : 4}
-                                                                                name="notes"
-                                                                            />
-                                                                        </div>
+                                                                                <div className={styles.formGroup}>
+                                                                                    <label>Project Link / GitHub Repo</label>
+                                                                                    <div className={styles.inputWrapper}>
+                                                                                        <LinkIcon size={16} />
+                                                                                        <input
+                                                                                            type="url"
+                                                                                            placeholder="https://github.com/username/repo"
+                                                                                            required
+                                                                                            className={styles.input}
+                                                                                            name="link"
+                                                                                        />
+                                                                                    </div>
+                                                                                </div>
 
-                                                                        <button type="submit" className={`${styles.submitBtn} ${isLastStep ? styles.finalSubmitBtn : ''}`} disabled={stepSubmitting}>
-                                                                            {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : (isLastStep ? <Award size={16} /> : <SendHorizontal size={16} />)}
-                                                                            {stepSubmitting ? 'Submitting...' : isRejected ? 'Re-submit Work' : (isLastStep ? 'Complete Project' : 'Submit Review')}
-                                                                        </button>
-                                                                    </form>
+                                                                                <div className={styles.formGroup}>
+                                                                                    <label>Implementation Notes</label>
+                                                                                    <textarea
+                                                                                        placeholder="Describe your approach, challenges faced, or key features..."
+                                                                                        required
+                                                                                        className={styles.textarea}
+                                                                                        rows={4}
+                                                                                        name="notes"
+                                                                                    />
+                                                                                </div>
+
+                                                                                <button type="submit" className={styles.submitBtn} disabled={stepSubmitting}>
+                                                                                    {stepSubmitting ? <Loader size={16} className={styles.spinner} /> : <SendHorizontal size={16} />}
+                                                                                    {stepSubmitting ? 'Submitting...' : isRejected ? 'Re-submit Work' : 'Submit Review'}
+                                                                                </button>
+                                                                            </form>
+                                                                        )}
+                                                                    </>
                                                                 ) : (
                                                                     <div className={styles.submittedView}>
                                                                         <div className={styles.submittedField}>
@@ -408,7 +412,7 @@ export default function ProjectDetailPage() {
                                                                         </div>
                                                                         <div className={styles.submittedField}>
                                                                             <span className={styles.fieldLabel}>Notes</span>
-                                                                            <p className={styles.notesDisplay}>{subContent.notes || 'No notes provided'}</p>
+                                                                            <p className={styles.lockedText}>It&apos;s okay to be stuck! Use our AI mentor or connect with peers.</p>
                                                                         </div>
 
                                                                         {isPending && (
@@ -518,6 +522,77 @@ export default function ProjectDetailPage() {
                     )}
                 </div>
             </div>
-        </div>
+
+
+            {/* Final Submission Modal */}
+            <AnimatePresence>
+                {showFinalModal && (
+                    <div className={styles.modalOverlay} onClick={() => setShowFinalModal(false)}>
+                        <motion.div
+                            className={styles.modal}
+                            onClick={e => e.stopPropagation()}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                        >
+                            <div className={styles.modalHeader}>
+                                <div className={styles.modalTitle}>
+                                    <Award size={24} color="#0EA5E9" />
+                                    <h2>Final Project Submission</h2>
+                                </div>
+                                <button className={styles.closeBtn} onClick={() => setShowFinalModal(false)}>
+                                    <XCircle size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleFinalSubmit} className={styles.modalForm}>
+                                <div className={styles.modalBody}>
+                                    <p className={styles.modalDesc}>
+                                        Congratulations on completing all the steps! To finalize your project, please provide the main repository URL and a brief summary of your work.
+                                    </p>
+
+                                    <div className={styles.formGroup}>
+                                        <label>Final GitHub Repository URL <span className={styles.req}>*</span></label>
+                                        <div className={styles.inputWrapper}>
+                                            <Github size={18} />
+                                            <input
+                                                type="url"
+                                                placeholder="https://github.com/username/final-project-repo"
+                                                value={finalGithubUrl}
+                                                onChange={(e) => setFinalGithubUrl(e.target.value)}
+                                                required
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>Project Summary & Comments <span className={styles.req}>*</span></label>
+                                        <textarea
+                                            placeholder="Describe your final implementation, technologies used, and any challenges you overcame..."
+                                            value={finalNotes}
+                                            onChange={(e) => setFinalNotes(e.target.value)}
+                                            required
+                                            className={styles.textarea}
+                                            rows={6}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.modalFooter}>
+                                    <button type="button" className={styles.btnGhost} onClick={() => setShowFinalModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className={styles.btnPrimary} disabled={finalSubmitting}>
+                                        {finalSubmitting ? <Loader size={18} className={styles.spinner} /> : <Sparkles size={18} />}
+                                        {finalSubmitting ? 'Submitting...' : 'Submit Final Project'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div >
     );
 }

@@ -12,6 +12,8 @@ export default function AdminSubmissionsPage() {
     const [search, setSearch] = useState('');
     const [selectedSubmission, setSelectedSubmission] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [grade, setGrade] = useState('');
+    const [score, setScore] = useState('');
 
     useEffect(() => {
         fetchSubmissions();
@@ -35,17 +37,21 @@ export default function AdminSubmissionsPage() {
         if (!confirm(`Are you sure you want to mark this submission as ${status}?`)) return;
         setActionLoading(true);
         try {
+            const body = { id, status };
+            if (status === 'completed') {
+                body.grade = grade;
+                body.totalScore = score;
+            }
+
             const res = await fetch('/api/admin/submissions', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id, status })
+                body: JSON.stringify(body)
             });
             if (res.ok) {
                 const data = await res.json();
                 setSubmissions(prev => prev.map(s => s._id === id ? data.submission : s));
-                if (selectedSubmission?._id === id) {
-                    setSelectedSubmission(data.submission);
-                }
+                setSelectedSubmission(data.submission);
             }
         } catch (error) {
             console.error('Update failed', error);
@@ -53,6 +59,14 @@ export default function AdminSubmissionsPage() {
             setActionLoading(false);
         }
     };
+
+    // Reset grading fields when modal opens
+    useEffect(() => {
+        if (selectedSubmission) {
+            setGrade(selectedSubmission.grade || '');
+            setScore(selectedSubmission.totalScore || '');
+        }
+    }, [selectedSubmission]);
 
     const filteredSubmissions = submissions.filter(s => {
         const matchesFilter = filter === 'all' || s.status === filter;
@@ -239,11 +253,44 @@ export default function AdminSubmissionsPage() {
                                 <label>Status</label>
                                 <div>{getStatusBadge(selectedSubmission.status)}</div>
                             </div>
+
+                            {selectedSubmission.status === 'submitted' && (
+                                <div className={styles.gradingSection} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #E2E8F0' }}>
+                                    <h3>Grading</h3>
+                                    <div className={styles.formGrid}>
+                                        <div className={styles.formGroup}>
+                                            <label>Grade <span className={styles.req}>*</span></label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. A, B+, 9/10"
+                                                value={grade}
+                                                onChange={(e) => setGrade(e.target.value)}
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Total Score <span className={styles.req}>*</span></label>
+                                            <input
+                                                type="number"
+                                                placeholder="e.g. 85"
+                                                value={score}
+                                                onChange={(e) => setScore(e.target.value)}
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className={styles.formActions}>
                             {selectedSubmission.status === 'submitted' && (
                                 <>
-                                    <button className={styles.btnSuccess} onClick={() => { handleStatusUpdate(selectedSubmission._id, 'completed'); setSelectedSubmission(null); }}>
+                                    <button
+                                        className={styles.btnSuccess}
+                                        onClick={() => { handleStatusUpdate(selectedSubmission._id, 'completed'); setSelectedSubmission(null); }}
+                                        disabled={!grade || !score}
+                                        title={(!grade || !score) ? "Grade and Score are required" : "Approve Project"}
+                                    >
                                         <CheckCircle size={16} /> Approve
                                     </button>
                                     <button className={styles.btnDanger} onClick={() => { handleStatusUpdate(selectedSubmission._id, 'rejected'); setSelectedSubmission(null); }}>
