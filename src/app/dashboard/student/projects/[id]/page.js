@@ -159,7 +159,7 @@ export default function ProjectDetailPage() {
             // First submit the final step
             const stepRes = await fetch('/api/student/submit', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     projectId: project._id,
                     stepIndex: project.steps.length - 1,
@@ -173,7 +173,7 @@ export default function ProjectDetailPage() {
             // Then mark as complete (which sets status to submitted for review)
             const completeRes = await fetch('/api/student/submit', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     projectId: project._id,
                     action: 'complete',
