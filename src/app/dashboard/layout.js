@@ -42,7 +42,7 @@ import Fuse from 'fuse.js';
 export default function DashboardLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { user, logout, getProfileCompletion } = useAuth();
+    const { user, logout } = useAuth();
     const { notifications, getUnreadCount, markNotificationRead, markAllNotificationsRead } = useData();
     const role = pathname.includes('/company') ? 'company' : pathname.includes('/investor') ? 'investor' : 'student';
     const links = sidebarLinks[role] || sidebarLinks.student;
@@ -52,16 +52,6 @@ export default function DashboardLayout({ children }) {
     const [notifOpen, setNotifOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
-
-    // Redirect to settings if profile not complete
-    useEffect(() => {
-        if (user && user.role === 'student') {
-            const completion = getProfileCompletion(user);
-            if (completion < 70 && !pathname.includes('/student/settings')) {
-                router.push('/dashboard/student/settings');
-            }
-        }
-    }, [user, pathname, getProfileCompletion, router]);
 
     useEffect(() => {
         setMounted(true);

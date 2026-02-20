@@ -21,68 +21,54 @@ export default function StudentSettingsPage() {
     const [error, setError] = useState('');
 
     // Editable State
-    const [isEditing, setIsEditing] = useState(true); // Default to editing as requested for fresh redirect
+    const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState({
-        firstName: '',
-        lastName: '',
-        occupation: '',
-        fatherName: '',
-        motherName: '',
-        dob: '',
-        gender: '',
-        religion: '',
-        admissionDate: '',
-        class: '',
-        roll: '',
-        studentId: '',
-        civilStatus: '',
-        subject: '',
-        address: '',
-        bio: '',
+        name: '',
+        email: '',
         phone: '',
+        bio: '',
         location: '',
         github: '',
         linkedin: '',
     });
 
     // Skills
-    const [skills, setSkills] = useState([]);
+    const [skills, setSkills] = useState(['React', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS']);
 
     // Load real user data
     useEffect(() => {
         if (user) {
             setProfile({
-                firstName: user.firstName || '',
-                lastName: user.lastName || '',
-                occupation: user.occupation || '',
-                fatherName: user.fatherName || '',
-                motherName: user.motherName || '',
-                dob: user.dob || '',
-                gender: user.gender || '',
-                religion: user.religion || '',
-                admissionDate: user.admissionDate || '',
-                class: user.class || '',
-                roll: user.roll || '',
-                studentId: user.studentId || '',
-                civilStatus: user.civilStatus || '',
-                subject: user.subject || '',
-                address: user.address || '',
-                bio: user.bio || '',
+                name: user.name || '',
+                email: user.email || '',
                 phone: user.phone || '',
+                bio: user.bio || '',
                 location: user.location || '',
                 github: user.github || '',
                 linkedin: user.linkedin || '',
             });
-            setSkills(user.skills || []);
+            if (user.skills?.length > 0) setSkills(user.skills);
         }
     }, [user]);
+    const [newSkill, setNewSkill] = useState('');
+
+    // Education
+    const [education, setEducation] = useState([
+        { id: 1, degree: 'B.Tech Computer Science', institution: 'IIT Delhi', year: '2021 - 2025', gpa: '9.2 / 10' },
+        { id: 2, degree: 'Class XII — CBSE', institution: 'Delhi Public School, RK Puram', year: '2019 - 2021', gpa: '96.4%' },
+    ]);
 
     const handleSave = async () => {
         setSaving(true);
         setError('');
         try {
             const updates = {
-                ...profile,
+                name: profile.name,
+                phone: profile.phone,
+                bio: profile.bio,
+                location: profile.location,
+                github: profile.github,
+                linkedin: profile.linkedin,
                 skills: skills,
             };
 
@@ -93,7 +79,9 @@ export default function StudentSettingsPage() {
             });
 
             if (res.ok) {
+                const data = await res.json();
                 updateUser(updates);
+                setIsEditing(false);
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3000);
             } else {
@@ -101,7 +89,11 @@ export default function StudentSettingsPage() {
                 setError(data.error || 'Failed to save');
             }
         } catch (err) {
-            setError('An error occurred during save');
+            // Fallback: save locally
+            updateUser({ name: profile.name, phone: profile.phone, bio: profile.bio, location: profile.location, skills });
+            setIsEditing(false);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
         }
         setSaving(false);
     };
@@ -110,155 +102,154 @@ export default function StudentSettingsPage() {
         setProfile(prev => ({ ...prev, [field]: value }));
     };
 
+    const addSkill = (e) => {
+        if (e.key === 'Enter' && newSkill.trim()) {
+            if (!skills.includes(newSkill.trim())) {
+                setSkills([...skills, newSkill.trim()]);
+            }
+            setNewSkill('');
+        }
+    };
+
+    const removeSkill = (skillToRemove) => {
+        setSkills(skills.filter(skill => skill !== skillToRemove));
+    };
+
     return (
-        <div className={styles.container} style={{ maxWidth: '1200px' }}>
+        <div className={styles.container}>
             {/* Toast */}
             <AnimatePresence>
                 {saved && (
                     <motion.div className={styles.toast} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                        <CheckCircle size={18} /> Profile updated successfully!
+                        <CheckCircle size={18} /> Changes saved successfully!
+                    </motion.div>
+                )}
+                {error && (
+                    <motion.div className={styles.toast} style={{ background: '#D92D20' }} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                        {error}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <div className={styles.pageHeader} style={{ marginBottom: '24px' }}>
-                <h1 className={styles.pageTitle}>Student Settings</h1>
-                <p className={styles.pageSubtitle}>Update your profile information to reach 70% completion.</p>
+            {/* Page Header */}
+            <div className={styles.pageHeader}>
+                <h1 className={styles.pageTitle}>{profile.name}</h1>
+                <p className={styles.pageSubtitle}>Manage your details and personal preferences here.</p>
+                {activeTab === 'general' && (
+                    <div className={styles.headerActions}>
+                        {isEditing ? (
+                            <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                                <Save size={16} /> {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        ) : (
+                            <button className={styles.editBtnPrimary} onClick={() => setIsEditing(true)}>Edit Profile</button>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* Premium Tab Bar */}
-            <div className={styles.tabBar} style={{ marginBottom: '24px' }}>
+            {/* Tab Bar */}
+            <div className={styles.tabBar}>
                 {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
+                    <button key={tab.id} className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`} onClick={() => setActiveTab(tab.id)}>
                         {tab.label}
                     </button>
                 ))}
             </div>
 
+            {/* General Tab */}
             {activeTab === 'general' && (
-                <div className={styles.card} style={{ padding: '32px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <h3 className={styles.sectionHeading}>Basics</h3>
 
-                        <div className={styles.formGroup}>
-                            <label>First Name</label>
-                            <input className={styles.input} value={profile.firstName} onChange={(e) => handleChange('firstName', e.target.value)} placeholder="Enter first name" />
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>Photo</div>
+                        <div className={styles.rowValue}>
+                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face" alt="Avatar" className={styles.avatarSmall} />
                         </div>
+                        <div className={styles.rowAction}><button className={styles.editBtn}>Change</button></div>
+                    </div>
 
-                        <div className={styles.formGroup}>
-                            <label>Last Name</label>
-                            <input className={styles.input} value={profile.lastName} onChange={(e) => handleChange('lastName', e.target.value)} placeholder="Enter last name" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Occupation</label>
-                            <input className={styles.input} value={profile.occupation} onChange={(e) => handleChange('occupation', e.target.value)} placeholder="e.g. Student, Developer" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Father Name</label>
-                            <input className={styles.input} value={profile.fatherName} onChange={(e) => handleChange('fatherName', e.target.value)} placeholder="Enter father's name" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Mother Name</label>
-                            <input className={styles.input} value={profile.motherName} onChange={(e) => handleChange('motherName', e.target.value)} placeholder="Enter mother's name" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Date Of Birth</label>
-                            <input type="date" className={styles.input} value={profile.dob} onChange={(e) => handleChange('dob', e.target.value)} />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Gender</label>
-                            <select className={styles.input} value={profile.gender} onChange={(e) => handleChange('gender', e.target.value)}>
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Religion</label>
-                            <input className={styles.input} value={profile.religion} onChange={(e) => handleChange('religion', e.target.value)} placeholder="Enter religion" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Admission Date</label>
-                            <input type="date" className={styles.input} value={profile.admissionDate} onChange={(e) => handleChange('admissionDate', e.target.value)} />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Class</label>
-                            <input className={styles.input} value={profile.class} onChange={(e) => handleChange('class', e.target.value)} placeholder="Enter class" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Roll Number</label>
-                            <input className={styles.input} value={profile.roll} onChange={(e) => handleChange('roll', e.target.value)} placeholder="Enter roll number" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Student ID</label>
-                            <input className={styles.input} value={profile.studentId} onChange={(e) => handleChange('studentId', e.target.value)} placeholder="Enter student ID" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Civil Status</label>
-                            <select className={styles.input} value={profile.civilStatus} onChange={(e) => handleChange('civilStatus', e.target.value)}>
-                                <option value="">Select Status</option>
-                                <option value="Single">Single</option>
-                                <option value="Married">Married</option>
-                            </select>
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Subject</label>
-                            <input className={styles.input} value={profile.subject} onChange={(e) => handleChange('subject', e.target.value)} placeholder="Enter subject" />
-                        </div>
-
-                        <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
-                            <label>Address</label>
-                            <textarea className={styles.textarea} value={profile.address} onChange={(e) => handleChange('address', e.target.value)} placeholder="Enter full address" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Phone</label>
-                            <input className={styles.input} value={profile.phone} onChange={(e) => handleChange('phone', e.target.value)} placeholder="Enter phone number" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>Location (City, Country)</label>
-                            <input className={styles.input} value={profile.location} onChange={(e) => handleChange('location', e.target.value)} placeholder="e.g. New York, USA" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>GitHub Profile</label>
-                            <input className={styles.input} value={profile.github} onChange={(e) => handleChange('github', e.target.value)} placeholder="github.com/username" />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <label>LinkedIn Profile</label>
-                            <input className={styles.input} value={profile.linkedin} onChange={(e) => handleChange('linkedin', e.target.value)} placeholder="linkedin.com/in/username" />
-                        </div>
-
-                        <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
-                            <label>Bio</label>
-                            <textarea className={styles.textarea} value={profile.bio} onChange={(e) => handleChange('bio', e.target.value)} placeholder="Tell us about yourself" />
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>Name</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.name} onChange={(e) => handleChange('name', e.target.value)} /> : profile.name}
                         </div>
                     </div>
 
-                    <div className={styles.saveActionRow} style={{ marginTop: '32px' }}>
-                        <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
-                            <Save size={18} /> {saving ? 'Saving...' : 'Save Profile'}
-                        </button>
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>Email address</div>
+                        <div className={styles.rowValue}>{profile.email}</div>
                     </div>
-                </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>Phone</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.phone} onChange={(e) => handleChange('phone', e.target.value)} /> : (profile.phone || '—')}
+                        </div>
+                    </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>Bio</div>
+                        <div className={styles.rowValue} style={{ maxWidth: 480 }}>
+                            {isEditing ? <textarea className={styles.textarea} value={profile.bio} onChange={(e) => handleChange('bio', e.target.value)} /> : (profile.bio || '—')}
+                        </div>
+                    </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>Location</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.location} onChange={(e) => handleChange('location', e.target.value)} /> : (profile.location || '—')}
+                        </div>
+                    </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>GitHub</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.github} placeholder="github.com/username" onChange={(e) => handleChange('github', e.target.value)} /> : (profile.github || '—')}
+                        </div>
+                    </div>
+
+                    <div className={styles.settingsRow}>
+                        <div className={styles.rowLabel}>LinkedIn</div>
+                        <div className={styles.rowValue}>
+                            {isEditing ? <input className={styles.input} value={profile.linkedin} placeholder="linkedin.com/in/username" onChange={(e) => handleChange('linkedin', e.target.value)} /> : (profile.linkedin || '—')}
+                        </div>
+                    </div>
+
+                    <h3 className={styles.sectionHeading}>Skills</h3>
+                    <div className={styles.settingsRow} style={{ alignItems: 'flex-start' }}>
+                        <div className={styles.rowLabel}>Skills</div>
+                        <div className={styles.rowValue} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}>
+                            <div className={styles.skillTags}>
+                                {skills.map(skill => (
+                                    <span key={skill} className={styles.skill} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, paddingRight: 6 }}>
+                                        {skill}
+                                        {isEditing && (
+                                            <button onClick={() => removeSkill(skill)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: '#98A2B3' }}>
+                                                <X size={12} />
+                                            </button>
+                                        )}
+                                    </span>
+                                ))}
+                            </div>
+                            {isEditing && (
+                                <input
+                                    type="text"
+                                    placeholder="Type a skill and press Enter..."
+                                    value={newSkill}
+                                    onChange={(e) => setNewSkill(e.target.value)}
+                                    onKeyDown={addSkill}
+                                    style={{ maxWidth: 300, padding: '8px 12px', border: '1px solid #D0D5DD', borderRadius: '8px' }}
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className={styles.saveActionRow}>
+                        {isEditing && <button className={styles.saveBtn} onClick={handleSave} disabled={saving}><Save size={16} /> {saving ? 'Saving...' : 'Save Changes'}</button>}
+                    </div>
+                </motion.div>
             )}
 
             {activeTab === 'education' && (

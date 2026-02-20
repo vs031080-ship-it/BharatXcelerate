@@ -11,24 +11,6 @@ const UserSchema = new mongoose.Schema({
     location: { type: String, default: '' },
     skills: [{ type: String }],
     avatar: { type: String, default: '' },
-    headerBanner: { type: String, default: '' },
-
-    // Student-specific fields for reference design
-    firstName: { type: String, default: '' },
-    lastName: { type: String, default: '' },
-    occupation: { type: String, default: '' },
-    fatherName: { type: String, default: '' },
-    motherName: { type: String, default: '' },
-    dob: { type: String, default: '' },
-    gender: { type: String, default: '' },
-    religion: { type: String, default: '' },
-    admissionDate: { type: String, default: '' },
-    class: { type: String, default: '' },
-    roll: { type: String, default: '' },
-    studentId: { type: String, default: '' },
-    civilStatus: { type: String, default: '' },
-    subject: { type: String, default: '' },
-    address: { type: String, default: '' },
 
     // Gamification & Stats
     xp: { type: Number, default: 0 },
