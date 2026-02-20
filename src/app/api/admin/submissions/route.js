@@ -57,46 +57,13 @@ export async function PUT(req) {
             }
 
             if (stepStatus) stepSub.status = stepStatus;
-
-            // Handle feedback from either step-specific feedback or finalFeedback (for last step)
-            if (body.finalFeedback) stepSub.feedback = body.finalFeedback;
-            else if (stepFeedback !== undefined) stepSub.feedback = stepFeedback;
+            if (stepFeedback !== undefined) stepSub.feedback = stepFeedback;
 
             // Update completedSteps/Submission Status
             if (stepStatus === 'approved') {
                 if (!submission.completedSteps.includes(stepIndex)) {
                     submission.completedSteps.push(stepIndex);
                 }
-
-                // Check if this is the final step
-                if (submission.project && submission.project.steps && stepIndex === submission.project.steps.length - 1) {
-
-                    // Validate mandatory grading fields for final step
-                    if (!grade) {
-                        return NextResponse.json({ error: 'Grade is mandatory for final step approval' }, { status: 400 });
-                    }
-                    if (totalScore === undefined || totalScore === null) {
-                        return NextResponse.json({ error: 'Total Score is mandatory for final step approval' }, { status: 400 });
-                    }
-
-                    // Finalize submission
-                    submission.status = 'accepted'; // Or completed, user asked for 'accepted' previously effectively
-                    submission.grade = grade;
-                    submission.totalScore = totalScore;
-                    if (body.finalFeedback) submission.feedback = body.finalFeedback;
-
-                    // sync git link from final step content
-                    try {
-                        const content = JSON.parse(stepSub.content);
-                        if (content && content.link) {
-                            submission.githubUrl = content.link;
-                        }
-                    } catch (e) {
-                        // If content is not JSON or doesn't have link, ignore
-                        console.log("Could not parse final step content for git link", e);
-                    }
-                }
-
             } else if (stepStatus === 'rejected') {
                 if (!stepFeedback || stepFeedback.trim().length < 5) {
                     return NextResponse.json({ error: 'Feedback is mandatory when rejecting a step' }, { status: 400 });
@@ -115,8 +82,11 @@ export async function PUT(req) {
             const maxCompleted = submission.completedSteps.length > 0 ? Math.max(...submission.completedSteps) : -1;
             submission.currentStep = maxCompleted + 1;
 
+            if (submission.project && submission.project.steps && submission.completedSteps.length >= submission.project.steps.length) {
+                submission.status = 'completed';
+            }
         } else {
-            // Handle Global update (Legacy/Fallback)
+            // Handle Global update
             if (status === 'accepted') {
                 if (!grade) {
                     return NextResponse.json({ error: 'Grade is mandatory to accept and complete project' }, { status: 400 });
