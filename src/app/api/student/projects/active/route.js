@@ -18,7 +18,7 @@ export async function GET(request) {
         // Fetch active submissions
         const submissions = await Submission.find({
             student: user.userId,
-            status: { $in: ['started', 'submitted', 'rejected', 'accepted'] } // Include accepted as valid active state
+            status: { $in: ['started', 'submitted', 'rejected', 'accepted', 'completed'] } // Include accepted and completed as valid active/history states
         }).populate('project');
 
         // Transform data for dashboard
