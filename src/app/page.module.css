@@ -824,6 +824,18 @@
   flex-wrap: wrap;
 }
 
+.ctaBtnSecondary {
+  background: transparent !important;
+  color: var(--color-white) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.ctaBtnSecondary:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--color-white) !important;
+  transform: translateY(-2px);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
   .heroInner {

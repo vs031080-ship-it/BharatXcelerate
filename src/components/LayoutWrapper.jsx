@@ -7,14 +7,17 @@ import Footer from './Footer/Footer';
 export default function LayoutWrapper({ children }) {
     const pathname = usePathname();
     const isDashboard = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin');
+    const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+    const hideNavFooter = isDashboard || isAuthPage;
 
     return (
         <>
-            {!isDashboard && <Navbar />}
-            <div style={!isDashboard ? { paddingTop: 'var(--nav-height)' } : {}}>
+            {!hideNavFooter && <Navbar />}
+            <div style={!hideNavFooter ? { paddingTop: 'var(--nav-height)' } : {}}>
                 {children}
             </div>
-            {!isDashboard && <Footer />}
+            {!hideNavFooter && <Footer />}
         </>
     );
 }

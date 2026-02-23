@@ -94,6 +94,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: #FFFFFF;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 

@@ -537,7 +537,7 @@ export default function Home() {
               <Link href="/signup" className="btn btn-primary btn-lg">
                 Join for Free <ArrowRight size={18} />
               </Link>
-              <Link href="/how-it-works" className="btn btn-secondary btn-lg" style={{ borderColor: '#fff', color: '#fff' }}>
+              <Link href="/how-it-works" className={`btn btn-secondary btn-lg ${styles.ctaBtnSecondary}`}>
                 See How It Works
               </Link>
             </div>

@@ -3,14 +3,14 @@
    ============================================ */
 
 .page {
-    min-height: 100vh;
+    height: 100vh;
     background: #0A0A0F;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding: 40px 24px 60px;
+    align-items: center;
+    padding: clamp(16px, 3vh, 24px);
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 /* Animated Background Orbs */
@@ -640,5 +640,62 @@
 
     .stepHeader h1 {
         font-size: 1.375rem;
+    }
+}
+
+/* Height-based responsive scaling to fit viewports without scrolling */
+@media (max-height: 800px) {
+    .container {
+        max-width: 700px;
+    }
+
+    .topBar {
+        margin-bottom: clamp(16px, 3vh, 36px);
+    }
+
+    .stepContent {
+        gap: clamp(16px, 3vh, 28px);
+    }
+
+    .stepIcon {
+        margin-bottom: 8px;
+        width: 24px;
+        height: 24px;
+    }
+
+    .stepHeader h1 {
+        font-size: clamp(1.25rem, 3vh, 1.75rem);
+        margin-bottom: 4px;
+    }
+
+    .roleCard {
+        padding: clamp(16px, 3vh, 24px) clamp(12px, 2vw, 20px);
+    }
+
+    .roleCardIcon {
+        width: clamp(36px, 6vh, 52px);
+        height: clamp(36px, 6vh, 52px);
+        margin-bottom: 10px;
+    }
+
+    .roleCard h3 {
+        font-size: 0.9375rem;
+    }
+
+    .roleCard p {
+        margin-bottom: 10px;
+    }
+
+    .formCard {
+        padding: clamp(16px, 3vh, 28px);
+        gap: clamp(12px, 2.5vh, 20px);
+    }
+
+    .inputWrap {
+        padding: clamp(8px, 1.5vh, 12px) 14px;
+    }
+
+    .footer {
+        margin-top: clamp(16px, 3vh, 28px);
     }
 }
