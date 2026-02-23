@@ -85,10 +85,6 @@ export default function LoginPage() {
             <div className={styles.authRight}>
                 <motion.div className={styles.authForm} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
                     <div className={styles.authHeader}>
-                        <Link href="/" className={styles.authLogo}>
-                            <Zap size={24} color="#2563EB" fill="#2563EB" />
-                            <span>BharatXcelerate</span>
-                        </Link>
                         <h2>Sign in to BharatXcelerate</h2>
                         <p className={styles.authSubtitle}>Welcome back! Please enter your details below.</p>
                     </div>
