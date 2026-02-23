@@ -1,118 +1,482 @@
+.pageWrapper {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    overflow: hidden;
+    position: relative;
+    transition: background-color 0.8s ease;
+}
+
+/* --- Hero Section --- */
 .hero {
-    padding: 80px 0 40px;
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 120px 0 80px;
     background: var(--gradient-hero);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.heroContainer {
+    position: relative;
+    z-index: 10;
     text-align: center;
 }
 
-.heroContent {
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.heroContent h1 {
-    font-size: 2.75rem;
-    font-weight: 800;
-    line-height: 1.15;
-    margin-bottom: 16px;
-}
-
-.heroContent p {
-    font-size: 1.125rem;
-    color: var(--color-text-secondary);
-    line-height: 1.7;
-}
-
-.altBg {
-    background: var(--color-bg);
-}
-
-.timeline {
-    max-width: 700px;
+.heroContentWrapper {
+    max-width: 800px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 0;
-    position: relative;
+    align-items: center;
 }
 
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 23px;
-    top: 24px;
-    bottom: 24px;
-    width: 2px;
-    background: var(--color-border);
+.badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-sm);
 }
 
-.timelineItem {
+.heroTitle {
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    color: var(--color-text);
+}
+
+.heroGradientText {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.heroSubtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+.scrollIndicator {
+    margin-top: 64px;
     display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    padding: 20px 0;
-    position: relative;
+    justify-content: center;
+    color: var(--color-primary);
 }
 
-.timelineNumber {
-    width: 48px;
-    height: 48px;
+/* --- Journeys Wrapper --- */
+.journeysWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Individual Journey Section --- */
+.journeySection {
+    padding: 160px 0;
+    position: relative;
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color 0.8s ease;
+}
+
+/* Base styles for themes on light background */
+.blueTheme {
+    background-color: var(--color-bg);
+}
+
+.blueTheme .gradientText {
+    color: var(--color-primary);
+}
+
+.blueTheme .connectingLine {
+    background: linear-gradient(to bottom, transparent, var(--color-primary), var(--color-primary), transparent);
+}
+
+.blueTheme .stepNumber {
+    background: var(--color-primary-50);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary-100);
+}
+
+.blueTheme .checkIcon {
+    color: var(--color-primary);
+}
+
+.blueTheme .stepCard:hover {
+    border-color: var(--color-primary-100);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
+}
+
+/* Note: Assuming secondary maps to violet/purple and accent maps to teal/green in globals.css as per the current tokens */
+.violetTheme {
+    background-color: var(--color-secondary-50);
+}
+
+.violetTheme .gradientText {
+    color: var(--color-secondary);
+}
+
+.violetTheme .connectingLine {
+    background: linear-gradient(to bottom, transparent, var(--color-secondary), var(--color-secondary), transparent);
+}
+
+.violetTheme .stepNumber {
+    background: var(--color-white);
+    color: var(--color-secondary);
+    border: 2px solid var(--color-secondary-100);
+}
+
+.violetTheme .checkIcon {
+    color: var(--color-secondary);
+}
+
+.violetTheme .stepCard:hover {
+    border-color: var(--color-secondary-100);
+    box-shadow: 0 10px 25px rgba(124, 58, 237, 0.1);
+}
+
+.tealTheme {
+    background-color: var(--color-accent-50);
+}
+
+.tealTheme .gradientText {
+    color: var(--color-accent);
+}
+
+.tealTheme .connectingLine {
+    background: linear-gradient(to bottom, transparent, var(--color-accent), var(--color-accent), transparent);
+}
+
+.tealTheme .stepNumber {
+    background: var(--color-white);
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent-100);
+}
+
+.tealTheme .checkIcon {
+    color: var(--color-accent);
+}
+
+.tealTheme .stepCard:hover {
+    border-color: var(--color-accent-100);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1);
+}
+
+/* Add these fallback colors for borders in case the 100 vars are missing */
+.violetTheme .stepNumber {
+    border-color: rgba(124, 58, 237, 0.2);
+}
+
+.tealTheme .stepNumber {
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+
+.journeyContainer {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+.reverseLayout {
+    grid-template-columns: 1fr 1.1fr;
+}
+
+.reverseLayout .journeyContent {
+    order: 2;
+}
+
+.reverseLayout .journeyStepsWrapper {
+    order: 1;
+}
+
+/* --- Content Side --- */
+.journeyContent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.roleBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 24px;
+}
+
+.journeyContent h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: var(--color-text);
+}
+
+.journeyContent p {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 40px;
+}
+
+/* The new Unsplash Image Wrapper */
+.imageWrapper {
+    width: 100%;
+    height: 350px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    background-color: var(--color-border);
+    /* Placeholder color while loading */
+}
+
+.learnMoreBtn {
+    background-color: var(--color-white);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    padding: 14px 28px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.learnMoreBtn:hover {
+    background-color: var(--color-bg-alt);
+    border-color: #d1d5db;
+}
+
+.blueTheme .learnMoreBtn {
+    color: var(--color-primary);
+}
+
+.violetTheme .learnMoreBtn {
+    color: var(--color-secondary);
+}
+
+.tealTheme .learnMoreBtn {
+    color: var(--color-accent-dark);
+}
+
+
+/* --- Steps Side --- */
+.journeyStepsWrapper {
+    position: relative;
+    padding-left: 60px;
+    /* Space for the line */
+}
+
+.reverseLayout .journeyStepsWrapper {
+    padding-left: 0;
+    padding-right: 60px;
+}
+
+/* The Solid Line for Light Theme */
+.connectingLine {
+    position: absolute;
+    left: 20px;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: 3px;
+    z-index: 0;
+    /* Background set by themes */
+}
+
+.reverseLayout .connectingLine {
+    left: auto;
+    right: 20px;
+}
+
+.stepsList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.stepCard {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    gap: 20px;
+    transition: all 0.3s ease;
+    cursor: default;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+}
+
+.stepNumberContainer {
+    position: absolute;
+    left: -60px;
+    /* Aligns with the line */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    display: flex;
+    justify-content: center;
+}
+
+.reverseLayout .stepNumberContainer {
+    left: auto;
+    right: -60px;
+}
+
+.stepNumber {
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.125rem;
-    font-weight: 800;
-    flex-shrink: 0;
-    z-index: 1;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.numblue {
-    background: var(--color-primary-100);
-    color: var(--color-primary);
+.stepDetails {
+    flex: 1;
 }
 
-.numviolet {
-    background: var(--color-secondary-50);
-    color: var(--color-secondary);
+.stepHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.numteal {
-    background: var(--color-accent-50);
-    color: var(--color-accent);
-}
-
-.timelineContent h3 {
+.stepHeader h3 {
     font-size: 1.125rem;
     font-weight: 700;
-    margin-bottom: 6px;
+    color: var(--color-text);
 }
 
-.timelineContent p {
+.stepDetails p {
     font-size: 0.9375rem;
     color: var(--color-text-secondary);
-    line-height: 1.7;
+    line-height: 1.6;
+    margin: 0;
 }
 
+/* --- CTA Section --- */
 .ctaSection {
-    padding: 80px 0;
-    background: var(--color-text);
+    padding: 120px 0;
+    position: relative;
+    background-color: var(--color-white);
 }
 
-.ctaSection h2 {
-    font-size: 2.25rem;
+.ctaCard {
+    background: var(--gradient-hero);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: 80px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.ctaCard h2 {
+    font-size: 2.5rem;
     font-weight: 800;
-    color: var(--color-white);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    color: var(--color-text);
 }
 
-.ctaSection p {
-    color: rgba(255, 255, 255, 0.6);
-    margin-bottom: 32px;
-    font-size: 1.0625rem;
+.ctaCard p {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ctaActions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+/* --- Responsive Layout --- */
+@media (max-width: 1024px) {
+
+    .journeyContainer,
+    .reverseLayout {
+        grid-template-columns: 1fr;
+        gap: 60px;
+    }
+
+    .reverseLayout .journeyContent {
+        order: 1;
+    }
+
+    .reverseLayout .journeyStepsWrapper {
+        order: 2;
+    }
+
+    .imageWrapper {
+        height: 300px;
+    }
 }
 
 @media (max-width: 768px) {
-    .heroContent h1 {
-        font-size: 2rem;
+    .heroTitle {
+        font-size: 2.5rem;
+    }
+
+    .journeySection {
+        padding: 80px 0;
+    }
+
+    .journeyContent h2 {
+        font-size: 2.25rem;
+    }
+
+    .journeyStepsWrapper,
+    .reverseLayout .journeyStepsWrapper {
+        padding-left: 50px;
+        padding-right: 0;
+    }
+
+    .connectingLine,
+    .reverseLayout .connectingLine {
+        left: 10px;
+        right: auto;
+    }
+
+    .stepNumberContainer,
+    .reverseLayout .stepNumberContainer {
+        left: -50px;
+        right: auto;
+    }
+
+    .ctaCard {
+        padding: 60px 20px;
+    }
+
+    .ctaActions {
+        flex-direction: column;
     }
 }
