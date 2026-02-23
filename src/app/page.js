@@ -74,7 +74,7 @@ const dynamicRoles = [
     images: [
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80',
       'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80',
-      'https://images.unsplash.com/photo-1523240715638-75fbd3091934?w=800&q=80'
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80'
     ]
   },
   {
@@ -112,7 +112,7 @@ const dynamicRoles = [
     images: [
       'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=800&q=80',
       'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&q=80',
-      'https://images.unsplash.com/photo-1454165833767-0270b24bda8a?w=800&q=80'
+      'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80'
     ]
   }
 ];
@@ -140,17 +140,17 @@ const stagger = {
 
 const mixedStakeholders = [
   'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=400',
-  'https://images.unsplash.com/photo-1523240715638-75fbd3091934?q=80&w=400',
+  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=400',
   'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=400',
   'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=400',
   'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=400',
   'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=400',
   'https://images.unsplash.com/photo-1553729459-efe14ef6055d?q=80&w=400',
-  'https://images.unsplash.com/photo-1507679799987-c7377ec486b0?q=80&w=400',
+  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=400',
   'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=400',
   'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=400',
   'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=400',
-  'https://images.unsplash.com/photo-1522071823991-b1ae5e6a30c8?q=80&w=400'
+  'https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=400'
 ];
 
 export default function Home() {
