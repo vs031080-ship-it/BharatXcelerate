@@ -182,58 +182,58 @@ export default function AdminProjectsPage() {
             {/* Add/Edit Modal */}
             <AnimatePresence>
                 {showModal && (
-                    <motion.div className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)}>
-                        <motion.div className={styles.modal} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={e => e.stopPropagation()}>
-                            <div className={styles.modalHeader}>
+                    <motion.div className={styles.modernModalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)}>
+                        <motion.div className={styles.modernModal} initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} onClick={e => e.stopPropagation()}>
+                            <div className={styles.modernModalHeader}>
                                 <h2>{editingId ? 'Edit Project' : 'Add New Project'}</h2>
-                                <button className={styles.closeBtn} onClick={() => setShowModal(false)}><X size={20} /></button>
+                                <button className={styles.modernModalClose} onClick={() => setShowModal(false)}><X size={20} /></button>
                             </div>
                             <form onSubmit={handleSubmit}>
-                                <div className={styles.modalBody}>
-                                    <div className={styles.formGroup}>
+                                <div className={styles.modernModalBody}>
+                                    <div className={styles.modernFormGroup}>
                                         <label>Project Title *</label>
-                                        <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="e.g. E-Commerce Platform" />
+                                        <input type="text" className={styles.modernInput} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="e.g. E-Commerce Platform" />
                                     </div>
-                                    <div className={styles.formGroup}>
+                                    <div className={styles.modernFormGroup}>
                                         <label>Description *</label>
-                                        <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required placeholder="Describe what students will build..." />
+                                        <textarea className={styles.modernInput} rows="3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required placeholder="Describe what students will build..." />
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                        <div className={styles.formGroup}>
+                                    <div className={styles.modernGrid}>
+                                        <div className={styles.modernFormGroup}>
                                             <label>Domain *</label>
-                                            <select value={form.domain} onChange={e => setForm({ ...form, domain: e.target.value })}>
+                                            <select className={styles.modernInput} value={form.domain} onChange={e => setForm({ ...form, domain: e.target.value })}>
                                                 {domains.map(d => <option key={d} value={d}>{d}</option>)}
                                             </select>
                                         </div>
-                                        <div className={styles.formGroup}>
+                                        <div className={styles.modernFormGroup}>
                                             <label>Difficulty *</label>
-                                            <select value={form.difficulty} onChange={e => setForm({ ...form, difficulty: e.target.value })}>
+                                            <select className={styles.modernInput} value={form.difficulty} onChange={e => setForm({ ...form, difficulty: e.target.value })}>
                                                 {difficulties.map(d => <option key={d} value={d}>{d}</option>)}
                                             </select>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
-                                        <div className={styles.formGroup}>
+                                    <div className={styles.modernGrid} style={{ gridTemplateColumns: '1fr 2fr' }}>
+                                        <div className={styles.modernFormGroup}>
                                             <label>Points</label>
-                                            <input type="number" value={form.points} onChange={e => setForm({ ...form, points: e.target.value })} min="0" />
+                                            <input type="number" className={styles.modernInput} value={form.points} onChange={e => setForm({ ...form, points: e.target.value })} min="0" />
                                         </div>
-                                        <div className={styles.formGroup}>
+                                        <div className={styles.modernFormGroup}>
                                             <label>Image URL</label>
-                                            <input type="text" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} placeholder="https://images.unsplash.com/..." />
+                                            <input type="text" className={styles.modernInput} value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} placeholder="https://images.unsplash.com/..." />
                                         </div>
                                     </div>
-                                    <div className={styles.formGroup}>
+                                    <div className={styles.modernFormGroup}>
                                         <label>Skills (comma-separated)</label>
-                                        <input type="text" value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="React, Node.js, MongoDB" />
+                                        <input type="text" className={styles.modernInput} value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} placeholder="React, Node.js, MongoDB" />
                                     </div>
-                                    <div className={styles.formGroup}>
-                                        <label>Project Deadline (Syncs to Student Calendar) *</label>
-                                        <input type="date" value={form.deadline ? new Date(form.deadline).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, deadline: e.target.value })} required />
+                                    <div className={styles.modernFormGroup}>
+                                        <label>Project Deadline (Syncs to Calendar) *</label>
+                                        <input type="date" className={styles.modernInput} value={form.deadline ? new Date(form.deadline).toISOString().split('T')[0] : ''} onChange={e => setForm({ ...form, deadline: e.target.value })} required />
                                     </div>
                                 </div>
-                                <div className={styles.formActions}>
-                                    <button type="button" className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setShowModal(false)}>Cancel</button>
-                                    <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={saving}>
+                                <div className={styles.modernFormActions}>
+                                    <button type="button" className={styles.modernBtnCancel} onClick={() => setShowModal(false)}>Cancel</button>
+                                    <button type="submit" className={styles.modernBtnSubmit} disabled={saving}>
                                         {saving ? 'Saving...' : editingId ? 'Update Project' : 'Create Project'}
                                     </button>
                                 </div>

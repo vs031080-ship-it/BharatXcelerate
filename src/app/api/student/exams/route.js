@@ -48,6 +48,7 @@ export async function GET(req) {
                 category: t.category,
                 level: t.level,
                 badgeLabel: t.badgeLabel,
+                description: t.description,
                 config: t.config,
                 status: session
                     ? (session.status === 'in-progress' ? 'in-progress' : 'completed')

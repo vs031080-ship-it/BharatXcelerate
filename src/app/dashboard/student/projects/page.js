@@ -1,8 +1,9 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, Filter, SlidersHorizontal, ArrowUpRight,
-    Clock, Zap, Loader, CheckCircle2, FolderKanban, Layers
+    Search, ArrowUpRight, Clock, Loader, CheckCircle2,
+    FolderKanban, ChevronRight, Target, Zap, BarChart3,
+    TrendingUp, Calendar, BookOpen, ArrowRight, Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -10,15 +11,15 @@ import { getAuthHeaders } from '@/context/AuthContext';
 import styles from './projects.module.css';
 
 const DOMAIN_COLORS = {
-    'AI/ML': { bg: '#EDE9FE', txt: '#7C3AED', icon: '🤖' },
-    'Blockchain': { bg: '#FEF3C7', txt: '#D97706', icon: '⛓️' },
-    'Full Stack': { bg: '#DBEAFE', txt: '#1D4ED8', icon: '🌐' },
-    'Backend': { bg: '#D1FAE5', txt: '#059669', icon: '⚙️' },
-    'Frontend': { bg: '#FCE7F3', txt: '#BE185D', icon: '🎨' },
-    'Mobile': { bg: '#FFEDD5', txt: '#EA580C', icon: '📱' },
-    'DevOps': { bg: '#E0F2FE', txt: '#0369A1', icon: '🚀' },
-    'Data Science': { bg: '#F0FDF4', txt: '#16A34A', icon: '📊' },
-    'Cybersecurity': { bg: '#FEE2E2', txt: '#DC2626', icon: '🔐' },
+    'AI/ML': { bg: '#EDE9FE', txt: '#7C3AED', solid: '#7C3AED', icon: '🤖' },
+    'Blockchain': { bg: '#FEF3C7', txt: '#D97706', solid: '#D97706', icon: '⛓️' },
+    'Full Stack': { bg: '#DBEAFE', txt: '#1D4ED8', solid: '#2563EB', icon: '🌐' },
+    'Backend': { bg: '#D1FAE5', txt: '#059669', solid: '#059669', icon: '⚙️' },
+    'Frontend': { bg: '#FCE7F3', txt: '#BE185D', solid: '#BE185D', icon: '🎨' },
+    'Mobile': { bg: '#FFEDD5', txt: '#EA580C', solid: '#EA580C', icon: '📱' },
+    'DevOps': { bg: '#E0F2FE', txt: '#0369A1', solid: '#0369A1', icon: '🚀' },
+    'Data Science': { bg: '#F0FDF4', txt: '#16A34A', solid: '#16A34A', icon: '📊' },
+    'Cybersecurity': { bg: '#FEE2E2', txt: '#DC2626', solid: '#DC2626', icon: '🔐' },
 };
 
 const STATUS_MAP = {
@@ -40,237 +41,370 @@ export default function MyProjectsPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('active');
     const [search, setSearch] = useState('');
-    const [sortBy, setSortBy] = useState('progress');
+    const [_selected, setSelected] = useState(null);
 
     useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const res = await fetch('/api/student/projects/active', { headers: getAuthHeaders() });
-                if (res.ok) {
-                    const data = await res.json();
-                    setAllProjects(data.projects || []);
-                }
-            } catch (error) {
-                console.error('Failed to fetch projects', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProjects();
+        fetch('/api/student/projects/active', { headers: getAuthHeaders() })
+            .then(r => r.ok ? r.json() : { projects: [] })
+            .then(d => {
+                const projs = d.projects || [];
+                setAllProjects(projs);
+                if (projs.length > 0) setSelected(projs[0]);
+            })
+            .catch(() => { })
+            .finally(() => setLoading(false));
     }, []);
 
     const inProgress = allProjects.filter(p => p.status !== 'completed' && p.status !== 'archived');
     const completed = allProjects.filter(p => p.status === 'completed');
 
-    let filtered = (activeTab === 'active' ? inProgress : completed)
+    const filtered = (activeTab === 'active' ? inProgress : completed)
         .filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
 
-    if (sortBy === 'progress') filtered = [...filtered].sort((a, b) => (b.progress || 0) - (a.progress || 0));
-    if (sortBy === 'xp') filtered = [...filtered].sort((a, b) => (b.points || 0) - (a.points || 0));
-    if (sortBy === 'title') filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+    // If current selection was filtered out, pick first visible one (computed at render, no effect needed)
+    const effectiveSelected = _selected && filtered.find(p => (p.id || p._id) === (_selected.id || _selected._id))
+        ? _selected
+        : filtered[0] || null;
+
+    const selectedDc = effectiveSelected ? (DOMAIN_COLORS[effectiveSelected.domain] || { bg: '#F1F5F9', txt: '#64748B', solid: '#64748B', icon: '📁' }) : null;
+    const selectedStatus = effectiveSelected ? getStatus(effectiveSelected) : null;
+    const pct = effectiveSelected ? (effectiveSelected.progress || 0) : 0;
+    const curStep = effectiveSelected ? (effectiveSelected.currentStep || 0) + 1 : 0;
+    const totSteps = effectiveSelected ? (effectiveSelected.totalSteps || effectiveSelected.steps?.length || 0) : 0;
+
+    // Total XP earned from completed projects
+    const totalXpEarned = completed.reduce((s, p) => s + (p.points || 0), 0);
+    const totalXpPending = inProgress.reduce((s, p) => s + (p.points || 0), 0);
+    const avgProgress = inProgress.length > 0
+        ? Math.round(inProgress.reduce((s, p) => s + (p.progress || 0), 0) / inProgress.length)
+        : 0;
+
+    // Alias so JSX can reference `selected` (from effectiveSelected) cleanly
+    const selected = effectiveSelected;
 
     return (
-        <div className={styles.page}>
-            {/* Page Header */}
-            <div className={styles.pageTop}>
-                <div>
-                    <h1 className={styles.pageTitle}>My Projects</h1>
-                    <p className={styles.pageSub}>Track progress and continue where you left off</p>
-                </div>
+        <div className={styles.shell}>
+            {/* ── COLUMN 1: Project List ── */}
+            <aside className={styles.listPanel}>
+                <div className={styles.listHeader}>
+                    <h2 className={styles.listTitle}>My Projects</h2>
+                    <p className={styles.listSub}>Track your progress</p>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {/* Pill tabs — In Progress / Completed */}
-                    <div className={styles.filterPills}>
+                    {/* Search */}
+                    <div className={styles.searchBox}>
+                        <Search size={14} color="#9CA3AF" />
+                        <input
+                            type="text"
+                            placeholder="Search projects..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Tab pills */}
+                    <div className={styles.tabPills}>
                         <button
-                            className={`${styles.pill} ${activeTab === 'active' ? styles.pillActive : ''}`}
+                            className={`${styles.tabPill} ${activeTab === 'active' ? styles.tabPillActive : ''}`}
                             onClick={() => setActiveTab('active')}
                         >
-                            In Progress&nbsp;
-                            <span style={{
-                                fontSize: '0.7rem',
-                                background: activeTab === 'active' ? 'rgba(255,255,255,0.25)' : '#E5E7EB',
-                                color: activeTab === 'active' ? '#fff' : '#6B7280',
-                                borderRadius: '20px',
-                                padding: '1px 7px',
-                                fontWeight: 700,
-                            }}>{inProgress.length}</span>
+                            In Progress <span className={styles.tabCount}>{inProgress.length}</span>
                         </button>
                         <button
-                            className={`${styles.pill} ${activeTab === 'completed' ? styles.pillActive : ''}`}
+                            className={`${styles.tabPill} ${activeTab === 'completed' ? styles.tabPillActive : ''}`}
                             onClick={() => setActiveTab('completed')}
                         >
-                            Completed&nbsp;
-                            <span style={{
-                                fontSize: '0.7rem',
-                                background: activeTab === 'completed' ? 'rgba(255,255,255,0.25)' : '#E5E7EB',
-                                color: activeTab === 'completed' ? '#fff' : '#6B7280',
-                                borderRadius: '20px',
-                                padding: '1px 7px',
-                                fontWeight: 700,
-                            }}>{completed.length}</span>
+                            Completed <span className={styles.tabCount}>{completed.length}</span>
                         </button>
                     </div>
-
-                    <Link href="/dashboard/student/explore" className={styles.browseCta}>
-                        Browse Projects <ArrowUpRight size={15} />
-                    </Link>
                 </div>
-            </div>
 
-            {/* Stat pills */}
-            <div className={styles.statRow}>
-                <div className={styles.statPill}>
-                    <FolderKanban size={15} color="#4F46E5" />
-                    <span><strong>{allProjects.length}</strong> Total</span>
-                </div>
-                <div className={styles.statPill}>
-                    <Clock size={15} color="#0EA5E9" />
-                    <span><strong>{inProgress.length}</strong> In Progress</span>
-                </div>
-                <div className={styles.statPill}>
-                    <CheckCircle2 size={15} color="#10B981" />
-                    <span><strong>{completed.length}</strong> Completed</span>
-                </div>
-            </div>
-
-            {/* Main Table Card */}
-            <div className={styles.tableCard}>
-                {/* Controls row */}
-                <div className={styles.controls}>
-                    <button className={styles.filterBtn}>
-                        <Filter size={14} />
-                        Filters
-                    </button>
-
-                    <div className={styles.rightControls}>
-                        {/* Search */}
-                        <div className={styles.searchBox}>
-                            <Search size={14} color="#9CA3AF" />
-                            <input
-                                type="text"
-                                placeholder="Search projects..."
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                            />
+                <div className={styles.listBody}>
+                    {loading ? (
+                        <div className={styles.listLoading}>
+                            <Loader size={20} className={styles.spin} color="#4F46E5" />
+                            <span>Loading...</span>
                         </div>
-                        {/* Sort */}
-                        <span className={styles.sortLabel}>Sort by:</span>
-                        <div className={styles.sortBox}>
-                            <SlidersHorizontal size={13} color="#6B7280" />
-                            <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                                <option value="progress">Progress</option>
-                                <option value="xp">XP</option>
-                                <option value="title">Title</option>
-                            </select>
+                    ) : filtered.length === 0 ? (
+                        <div className={styles.listEmpty}>
+                            <FolderKanban size={32} color="#D1D5DB" strokeWidth={1.5} />
+                            <p>{search ? 'No results found' : activeTab === 'active' ? 'No active projects yet' : 'No completed projects yet'}</p>
+                            {activeTab === 'active' && !search && (
+                                <Link href="/dashboard/student/explore" className={styles.listEmptyBtn}>
+                                    Browse Projects
+                                </Link>
+                            )}
                         </div>
-                    </div>
-                </div>
-
-                {/* Table Head */}
-                {!loading && filtered.length > 0 && (
-                    <div className={styles.tableHead}>
-                        <span className={styles.colProject}>Project</span>
-                        <span className={styles.colDomain}>Domain</span>
-                        <span className={styles.colProgress}>Progress</span>
-                        <span className={styles.colStatus}>Status</span>
-                        <span className={styles.colXp}>XP</span>
-                        <span className={styles.colAction} />
-                    </div>
-                )}
-
-                {/* Table Body */}
-                {loading ? (
-                    <div className={styles.loadingState}>
-                        <Loader size={22} className={styles.spin} color="#2563EB" />
-                        <span>Loading your projects...</span>
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className={styles.emptyState}>
-                        <Layers size={48} strokeWidth={1.2} color="#D1D5DB" />
-                        <h3>{search ? 'No results found' : activeTab === 'active' ? 'No active projects' : 'No completed projects yet'}</h3>
-                        <p>{search ? 'Try clearing the search.' : activeTab === 'active' ? 'Start a new project from the project library.' : 'Complete a project to see it here.'}</p>
-                        {activeTab === 'active' && !search && (
-                            <Link href="/dashboard/student/explore" className={styles.emptyBtn}>
-                                Browse Projects
-                            </Link>
-                        )}
-                    </div>
-                ) : (
-                    <div className={styles.tableBody}>
+                    ) : (
                         <AnimatePresence mode="popLayout">
-                            {filtered.map((project, i) => {
-                                const dc = DOMAIN_COLORS[project.domain] || { bg: '#F1F5F9', txt: '#64748B', icon: '📁' };
-                                const status = getStatus(project);
-                                const pct = project.progress || 0;
-                                const curStep = (project.currentStep || 0) + 1;
-                                const totSteps = project.totalSteps || '?';
+                            {filtered.map((proj, i) => {
+                                const dc = DOMAIN_COLORS[proj.domain] || { bg: '#F1F5F9', txt: '#64748B', solid: '#64748B', icon: '📁' };
+                                const progress = proj.progress || 0;
+                                const isActive = (selected?.id || selected?._id) === (proj.id || proj._id);
                                 return (
-                                    <motion.div
-                                        key={project.id}
-                                        className={styles.tableRow}
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                                    <motion.button
+                                        key={proj.id || proj._id}
+                                        className={`${styles.listItem} ${isActive ? styles.listItemActive : ''}`}
+                                        onClick={() => setSelected(proj)}
+                                        initial={{ opacity: 0, x: -8 }}
+                                        animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0 }}
-                                        transition={{ delay: i * 0.04 }}
+                                        transition={{ delay: i * 0.02 }}
                                     >
-                                        {/* Project */}
-                                        <div className={styles.colProject}>
-                                            <div className={styles.projectAvatar} style={{ background: dc.bg, color: dc.txt }}>
-                                                {dc.icon}
-                                            </div>
-                                            <div>
-                                                <Link href={`/dashboard/student/projects/${project.id}`} className={styles.projectName}>
-                                                    {project.title}
-                                                </Link>
-                                                <div className={styles.projectSub}>{project.difficulty} · Step {curStep} of {totSteps}</div>
-                                            </div>
+                                        <div className={styles.listItemBadge} style={{ background: dc.solid }}>
+                                            {proj.domain?.substring(0, 3).toUpperCase() || '---'}
                                         </div>
-
-                                        {/* Domain */}
-                                        <div className={styles.colDomain}>
-                                            <span className={styles.domainChip} style={{ background: dc.bg, color: dc.txt }}>
-                                                {project.domain}
-                                            </span>
-                                        </div>
-
-                                        {/* Progress */}
-                                        <div className={styles.colProgress}>
-                                            <div className={styles.pbarWrap}>
-                                                <div className={styles.pbarTop}>
-                                                    <span className={styles.pbarSteps}>{curStep}/{totSteps}</span>
-                                                    <span className={styles.pbarPct}>({pct}%)</span>
+                                        <div className={styles.listItemInfo}>
+                                            <span className={styles.listItemTitle}>{proj.title}</span>
+                                            <div className={styles.listItemProgressRow}>
+                                                <div className={styles.listItemProgressBg}>
+                                                    <div
+                                                        className={styles.listItemProgressFill}
+                                                        style={{ width: `${progress}%`, background: dc.solid }}
+                                                    />
                                                 </div>
-                                                <div className={styles.pbarBg}>
-                                                    <div className={styles.pbarFill} style={{ width: `${pct}%` }} />
-                                                </div>
+                                                <span className={styles.listItemProgressPct}>{progress}%</span>
                                             </div>
                                         </div>
-
-                                        {/* Status */}
-                                        <div className={styles.colStatus}>
-                                            <span className={`${styles.statusChip} ${styles[`chip${status.cls.charAt(0).toUpperCase() + status.cls.slice(1)}`]}`}>
-                                                {status.label}
-                                            </span>
-                                        </div>
-
-                                        {/* XP */}
-                                        <div className={styles.colXp}>
-                                            <span className={styles.xpChip}>+{project.points} XP</span>
-                                        </div>
-
-                                        {/* Action */}
-                                        <div className={styles.colAction}>
-                                            <Link href={`/dashboard/student/projects/${project.id}`} className={styles.actionBtn}>
-                                                {project.status === 'completed' ? 'View' : 'Continue'}
-                                            </Link>
-                                        </div>
-                                    </motion.div>
+                                        <ChevronRight size={14} className={styles.listItemArrow} />
+                                    </motion.button>
                                 );
                             })}
                         </AnimatePresence>
+                    )}
+                </div>
+            </aside>
+
+            {/* ── COLUMN 2: Detail Panel ── */}
+            <main className={styles.detailPanel}>
+                {!selected || filtered.length === 0 ? (
+                    <div className={styles.detailEmpty}>
+                        <BookOpen size={48} color="#D1D5DB" strokeWidth={1.2} />
+                        <h3>No project selected</h3>
+                        <p>{activeTab === 'active' ? 'Accept a project from the library to get started.' : 'Complete an active project to see it here.'}</p>
+                        <Link href="/dashboard/student/explore" className={styles.detailEmptyBtn}>
+                            Explore Projects <ArrowRight size={14} />
+                        </Link>
                     </div>
+                ) : (
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={selected.id || selected._id}
+                            className={styles.detailContent}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.25 }}
+                        >
+                            {/* Header */}
+                            <div className={styles.detailHeader}>
+                                <div className={styles.detailIcon} style={{ background: selectedDc.bg, color: selectedDc.txt }}>
+                                    <span className={styles.detailIconEmoji}>{selectedDc.icon}</span>
+                                </div>
+                                <div className={styles.detailMeta}>
+                                    <span className={styles.detailDomainTag} style={{ background: selectedDc.bg, color: selectedDc.txt }}>
+                                        {selected.domain}
+                                    </span>
+                                    <span className={`${styles.statusChip} ${styles[`chip${selectedStatus.cls.charAt(0).toUpperCase() + selectedStatus.cls.slice(1)}`]}`}>
+                                        {selectedStatus.label}
+                                    </span>
+                                </div>
+                            </div>
+                            <h1 className={styles.detailTitle}>{selected.title}</h1>
+                            <p className={styles.detailDomain}>{selected.difficulty} · {selected.domain}</p>
+
+                            {/* Progress Section */}
+                            <div className={styles.progressSection}>
+                                <div className={styles.progressHeader}>
+                                    <span className={styles.progressLabel}>Project Progress</span>
+                                    <span className={styles.progressSteps}>Step {curStep} of {totSteps}</span>
+                                </div>
+                                <div className={styles.progressBar}>
+                                    <div
+                                        className={styles.progressFill}
+                                        style={{ width: `${pct}%`, background: selectedDc.solid }}
+                                    />
+                                </div>
+                                <div className={styles.progressFooter}>
+                                    <span className={styles.progressPct}>{pct}% Complete</span>
+                                    <span className={styles.progressXp}><Star size={12} /> +{selected.points} XP on completion</span>
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className={styles.detailStats}>
+                                <div className={styles.statBox}>
+                                    <Clock size={16} color="#6B7280" />
+                                    <div>
+                                        <span className={styles.statVal}>{totSteps} Steps</span>
+                                        <span className={styles.statLbl}>Total Milestones</span>
+                                    </div>
+                                </div>
+                                <div className={styles.statBox}>
+                                    <Target size={16} color="#4F46E5" />
+                                    <div>
+                                        <span className={styles.statVal}>Step {curStep}</span>
+                                        <span className={styles.statLbl}>Current Step</span>
+                                    </div>
+                                </div>
+                                <div className={styles.statBox}>
+                                    <Zap size={16} color="#D97706" />
+                                    <div>
+                                        <span className={styles.statVal}>+{selected.points} XP</span>
+                                        <span className={styles.statLbl}>Reward</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Description section */}
+                            <div className={styles.detailSection}>
+                                <h3 className={styles.detailSectionTitle}>About this project</h3>
+                                <p className={styles.detailDesc}>{selected.description}</p>
+                            </div>
+
+                            {/* Steps preview */}
+                            {selected.steps && selected.steps.length > 0 && (
+                                <div className={styles.detailSection}>
+                                    <h3 className={styles.detailSectionTitle}>Milestone Progress</h3>
+                                    <div className={styles.stepsList}>
+                                        {selected.steps.slice(0, 5).map((step, idx) => {
+                                            const done = idx < (selected.currentStep || 0);
+                                            const current = idx === (selected.currentStep || 0);
+                                            return (
+                                                <div key={idx} className={`${styles.stepItem} ${done ? styles.stepDone : ''} ${current ? styles.stepCurrent : ''}`}>
+                                                    <div className={styles.stepNum} style={{
+                                                        background: done ? '#10B981' : current ? selectedDc.solid : '#E5E7EB',
+                                                        color: done || current ? 'white' : '#9CA3AF'
+                                                    }}>
+                                                        {done ? <CheckCircle2 size={12} /> : idx + 1}
+                                                    </div>
+                                                    <span className={styles.stepTitle} style={{ color: done ? '#059669' : current ? '#111827' : '#6B7280' }}>
+                                                        {step.title || step}
+                                                    </span>
+                                                    {current && <span className={styles.stepCurrentBadge}>Current</span>}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Action Button */}
+                            <div className={styles.detailActions}>
+                                <Link
+                                    href={`/dashboard/student/projects/${selected.id || selected._id}`}
+                                    className={styles.continueBtn}
+                                    style={{ background: selectedDc.solid }}
+                                >
+                                    {selected.status === 'completed' ? <><CheckCircle2 size={16} /> View Project</> : <><ArrowRight size={16} /> Continue Project</>}
+                                </Link>
+                                <Link
+                                    href={`/dashboard/student/scorecard`}
+                                    className={styles.scorecardBtn}
+                                >
+                                    <BarChart3 size={15} /> Scorecard
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
                 )}
-            </div>
+            </main>
+
+            {/* ── COLUMN 3: Right Panel ── */}
+            <aside className={styles.rightPanel}>
+                {/* Overall Progress */}
+                <div className={styles.rpCard}>
+                    <h3 className={styles.rpCardTitle}>
+                        <TrendingUp size={15} /> Your Progress
+                    </h3>
+                    <div className={styles.rpStats}>
+                        <div className={styles.rpStat}>
+                            <span className={styles.rpStatNum}>{allProjects.length}</span>
+                            <span className={styles.rpStatLbl}>Total Projects</span>
+                        </div>
+                        <div className={styles.rpStat}>
+                            <span className={styles.rpStatNum}>{avgProgress}%</span>
+                            <span className={styles.rpStatLbl}>Avg. Progress</span>
+                        </div>
+                        <div className={styles.rpStat}>
+                            <span className={styles.rpStatNum} style={{ color: '#059669' }}>+{totalXpEarned}</span>
+                            <span className={styles.rpStatLbl}>XP Earned</span>
+                        </div>
+                        <div className={styles.rpStat}>
+                            <span className={styles.rpStatNum} style={{ color: '#D97706' }}>+{totalXpPending}</span>
+                            <span className={styles.rpStatLbl}>XP Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Completion Status */}
+                <div className={styles.rpCard}>
+                    <h3 className={styles.rpCardTitle}>
+                        <BarChart3 size={15} /> Completion Overview
+                    </h3>
+                    <div className={styles.completionItems}>
+                        <div className={styles.compItem}>
+                            <span className={styles.compLabel}><Clock size={12} color="#4F46E5" /> In Progress</span>
+                            <div className={styles.compBar}>
+                                <div className={styles.compFill} style={{ width: allProjects.length > 0 ? `${(inProgress.length / allProjects.length) * 100}%` : '0%', background: '#4F46E5' }} />
+                            </div>
+                            <span className={styles.compNum}>{inProgress.length}</span>
+                        </div>
+                        <div className={styles.compItem}>
+                            <span className={styles.compLabel}><CheckCircle2 size={12} color="#10B981" /> Completed</span>
+                            <div className={styles.compBar}>
+                                <div className={styles.compFill} style={{ width: allProjects.length > 0 ? `${(completed.length / allProjects.length) * 100}%` : '0%', background: '#10B981' }} />
+                            </div>
+                            <span className={styles.compNum}>{completed.length}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className={styles.rpCard}>
+                    <h3 className={styles.rpCardTitle}>
+                        <Calendar size={15} /> Quick Actions
+                    </h3>
+                    <div className={styles.quickActions}>
+                        <Link href="/dashboard/student/explore" className={styles.qaItem}>
+                            <div className={styles.qaIcon} style={{ background: '#EDE9FE', color: '#7C3AED' }}>🔍</div>
+                            <div className={styles.qaInfo}>
+                                <span className={styles.qaTitle}>Explore Projects</span>
+                                <span className={styles.qaDesc}>Find new projects to start</span>
+                            </div>
+                            <ArrowRight size={13} color="#9CA3AF" />
+                        </Link>
+                        <Link href="/dashboard/student/scorecard" className={styles.qaItem}>
+                            <div className={styles.qaIcon} style={{ background: '#D1FAE5', color: '#059669' }}>📊</div>
+                            <div className={styles.qaInfo}>
+                                <span className={styles.qaTitle}>Scorecard</span>
+                                <span className={styles.qaDesc}>View your grades & scores</span>
+                            </div>
+                            <ArrowRight size={13} color="#9CA3AF" />
+                        </Link>
+                        <Link href="/dashboard/student/exams" className={styles.qaItem}>
+                            <div className={styles.qaIcon} style={{ background: '#DBEAFE', color: '#1D4ED8' }}>🎓</div>
+                            <div className={styles.qaInfo}>
+                                <span className={styles.qaTitle}>Skill Exams</span>
+                                <span className={styles.qaDesc}>Earn skill badges</span>
+                            </div>
+                            <ArrowRight size={13} color="#9CA3AF" />
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Browse more CTA */}
+                <div className={styles.rpCard} style={{ background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)', border: 'none' }}>
+                    <h3 className={styles.rpCardTitle} style={{ color: 'white' }}>
+                        <Star size={15} /> Explore More
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', marginBottom: '12px', lineHeight: 1.5 }}>
+                        Discover new projects and keep building your portfolio.
+                    </p>
+                    <Link href="/dashboard/student/explore" className={styles.rpCtaBtn}>
+                        Browse Projects <ArrowUpRight size={14} />
+                    </Link>
+                </div>
+            </aside>
         </div>
     );
 }
