@@ -1,54 +1,55 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Clock, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { Bookmark, BookMarked, AlertCircle, CheckCircle } from 'lucide-react';
 import styles from './exam.module.css';
 
 export default function ActiveExamPage() {
     const { sessionId } = useParams();
     const router = useRouter();
 
-    const [session, setSession] = useState(null);
-    const [answers, setAnswers] = useState({}); // { questionId: selectedOptionIndex }
-    const [currentQ, setCurrentQ] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(null); // seconds
-    const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
-    const [result, setResult] = useState(null);
+    const [session, setSession]           = useState(null);
+    const [answers, setAnswers]           = useState({});
+    const [bookmarked, setBookmarked]     = useState({});
+    const [currentQ, setCurrentQ]         = useState(0);
+    const [timeLeft, setTimeLeft]         = useState(null);
+    const [loading, setLoading]           = useState(true);
+    const [submitting, setSubmitting]     = useState(false);
+    const [result, setResult]             = useState(null);
     const [confirmSubmit, setConfirmSubmit] = useState(false);
     const submitted = useRef(false);
 
-    // Load session on mount
+    // Track visited questions
+    const [visited, setVisited] = useState({});
+
     useEffect(() => {
         async function loadSession() {
             const res = await fetch(`/api/student/exams/session/${sessionId}`);
             if (!res.ok) { router.push('/dashboard/student/exams'); return; }
             const data = await res.json();
             if (data.session.status !== 'in-progress') {
-                // Already submitted — show result
                 setResult({ score: data.session.score, passed: data.session.passed, alreadyDone: true });
                 setLoading(false);
                 return;
             }
             setSession(data.session);
-            // Calculate remaining time
             const durationMs = (data.session.testPaper?.config?.duration || 120) * 60 * 1000;
             const elapsed = Date.now() - new Date(data.session.startTime).getTime();
             const remaining = Math.max(0, Math.floor((durationMs - elapsed) / 1000));
             setTimeLeft(remaining);
+            setVisited({ 0: true });
             setLoading(false);
         }
         loadSession();
     }, [sessionId]);
 
-    // Countdown timer
     useEffect(() => {
         if (timeLeft === null || timeLeft <= 0) return;
         const interval = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(interval);
-                    if (!submitted.current) handleSubmit(true); // auto-submit
+                    if (!submitted.current) handleSubmit(true);
                     return 0;
                 }
                 return prev - 1;
@@ -72,12 +73,11 @@ export default function ActiveExamPage() {
             if (res.ok) {
                 setResult({ ...data, isAuto });
             } else if (res.status === 409) {
-                // Test was already locked in as submitted
                 setResult({ alreadyDone: true, score: data.score, passed: data.passed });
             } else {
                 setResult({ error: data.error });
             }
-        } catch (e) {
+        } catch {
             setResult({ error: 'Network error during submission. Please contact support.' });
         } finally {
             setSubmitting(false);
@@ -85,19 +85,35 @@ export default function ActiveExamPage() {
         }
     }, [answers, sessionId]);
 
-    function formatTime(secs) {
-        const m = Math.floor(secs / 60).toString().padStart(2, '0');
-        const s = (secs % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
+    function formatTimePart(secs) {
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        return { h: h.toString().padStart(2,'0'), m: m.toString().padStart(2,'0'), s: s.toString().padStart(2,'0') };
+    }
+
+    function goTo(i) {
+        setCurrentQ(i);
+        setVisited(prev => ({ ...prev, [i]: true }));
     }
 
     const questions = session?.questions || [];
     const q = questions[currentQ];
     const answeredCount = Object.keys(answers).length;
+    const visitedCount  = Object.keys(visited).length;
+    const notVisited    = questions.length - visitedCount;
+    const notAnswered   = questions.length - answeredCount;
+    const bookmarkCount = Object.values(bookmarked).filter(Boolean).length;
     const isLastQ = currentQ === questions.length - 1;
-    const isTimeLow = timeLeft !== null && timeLeft < 300; // < 5 min
+    const isTimeLow = timeLeft !== null && timeLeft < 300;
+    const timeParts = timeLeft !== null ? formatTimePart(timeLeft) : { h: '--', m: '--', s: '--' };
 
-    if (loading) return <div className={styles.center}><div className={styles.spinner} /><p>Loading exam...</p></div>;
+    if (loading) return (
+        <div className={styles.loadingScreen}>
+            <div className={styles.spinner} />
+            <p>Loading exam...</p>
+        </div>
+    );
 
     if (result) {
         return (
@@ -141,92 +157,214 @@ export default function ActiveExamPage() {
     }
 
     return (
-        <div className={styles.examPage}>
-            {/* Header */}
-            <div className={styles.examHeader}>
-                <div className={styles.examTitle}>{session?.testPaper?.badgeLabel || 'Exam'}</div>
-                <div className={`${styles.timer} ${isTimeLow ? styles.timerLow : ''}`}>
-                    <Clock size={16} />
-                    {timeLeft !== null ? formatTime(timeLeft) : '--:--'}
+        <div className={styles.examRoot}>
+            {/* ── TOP BAR ── */}
+            <header className={styles.topBar}>
+                <div className={styles.topLeft}>
+                    <span className={styles.topBreadcrumb}>
+                        Skill Exam &rsaquo; <strong>{session?.testPaper?.badgeLabel || 'Exam'}</strong>
+                    </span>
                 </div>
-                <button className={styles.submitHeaderBtn} onClick={() => setConfirmSubmit(true)} disabled={submitting}>
-                    <Send size={15} /> Submit
-                </button>
-            </div>
-
-            {/* Progress */}
-            <div className={styles.progress}>
-                <div className={styles.progressBar} style={{ width: `${((answeredCount) / questions.length) * 100}%` }} />
-            </div>
-            <div className={styles.progressText}>{answeredCount}/{questions.length} answered</div>
-
-            {/* Question Navigator */}
-            <div className={styles.qNav}>
-                {questions.map((_, i) => (
+                <div className={styles.topRight}>
+                    <button className={styles.exitBtn} onClick={() => router.push('/dashboard/student/exams')}>Exit</button>
                     <button
-                        key={i}
-                        className={`${styles.qNavBtn} ${i === currentQ ? styles.qNavActive : ''} ${answers[questions[i]?.questionId] !== undefined ? styles.qNavAnswered : ''}`}
-                        onClick={() => setCurrentQ(i)}
-                    >{i + 1}</button>
-                ))}
-            </div>
-
-            {/* Question Card */}
-            {q && (
-                <div className={styles.questionCard}>
-                    <div className={styles.qNum}>Question {currentQ + 1} of {questions.length}</div>
-                    <div className={styles.qText}>{q.text}</div>
-                    <div className={styles.options}>
-                        {q.options.map((opt, i) => (
-                            <button
-                                key={i}
-                                className={`${styles.option} ${answers[q.questionId] === i ? styles.optionSelected : ''}`}
-                                onClick={() => setAnswers(prev => ({ ...prev, [q.questionId]: i }))}
-                            >
-                                <span className={styles.optionLetter}>{['A', 'B', 'C', 'D'][i]}</span>
-                                {opt.text}
-                            </button>
-                        ))}
-                    </div>
+                        className={styles.reviewBtn}
+                        onClick={() => setConfirmSubmit(true)}
+                        disabled={submitting}
+                    >
+                        Review and Submit ›
+                    </button>
                 </div>
-            )}
+            </header>
 
-            {/* Navigation */}
-            <div className={styles.navRow}>
-                <button className={styles.navBtn} disabled={currentQ === 0} onClick={() => setCurrentQ(q => q - 1)}>
-                    <ChevronLeft size={18} /> Previous
-                </button>
-                {!isLastQ ? (
-                    <button className={styles.navBtn} onClick={() => setCurrentQ(q => q + 1)}>
-                        Next <ChevronRight size={18} />
+            <div className={styles.examBody}>
+                {/* ── LEFT PANEL: Question Navigator ── */}
+                <aside className={styles.leftPanel}>
+                    <div className={styles.navTitle}>Questions</div>
+                    <div className={styles.qGrid}>
+                        {questions.map((qItem, i) => {
+                            const isAnswered = answers[qItem.questionId] !== undefined;
+                            const isCurrentQ = i === currentQ;
+                            const isMarked   = bookmarked[i];
+                            const isVisitedQ = visited[i];
+                            return (
+                                <button
+                                    key={i}
+                                    className={`${styles.qBtn}
+                                        ${isCurrentQ  ? styles.qCurrent  : ''}
+                                        ${isAnswered  ? styles.qAnswered  : ''}
+                                        ${isMarked    ? styles.qMarked    : ''}
+                                        ${!isVisitedQ && !isAnswered ? styles.qNotVisited : ''}`}
+                                    onClick={() => goTo(i)}
+                                    title={`Q${i + 1}${isAnswered ? ' ✓' : ''}${isMarked ? ' 🔖' : ''}`}
+                                >
+                                    {i + 1}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Legend */}
+                    <div className={styles.legend}>
+                        <div className={styles.legendItem}><span className={`${styles.legendDot} ${styles.dotAnswered}`} /> Answered</div>
+                        <div className={styles.legendItem}><span className={`${styles.legendDot} ${styles.dotCurrent}`} /> Current</div>
+                        <div className={styles.legendItem}><span className={`${styles.legendDot} ${styles.dotMarked}`} /> Bookmarked</div>
+                        <div className={styles.legendItem}><span className={`${styles.legendDot} ${styles.dotNot}`} /> Not Visited</div>
+                    </div>
+                </aside>
+
+                {/* ── CENTER PANEL: Question ── */}
+                <main className={styles.centerPanel}>
+                    {q && (
+                        <>
+                            <div className={styles.qHeader}>
+                                <span className={styles.qLabel}>Q: {currentQ + 1}</span>
+                                <button
+                                    className={`${styles.bookmarkBtn} ${bookmarked[currentQ] ? styles.bookmarkBtnOn : ''}`}
+                                    onClick={() => setBookmarked(prev => ({ ...prev, [currentQ]: !prev[currentQ] }))}
+                                >
+                                    {bookmarked[currentQ] ? <BookMarked size={16} /> : <Bookmark size={16} />}
+                                    <span>{bookmarked[currentQ] ? 'Bookmarked' : 'Bookmark'}</span>
+                                </button>
+                            </div>
+
+                            <div className={styles.questionBox}>
+                                <p className={styles.questionText}>{q.text}</p>
+                            </div>
+
+                            <div className={styles.optionsList}>
+                                {q.options.map((opt, i) => {
+                                    const letter = ['a', 'b', 'c', 'd'][i];
+                                    const isSelected = answers[q.questionId] === i;
+                                    return (
+                                        <button
+                                            key={i}
+                                            className={`${styles.optionRow} ${isSelected ? styles.optionSelected : ''}`}
+                                            onClick={() => setAnswers(prev => ({ ...prev, [q.questionId]: i }))}
+                                        >
+                                            <span className={styles.optionLetterBadge}>{letter})</span>
+                                            <span className={styles.optionText}>{opt.text}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Bottom nav */}
+                            <div className={styles.bottomNav}>
+                                <button
+                                    className={styles.clearBtn}
+                                    onClick={() => {
+                                        setAnswers(prev => {
+                                            const next = { ...prev };
+                                            delete next[q.questionId];
+                                            return next;
+                                        });
+                                    }}
+                                >
+                                    ✕ Clear Response
+                                </button>
+                                <div className={styles.navBtns}>
+                                    <button
+                                        className={styles.prevBtn}
+                                        disabled={currentQ === 0}
+                                        onClick={() => goTo(currentQ - 1)}
+                                    >
+                                        ‹ Prev
+                                    </button>
+                                    {!isLastQ ? (
+                                        <button
+                                            className={styles.nextBtn}
+                                            onClick={() => goTo(currentQ + 1)}
+                                        >
+                                            Save and Next ›
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className={styles.submitNavBtn}
+                                            onClick={() => setConfirmSubmit(true)}
+                                        >
+                                            Review and Submit ›
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </main>
+
+                {/* ── RIGHT PANEL: Timer + Overview ── */}
+                <aside className={styles.rightPanel}>
+                    {/* Timer */}
+                    <div className={`${styles.timerCard} ${isTimeLow ? styles.timerLow : ''}`}>
+                        <div className={styles.timerDisplay}>
+                            <span className={styles.timePart}>{timeParts.h}</span>
+                            <span className={styles.timeColon}>:</span>
+                            <span className={styles.timePart}>{timeParts.m}</span>
+                            <span className={styles.timeColon}>:</span>
+                            <span className={styles.timePart}>{timeParts.s}</span>
+                        </div>
+                        <div className={styles.timerLabels}>
+                            <span>Hrs</span><span></span><span>Min</span><span></span><span>Sec</span>
+                        </div>
+                        {isTimeLow && <div className={styles.timerWarning}>⚠️ Time running low!</div>}
+                    </div>
+
+                    <button className={styles.aboutTestBtn} onClick={() => setConfirmSubmit(true)}>
+                        About Test
                     </button>
-                ) : (
-                    <button className={`${styles.navBtn} ${styles.navBtnFinish}`} onClick={() => setConfirmSubmit(true)}>
-                        Finish & Submit <Send size={16} />
-                    </button>
-                )}
+
+                    {/* Overview */}
+                    <div className={styles.overviewCard}>
+                        <h4 className={styles.overviewTitle}>Overview</h4>
+                        <div className={styles.overviewRows}>
+                            <div className={styles.overviewRow}>
+                                <span>Total Questions</span><span className={styles.ovNum}>{questions.length}</span>
+                            </div>
+                            <div className={styles.overviewRow}>
+                                <span>Visited</span><span className={styles.ovNum} style={{ color: '#4F46E5' }}>{visitedCount}</span>
+                            </div>
+                            <div className={styles.overviewRow}>
+                                <span>Not Visited</span><span className={styles.ovNum} style={{ color: '#6B7280' }}>{notVisited}</span>
+                            </div>
+                            <div className={styles.overviewRow}>
+                                <span>Answered</span><span className={styles.ovNum} style={{ color: '#10B981' }}>{answeredCount}</span>
+                            </div>
+                            <div className={styles.overviewRow}>
+                                <span>Not Answered</span><span className={styles.ovNum} style={{ color: '#EF4444' }}>{notAnswered}</span>
+                            </div>
+                            <div className={styles.overviewRow}>
+                                <span>Bookmarked</span><span className={styles.ovNum} style={{ color: '#F59E0B' }}>{bookmarkCount}</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
             </div>
 
-            {/* Confirm Submit Modal */}
+            {/* ── Confirm Submit Modal ── */}
             {confirmSubmit && !submitting && (
-                <div className={styles.modal} onClick={() => setConfirmSubmit(false)}>
+                <div className={styles.modalOverlay} onClick={() => setConfirmSubmit(false)}>
                     <div className={styles.confirmBox} onClick={e => e.stopPropagation()}>
-                        <h3>Submit Exam?</h3>
-                        <p>You have answered <strong>{answeredCount}/{questions.length}</strong> questions. Unanswered questions will be marked as incorrect.</p>
-                        <p style={{ color: '#dc2626', fontWeight: 600 }}>⚠️ This action cannot be undone.</p>
+                        <div className={styles.confirmIcon}><AlertCircle size={28} color="#F59E0B" /></div>
+                        <h3 className={styles.confirmTitle}>Submit Exam?</h3>
+                        <p className={styles.confirmMsg}>
+                            You have answered <strong>{answeredCount}/{questions.length}</strong> questions.
+                            Unanswered questions will be marked as incorrect.
+                        </p>
+                        <p className={styles.confirmWarning}>⚠️ This action cannot be undone.</p>
                         <div className={styles.confirmActions}>
                             <button className={styles.cancelBtn} onClick={() => setConfirmSubmit(false)}>Continue Exam</button>
-                            <button className={styles.submitFinalBtn} onClick={() => handleSubmit(false)} disabled={submitting}>
-                                {submitting ? 'Submitting...' : 'Yes, Submit Now'}
+                            <button className={styles.submitFinalBtn} onClick={() => handleSubmit(false)}>
+                                Yes, Submit Now
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+
             {submitting && (
-                <div className={styles.modal}>
+                <div className={styles.modalOverlay}>
                     <div className={styles.confirmBox} style={{ textAlign: 'center' }}>
-                        <div className={styles.spinner} style={{ margin: '0 auto 1rem' }} />
+                        <div className={styles.spinner} style={{ margin: '0 auto 16px' }} />
                         <p>Submitting and grading your exam...</p>
                     </div>
                 </div>

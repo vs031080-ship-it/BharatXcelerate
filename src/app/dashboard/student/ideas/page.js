@@ -1,164 +1,287 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lightbulb, Plus, Search, ThumbsUp, Users, ArrowRight, Sparkles, Tag, Clock, X, CheckCircle, Eye } from 'lucide-react';
+import {
+    Lightbulb, Plus, Search, ThumbsUp, Users, Sparkles,
+    Tag, Clock, X, CheckCircle, ChevronLeft, Layers,
+    ArrowUpRight, Filter
+} from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import styles from './ideas.module.css';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.04 } }) };
-
 const categories = ['All', 'AI/ML', 'FinTech', 'EdTech', 'HealthTech', 'AgriTech', 'Blockchain', 'SaaS'];
-const stageColors = {
-    'Idea': { bg: '#FEF3C7', color: '#92400E' },
-    'Prototype': { bg: '#DBEAFE', color: '#1E40AF' },
-    'MVP': { bg: '#D1FAE5', color: '#065F46' },
+
+const STAGE_META = {
+    'Idea':      { bg: '#FEF3C7', color: '#92400E', dot: '#F59E0B' },
+    'Prototype': { bg: '#DBEAFE', color: '#1E40AF', dot: '#3B82F6' },
+    'MVP':       { bg: '#D1FAE5', color: '#065F46', dot: '#10B981' },
+};
+
+const CAT_ICONS = {
+    'AI/ML': '🤖', 'FinTech': '💰', 'EdTech': '📚', 'HealthTech': '🏥',
+    'AgriTech': '🌾', 'Blockchain': '🔗', 'SaaS': '☁️', 'All': '✨',
 };
 
 export default function IdeaLabPage() {
     const { ideas, submitIdea, loading } = useData();
-    const [activeCategory, setActiveCategory] = useState('All');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showSubmitModal, setShowSubmitModal] = useState(false);
-    const [selectedIdea, setSelectedIdea] = useState(null);
-    const [toast, setToast] = useState('');
     const { user } = useAuth();
+    const [activeCategory, setActiveCategory] = useState('All');
+    const [searchQuery, setSearchQuery]       = useState('');
+    const [showModal, setShowModal]           = useState(false);
+    const [selected, setSelected]             = useState(null);
+    const [toast, setToast]                   = useState('');
     const userName = user?.name || 'Student';
-    const userId = user?.userId || user?.id;
-    const [newIdea, setNewIdea] = useState({ title: '', category: 'AI/ML', stage: 'Idea', description: '', tags: '', teamSize: 1, author: '' });
+    const userId   = user?.userId || user?.id;
+
+    const [newIdea, setNewIdea] = useState({
+        title: '', category: 'AI/ML', stage: 'Idea',
+        description: '', tags: '', teamSize: 1,
+    });
 
     const filtered = (ideas || []).filter(idea => {
-        const matchCat = activeCategory === 'All' || idea.category === activeCategory;
+        const matchCat    = activeCategory === 'All' || idea.category === activeCategory;
         const matchSearch = idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (idea.description || '').toLowerCase().includes(searchQuery.toLowerCase());
         return matchCat && matchSearch;
     });
 
-    const myIdeasCount = (ideas || []).filter(i => i.authorId === userId || i.author === userName).length;
-    const totalLikes = (ideas || []).reduce((sum, i) => sum + (i.likes?.length || 0), 0);
-    const totalTeam = (ideas || []).reduce((sum, i) => sum + (i.teamSize || 0), 0);
+    // Auto-select first when filter changes
+    const effectiveSelected = selected && filtered.find(i => (i.id || i._id) === (selected.id || selected._id))
+        ? selected : filtered[0] || null;
 
-    const handleSubmitIdea = (e) => {
+    const myIdeasCount = (ideas || []).filter(i => i.authorId === userId || i.author === userName).length;
+    const totalLikes   = (ideas || []).reduce((s, i) => s + (i.likes?.length || 0), 0);
+
+    const handleSubmit = (e) => {
         e.preventDefault();
-        submitIdea({ ...newIdea, tags: newIdea.tags.split(',').map(t => t.trim()).filter(Boolean), teamSize: Number(newIdea.teamSize) });
-        setNewIdea({ title: '', category: 'AI/ML', stage: 'Idea', description: '', tags: '', teamSize: 1, author: '' });
-        setShowSubmitModal(false);
-        setToast('Idea submitted successfully!');
+        submitIdea({
+            ...newIdea,
+            tags: newIdea.tags.split(',').map(t => t.trim()).filter(Boolean),
+            teamSize: Number(newIdea.teamSize),
+        });
+        setNewIdea({ title: '', category: 'AI/ML', stage: 'Idea', description: '', tags: '', teamSize: 1 });
+        setShowModal(false);
+        setToast('Idea submitted!');
         setTimeout(() => setToast(''), 3000);
     };
 
-    if (loading) {
-        return (
-            <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                    style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTopColor: '#2563EB', borderRadius: '50%' }}
-                />
-            </div>
-        );
-    }
+    if (loading) return (
+        <div className={styles.loadingScreen}>
+            <div className={styles.spinner} /><span>Loading Idea Lab...</span>
+        </div>
+    );
 
     return (
-        <div className={styles.container}>
+        <div className={styles.page}>
             {/* Toast */}
             <AnimatePresence>
                 {toast && (
-                    <motion.div className={styles.toast} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                        <CheckCircle size={18} /> {toast}
+                    <motion.div className={styles.toast} initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <CheckCircle size={14} /> {toast}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Hero Banner */}
-            <motion.div className={styles.banner} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <div className={styles.bannerContent}>
-                    <div className={styles.bannerIcon}><Sparkles size={28} /></div>
-                    <div>
-                        <h1>Idea Lab 💡</h1>
-                        <p>Transform your ideas into reality. Submit, iterate, and get feedback from investors.</p>
+            {/* ── Top Header ── */}
+            <div className={styles.topHeader}>
+                <div>
+                    <h1 className={styles.pageTitle}><Lightbulb size={20} /> Idea Lab</h1>
+                    <p className={styles.pageSub}>Submit, discover, and collaborate on startup ideas</p>
+                </div>
+                <div className={styles.headerRight}>
+                    <div className={styles.hStat}><span>{myIdeasCount}</span><span>My Ideas</span></div>
+                    <div className={styles.hStat}><span>{totalLikes}</span><span>Total Likes</span></div>
+                    <button className={styles.submitBtn} onClick={() => setShowModal(true)}>
+                        <Plus size={15} /> Submit Idea
+                    </button>
+                </div>
+            </div>
+
+            <div className={styles.body}>
+                {/* ── LEFT PANEL: List ── */}
+                <aside className={styles.listPanel}>
+                    {/* Search */}
+                    <div className={styles.searchBox}>
+                        <Search size={14} color="#9CA3AF" />
+                        <input
+                            type="text"
+                            placeholder="Search ideas..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && <button onClick={() => setSearchQuery('')}><X size={12} /></button>}
                     </div>
-                </div>
-                <button className={styles.submitNewBtn} onClick={() => setShowSubmitModal(true)}>
-                    <Plus size={18} /> Submit New Idea
-                </button>
-            </motion.div>
 
-            {/* Stats Row */}
-            <div className={styles.statsRow}>
-                <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-                    <div className={styles.statIcon} style={{ background: '#EFF6FF', color: '#2563EB' }}><Lightbulb size={20} /></div>
-                    <div><span className={styles.statValue}>{myIdeasCount}</span><span className={styles.statLabel}>My Ideas</span></div>
-                </motion.div>
-                <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={1}>
-                    <div className={styles.statIcon} style={{ background: '#FEF3C7', color: '#D97706' }}><ThumbsUp size={20} /></div>
-                    <div><span className={styles.statValue}>{totalLikes}</span><span className={styles.statLabel}>Total Likes</span></div>
-                </motion.div>
-                <motion.div className={styles.statCard} initial="hidden" animate="visible" variants={fadeUp} custom={2}>
-                    <div className={styles.statIcon} style={{ background: '#D1FAE5', color: '#059669' }}><Users size={20} /></div>
-                    <div><span className={styles.statValue}>{totalTeam}</span><span className={styles.statLabel}>Team Members</span></div>
-                </motion.div>
-            </div>
+                    {/* Category tabs */}
+                    <div className={styles.catScroll}>
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                className={`${styles.catTab} ${activeCategory === cat ? styles.catTabActive : ''}`}
+                                onClick={() => setActiveCategory(cat)}
+                            >
+                                {CAT_ICONS[cat]} {cat}
+                            </button>
+                        ))}
+                    </div>
 
-            {/* Filter Bar */}
-            <motion.div className={styles.filterBar} initial="hidden" animate="visible" variants={fadeUp} custom={3}>
-                <div className={styles.searchInput}>
-                    <Search size={18} />
-                    <input type="text" placeholder="Search ideas..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                </div>
-                <div className={styles.categoryTabs}>
-                    {categories.map(cat => (
-                        <button key={cat} className={`${styles.catTab} ${activeCategory === cat ? styles.catTabActive : ''}`} onClick={() => setActiveCategory(cat)}>{cat}</button>
-                    ))}
-                </div>
-            </motion.div>
-
-            {/* Ideas Grid */}
-            <div className={styles.grid}>
-                {filtered.map((idea, i) => (
-                    <motion.div key={idea.id || idea._id} className={styles.card} initial="hidden" animate="visible" variants={fadeUp} custom={i + 4}>
-                        <div className={styles.cardTop}>
-                            <span className={styles.stageBadge} style={{ background: stageColors[idea.stage]?.bg, color: stageColors[idea.stage]?.color }}>{idea.stage}</span>
-                            <span className={styles.categoryBadge}>{idea.category}</span>
-                        </div>
-                        <h3 className={styles.cardTitle}>{idea.title}</h3>
-                        <p className={styles.cardDesc}>{idea.description}</p>
-                        <div className={styles.cardTags}>
-                            {(idea.tags || []).map(tag => <span key={tag} className={styles.tag}><Tag size={10} /> {tag}</span>)}
-                        </div>
-                        <div className={styles.cardFooter}>
-                            <div className={styles.cardMeta}>
-                                <span className={styles.likes}><ThumbsUp size={14} /> {idea.likes?.length || 0}</span>
-                                <span className={styles.teamSize}><Users size={14} /> {idea.teamSize || 1}</span>
-                                <span className={styles.time}><Clock size={14} /> {idea.createdAtFormatted || idea.createdAt}</span>
+                    {/* Idea list */}
+                    <div className={styles.ideaList}>
+                        {filtered.length === 0 ? (
+                            <div className={styles.emptyList}>
+                                <Lightbulb size={32} color="#E5E7EB" />
+                                <p>No ideas found</p>
                             </div>
-                            <button className={styles.viewBtn} onClick={() => setSelectedIdea(idea)}>View <ArrowRight size={14} /></button>
+                        ) : filtered.map((idea, i) => {
+                            const id = idea.id || idea._id;
+                            const sm = STAGE_META[idea.stage] || STAGE_META['Idea'];
+                            const isActive = effectiveSelected && (effectiveSelected.id || effectiveSelected._id) === id;
+                            return (
+                                <motion.button
+                                    key={id}
+                                    className={`${styles.ideaRow} ${isActive ? styles.ideaRowActive : ''}`}
+                                    onClick={() => setSelected(idea)}
+                                    initial={{ opacity: 0, x: -8 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.03 }}
+                                >
+                                    <div className={styles.rowTop}>
+                                        <span className={styles.rowCategory}>{idea.category}</span>
+                                        <span className={styles.stageDot} style={{ background: sm.dot }} />
+                                        <span className={styles.rowStage} style={{ color: sm.color }}>{idea.stage}</span>
+                                    </div>
+                                    <div className={styles.rowTitle}>{idea.title}</div>
+                                    <div className={styles.rowMeta}>
+                                        <span><ThumbsUp size={11} /> {idea.likes?.length || 0}</span>
+                                        <span><Users size={11} /> {idea.teamSize || 1}</span>
+                                        <span><Clock size={11} /> {idea.createdAtFormatted || idea.createdAt}</span>
+                                    </div>
+                                </motion.button>
+                            );
+                        })}
+                    </div>
+                </aside>
+
+                {/* ── RIGHT PANEL: Detail ── */}
+                <main className={styles.detailPanel}>
+                    {!effectiveSelected ? (
+                        <div className={styles.detailEmpty}>
+                            <Sparkles size={44} color="#E5E7EB" strokeWidth={1.2} />
+                            <h3>Select an idea</h3>
+                            <p>Pick an idea from the list to see its full details</p>
                         </div>
-                    </motion.div>
-                ))}
+                    ) : (
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={effectiveSelected.id || effectiveSelected._id}
+                                className={styles.detailContent}
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.22 }}
+                            >
+                                {/* Back link for mobile */}
+                                <button className={styles.backMobile} onClick={() => setSelected(null)}>
+                                    <ChevronLeft size={15} /> Back to list
+                                </button>
+
+                                {/* Header */}
+                                <div className={styles.detailHeader}>
+                                    <div className={styles.detailIcon}>
+                                        <span>{CAT_ICONS[effectiveSelected.category] || '💡'}</span>
+                                    </div>
+                                    <div className={styles.detailMeta}>
+                                        <span className={styles.detailCat}>{effectiveSelected.category}</span>
+                                        {(() => {
+                                            const sm = STAGE_META[effectiveSelected.stage] || STAGE_META['Idea'];
+                                            return (
+                                                <span className={styles.detailStage} style={{ background: sm.bg, color: sm.color }}>
+                                                    {effectiveSelected.stage}
+                                                </span>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                                <h1 className={styles.detailTitle}>{effectiveSelected.title}</h1>
+
+                                {/* Author row */}
+                                <div className={styles.authorRow}>
+                                    <div className={styles.authorAvatar}>
+                                        {(effectiveSelected.author || 'A').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div className={styles.authorName}>{effectiveSelected.author || 'Anonymous'}</div>
+                                        <div className={styles.authorDate}>{effectiveSelected.createdAtFormatted || effectiveSelected.createdAt}</div>
+                                    </div>
+                                </div>
+
+                                {/* Description box */}
+                                <div className={styles.descBox}>
+                                    <div className={styles.descBoxTitle}>About This Idea</div>
+                                    <p className={styles.descText}>{effectiveSelected.description}</p>
+                                </div>
+
+                                {/* Stats row */}
+                                <div className={styles.statsRow}>
+                                    <div className={styles.statItem}>
+                                        <ThumbsUp size={15} color="#4F46E5" />
+                                        <span><strong>{effectiveSelected.likes?.length || 0}</strong> Likes</span>
+                                    </div>
+                                    <div className={styles.statItem}>
+                                        <Users size={15} color="#10B981" />
+                                        <span><strong>{effectiveSelected.teamSize || 1}</strong> Team Size</span>
+                                    </div>
+                                    <div className={styles.statItem}>
+                                        <Layers size={15} color="#F59E0B" />
+                                        <span><strong>{effectiveSelected.stage}</strong> Stage</span>
+                                    </div>
+                                </div>
+
+                                {/* Tags */}
+                                {effectiveSelected.tags?.length > 0 && (
+                                    <div className={styles.tagsSection}>
+                                        <div className={styles.tagsSectionTitle}><Tag size={13} /> Tags</div>
+                                        <div className={styles.tagsList}>
+                                            {effectiveSelected.tags.map(t => (
+                                                <span key={t} className={styles.tagChip}>{t}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* CTA */}
+                                <div className={styles.detailActions}>
+                                    <button className={styles.likeBtn}>
+                                        <ThumbsUp size={14} /> Like Idea
+                                    </button>
+                                    <button className={styles.colabBtn}>
+                                        <Users size={14} /> Request to Collaborate <ArrowUpRight size={13} />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+                    )}
+                </main>
             </div>
 
-            {filtered.length === 0 && !loading && (
-                <div className={styles.empty}>
-                    <Lightbulb size={48} />
-                    <h3>No ideas found</h3>
-                    <p>Try a different search or category filter.</p>
-                </div>
-            )}
-
-            {/* Submit Idea Modal */}
+            {/* ── Submit Modal ── */}
             <AnimatePresence>
-                {showSubmitModal && (
-                    <motion.div className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSubmitModal(false)}>
-                        <motion.div className={styles.modal} initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} onClick={e => e.stopPropagation()}>
-                            <div className={styles.modalHeader}>
-                                <h2>Submit New Idea</h2>
-                                <button className={styles.closeBtn} onClick={() => setShowSubmitModal(false)}><X size={20} /></button>
+                {showModal && (
+                    <motion.div className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)}>
+                        <motion.div className={styles.modal} initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} onClick={e => e.stopPropagation()}>
+                            <div className={styles.modalHead}>
+                                <div className={styles.modalTitleRow}>
+                                    <Sparkles size={18} color="#4F46E5" />
+                                    <h2>Submit New Idea</h2>
+                                </div>
+                                <button className={styles.closeBtn} onClick={() => setShowModal(false)}><X size={18} /></button>
                             </div>
-                            <form onSubmit={handleSubmitIdea} className={styles.modalForm}>
+                            <form onSubmit={handleSubmit} className={styles.modalForm}>
                                 <div className={styles.formGroup}>
                                     <label>Idea Title *</label>
-                                    <input type="text" required placeholder="e.g. AI-Powered Resume Reviewer" value={newIdea.title} onChange={e => setNewIdea(p => ({ ...p, title: e.target.value }))} />
+                                    <input type="text" required placeholder="e.g. AI-Powered Resume Reviewer"
+                                        value={newIdea.title} onChange={e => setNewIdea(p => ({ ...p, title: e.target.value }))} />
                                 </div>
                                 <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
@@ -176,51 +299,26 @@ export default function IdeaLabPage() {
                                 </div>
                                 <div className={styles.formGroup}>
                                     <label>Description *</label>
-                                    <textarea required rows={3} placeholder="Describe your idea..." value={newIdea.description} onChange={e => setNewIdea(p => ({ ...p, description: e.target.value }))} />
+                                    <textarea required rows={4} placeholder="Describe your idea in detail..."
+                                        value={newIdea.description} onChange={e => setNewIdea(p => ({ ...p, description: e.target.value }))} />
                                 </div>
                                 <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
-                                        <label>Tags (comma separated)</label>
-                                        <input type="text" placeholder="e.g. AI, NLP, Career" value={newIdea.tags} onChange={e => setNewIdea(p => ({ ...p, tags: e.target.value }))} />
+                                        <label>Tags <span>(comma separated)</span></label>
+                                        <input type="text" placeholder="AI, NLP, Career"
+                                            value={newIdea.tags} onChange={e => setNewIdea(p => ({ ...p, tags: e.target.value }))} />
                                     </div>
                                     <div className={styles.formGroup}>
                                         <label>Team Size</label>
-                                        <input type="number" min={1} max={10} value={newIdea.teamSize} onChange={e => setNewIdea(p => ({ ...p, teamSize: e.target.value }))} />
+                                        <input type="number" min={1} max={10} value={newIdea.teamSize}
+                                            onChange={e => setNewIdea(p => ({ ...p, teamSize: e.target.value }))} />
                                     </div>
                                 </div>
                                 <div className={styles.modalActions}>
-                                    <button type="button" className={styles.cancelBtn} onClick={() => setShowSubmitModal(false)}>Cancel</button>
-                                    <button type="submit" className={styles.submitBtn}><Sparkles size={16} /> Submit Idea</button>
+                                    <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>Cancel</button>
+                                    <button type="submit" className={styles.startBtn}><Sparkles size={14} /> Submit Idea</button>
                                 </div>
                             </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Idea Detail Modal */}
-            <AnimatePresence>
-                {selectedIdea && (
-                    <motion.div className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedIdea(null)}>
-                        <motion.div className={styles.modal} initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} onClick={e => e.stopPropagation()}>
-                            <div className={styles.modalHeader}>
-                                <div>
-                                    <h2>{selectedIdea.title}</h2>
-                                    <p style={{ fontSize: '0.875rem', color: '#6941C6', marginTop: 4 }}>{selectedIdea.category} · {selectedIdea.stage}</p>
-                                </div>
-                                <button className={styles.closeBtn} onClick={() => setSelectedIdea(null)}><X size={20} /></button>
-                            </div>
-                            <div style={{ padding: '24px 28px' }}>
-                                <p style={{ fontSize: '0.9375rem', color: '#475467', lineHeight: 1.7, marginBottom: 20 }}>{selectedIdea.description}</p>
-                                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-                                    {selectedIdea.tags.map(t => <span key={t} className={styles.tag}><Tag size={10} /> {t}</span>)}
-                                </div>
-                                <div style={{ display: 'flex', gap: 20, fontSize: '0.8125rem', color: '#667085' }}>
-                                    <span><ThumbsUp size={14} /> {selectedIdea.likes.length} likes</span>
-                                    <span><Users size={14} /> Team of {selectedIdea.teamSize}</span>
-                                    <span><Clock size={14} /> {selectedIdea.createdAt}</span>
-                                </div>
-                            </div>
                         </motion.div>
                     </motion.div>
                 )}

@@ -23,6 +23,11 @@ export default function AdminExamsPage() {
     const [form, setForm] = useState({ skillName: '', skillIcon: '📚', level: 'beginner', duration: 120, questionsCount: 50, passingScore: 40 });
     const [creating, setCreating] = useState(false);
 
+    // ── Edit Description
+    const [editingDesc, setEditingDesc] = useState(false);
+    const [descForm, setDescForm] = useState('');
+    const [savingDesc, setSavingDesc] = useState(false);
+
     // ── Add Question form
     const [qForm, setQForm] = useState({ text: '', a: '', b: '', c: '', d: '', correct: 'a' });
     const [addingQ, setAddingQ] = useState(false);
@@ -125,6 +130,23 @@ export default function AdminExamsPage() {
             setTests(prev => prev.map(t => t._id === selectedTest._id ? { ...t, questionCount: Math.max(0, t.questionCount - 1) } : t));
             flash('Question deleted');
         } else { flash('Failed to delete', 'error'); }
+    }
+
+    async function handleSaveDesc() {
+        setSavingDesc(true);
+        try {
+            const res = await fetch(`/api/admin/tests/${selectedTest._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: descForm }),
+            });
+            if (!res.ok) { flash('Failed to save description', 'error'); return; }
+            const data = await res.json();
+            setSelectedTest(data.test);
+            setTests(prev => prev.map(t => t._id === selectedTest._id ? { ...t, description: data.test.description } : t));
+            setEditingDesc(false);
+            flash('Description updated');
+        } finally { setSavingDesc(false); }
     }
 
     async function handleBulkImport() {
@@ -296,6 +318,39 @@ export default function AdminExamsPage() {
                                 <button className={styles.deleteTestBtn} onClick={() => handleDeleteTest(selectedTest._id)}>
                                     <Trash2 size={15} /> Delete Exam
                                 </button>
+                            </div>
+
+                            {/* ── Exam Description ── */}
+                            <div className={styles.sectionCard}>
+                                <div className={styles.sectionTitleRow}>
+                                    <h3 className={styles.sectionTitle}>Exam Description</h3>
+                                    {!editingDesc && (
+                                        <button className={styles.textBtn} onClick={() => { setDescForm(selectedTest.description || ''); setEditingDesc(true); }}>
+                                            Edit
+                                        </button>
+                                    )}
+                                </div>
+                                {editingDesc ? (
+                                    <div className={styles.descEditor}>
+                                        <textarea
+                                            className={styles.bulkTextarea}
+                                            rows={4}
+                                            value={descForm}
+                                            onChange={e => setDescForm(e.target.value)}
+                                            placeholder="Write a short description for this exam..."
+                                        />
+                                        <div className={styles.descActions}>
+                                            <button className={styles.cancelBtn} onClick={() => setEditingDesc(false)}>Cancel</button>
+                                            <button className={styles.saveBtn} onClick={handleSaveDesc} disabled={savingDesc}>
+                                                {savingDesc ? <><Loader2 size={14} className={styles.spin} /> Saving...</> : 'Save'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className={styles.descDisplay}>
+                                        {selectedTest.description ? selectedTest.description : <span className={styles.emptyText}>No description added yet.</span>}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Add Question Form */}

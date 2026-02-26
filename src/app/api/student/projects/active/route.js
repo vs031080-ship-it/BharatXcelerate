@@ -58,8 +58,11 @@ export async function GET(request) {
                 progress: progress,
                 submissionId: sub._id.toString(),
                 status: sub.status,
-                displayStatus, // New field for UI logic
+                displayStatus,
                 currentStep: sub.currentStep,
+                totalSteps: totalSteps,
+                steps: project.steps,
+                description: project.description,
                 deadline: project.deadline,
                 startDate: project.startDate
             };

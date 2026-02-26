@@ -1,168 +1,249 @@
 'use client';
 import { useState } from 'react';
-import { MapPin, Phone, Mail, Github, Linkedin, Globe, Calendar, Star, ArrowRight, Briefcase, GraduationCap, Code2, Edit } from 'lucide-react';
+import {
+    MapPin, Phone, Mail, Github, Linkedin,
+    Calendar, Star, GraduationCap, Code2, Edit,
+    User, BookOpen, Layers
+} from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import styles from '../settings/settingsUI.module.css';
+import styles from './profile.module.css';
+
+const NAV_TABS = [
+    { id: 'overview',  label: 'Overview' },
+    { id: 'education', label: 'Education' },
+    { id: 'skills',    label: 'Skills'    },
+];
 
 const defaultSkills = ['React', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', 'TypeScript', 'GraphQL'];
 
 export default function StudentProfilePage() {
     const { user } = useAuth();
+    const [activeTab, setActiveTab] = useState('overview');
 
-    // Fallbacks
-    const userName = user?.name || 'Your Name';
-    const userEmail = user?.email || 'email@example.com';
-    const userPhone = user?.phone || 'Not provided';
-    const userBio = user?.bio || 'Add a short bio about yourself to help companies understand you better.';
-    const userLocation = user?.location || 'Not provided';
-    const userGithub = user?.github || 'Not provided';
-    const userLinkedin = user?.linkedin || 'Not provided';
-    const userSkills = user?.skills?.length > 0 ? user.skills : defaultSkills;
-
-    const education = user?.education?.length > 0 ? user.education : [
+    const userName    = user?.name     || 'Your Name';
+    const userEmail   = user?.email    || 'email@example.com';
+    const userPhone   = user?.phone    || 'Not provided';
+    const userBio     = user?.bio      || 'Add a short bio about yourself to help companies understand you better.';
+    const userLocation= user?.location || 'Not provided';
+    const userGithub  = user?.github   || '';
+    const userLinkedin= user?.linkedin || '';
+    const userSkills  = user?.skills?.length > 0 ? user.skills : defaultSkills;
+    const education   = user?.education?.length > 0 ? user.education : [
         { degree: 'B.Tech Computer Science', institution: 'IIT Delhi', year: '2021 - 2025', gpa: '9.2 / 10' }
     ];
 
+    const initials = userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
     return (
-        <div className={styles.appContainer}>
-            <div className={styles.headerArea} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 className={styles.pageTitle}>Student Profile</h2>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <Link href="/dashboard/student/settings" style={{ padding: '8px 16px', background: '#f1f5f9', color: '#0f172a', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Code2 size={16} /> Portfolio
-                    </Link>
-                    <Link href="/dashboard/student/settings" className={styles.saveBtn} style={{ textDecoration: 'none', background: '#e2e8f0', color: '#0f172a', boxShadow: 'none' }}>
-                        <Edit size={16} /> Edit Profile
-                    </Link>
+        <div className={styles.page}>
+            {/* ── Page header ── */}
+            <div className={styles.pageHeader}>
+                <div className={styles.pageHeaderLeft}>
+                    <h1 className={styles.pageTitle}>Profile</h1>
                 </div>
+                <Link href="/dashboard/student/settings" className={styles.editBtn}>
+                    <Edit size={15} /> Edit Profile
+                </Link>
             </div>
 
-            <div className={styles.cardContainer}>
-                {/* Banner & Avatar (Clean Look) */}
+            {/* ── Tab bar (inspired by reference) ── */}
+            <div className={styles.tabBar}>
+                {NAV_TABS.map(tab => (
+                    <button
+                        key={tab.id}
+                        className={`${styles.tabBtn} ${activeTab === tab.id ? styles.tabActive : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* ── Profile card: banner + sidebar + content all wrapped ── */}
+            <div className={styles.profileCard}>
+
+                {/* Banner */}
                 <div
-                    className={styles.coverBanner}
+                    className={styles.bannerArea}
                     style={{
-                        height: '140px',
-                        background: user?.banner ? `url(${user.banner})` : 'linear-gradient(to right, #f8fafc, #e2e8f0)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        borderBottom: '1px solid #cbd5e1'
+                        backgroundImage: user?.banner
+                            ? `url(${user.banner})`
+                            : 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%)'
                     }}
-                >
-                    {!user?.banner && (
-                        <>
-                            <div style={{ position: 'absolute', right: '40px', bottom: '-40px', width: '200px', height: '200px', borderRadius: '50%', border: '4px solid rgba(226, 232, 240, 0.4)' }}></div>
-                            <div style={{ position: 'absolute', right: '120px', bottom: '-20px', width: '150px', height: '150px', borderRadius: '50%', border: '4px solid rgba(241, 245, 249, 0.6)' }}></div>
-                        </>
-                    )}
-                </div>
+                />
 
-                <div className={styles.profileHeaderContent} style={{ marginTop: '-60px' }}>
-                    <div className={styles.avatarWrapper} style={{ width: '120px', height: '120px', border: '6px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <img
-                            src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face"}
-                            alt={userName}
-                            className={styles.avatar}
-                        />
-                    </div>
-                    <div className={styles.headerInfo} style={{ marginTop: '72px', paddingBottom: '24px' }}>
-                        <h1 className={styles.userName} style={{ fontSize: '1.5rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {userName}
-                            <span style={{ fontSize: '0.75rem', padding: '4px 10px', background: '#f1f5f9', color: '#475467', borderRadius: '20px', fontWeight: 600 }}>Student Developer</span>
-                        </h1>
-                        <p className={styles.userBioText} style={{ color: '#475467', maxWidth: '800px', marginBottom: '16px' }}>{userBio}</p>
+                {/* 2-column: sidebar overlaps banner with negative margin */}
+                <div className={styles.body}>
 
-                        <div className={styles.headerContact} style={{ gap: '24px' }}>
-                            <span style={{ color: '#64748b', fontSize: '0.85rem' }}><MapPin size={16} color="#94a3b8" /> {userLocation}</span>
-                            <span style={{ color: '#64748b', fontSize: '0.85rem' }}><Phone size={16} color="#94a3b8" /> {userPhone}</span>
-                            <span style={{ color: '#64748b', fontSize: '0.85rem' }}><Mail size={16} color="#94a3b8" /> {userEmail}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={styles.divider}></div>
-
-                <div style={{ padding: '0 32px 32px 32px' }}>
-
-                    {/* Data Grid matching screenshot */}
-                    <div className={styles.infoGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                        <div className={styles.infoCard} style={{ gridColumn: 'span 2' }}>
-                            <div className={styles.infoCardLabel} style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.85rem', textTransform: 'none' }}>Full Name</div>
-                            <div className={styles.infoCardValue} style={{ color: '#64748b', fontSize: '0.9rem' }}>{userName}</div>
-                        </div>
-                        <div className={styles.infoCard} style={{ gridColumn: 'span 2' }}>
-                            <div className={styles.infoCardLabel} style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.85rem', textTransform: 'none' }}>Email Address</div>
-                            <div className={styles.infoCardValue} style={{ color: '#64748b', fontSize: '0.9rem' }}>{userEmail}</div>
-                        </div>
-
-                        <div className={styles.infoCard} style={{ gridColumn: 'span 2' }}>
-                            <div className={styles.infoCardLabel} style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.85rem', textTransform: 'none' }}>Phone Number</div>
-                            <div className={styles.infoCardValue} style={{ color: '#64748b', fontSize: '0.9rem' }}>{userPhone}</div>
-                        </div>
-                        <div className={styles.infoCard} style={{ gridColumn: 'span 2' }}>
-                            <div className={styles.infoCardLabel} style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.85rem', textTransform: 'none' }}>Current Location</div>
-                            <div className={styles.infoCardValue} style={{ color: '#64748b', fontSize: '0.9rem' }}>{userLocation}</div>
-                        </div>
-
-                        <div className={styles.infoCard} style={{ gridColumn: 'span 2' }}>
-                            <div className={styles.infoCardLabel} style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.85rem', textTransform: 'none' }}>GitHub Profile</div>
-                            <div className={styles.infoCardValue} style={{ fontSize: '0.9rem' }}>
-                                {userGithub !== 'Not provided' ? <a href={`https://${userGithub.replace('https://', '')}`} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', textDecoration: 'none' }}>{userGithub}</a> : <span style={{ color: '#64748b' }}>Not provided</span>}
-                            </div>
-                        </div>
-                        <div className={styles.infoCard} style={{ gridColumn: 'span 2' }}>
-                            <div className={styles.infoCardLabel} style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.85rem', textTransform: 'none' }}>LinkedIn Profile</div>
-                            <div className={styles.infoCardValue} style={{ fontSize: '0.9rem' }}>
-                                {userLinkedin !== 'Not provided' ? <a href={`https://${userLinkedin.replace('https://', '')}`} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', textDecoration: 'none' }}>{userLinkedin}</a> : <span style={{ color: '#64748b' }}>Not provided</span>}
-                            </div>
-                        </div>
+                {/* ── Left: Identity card ── */}
+                <aside className={styles.identityCard}>
+                    {/* Avatar — lifts up over the banner */}
+                    <div className={styles.avatarBlock}>
+                        {user?.avatar ? (
+                            <img src={user.avatar} alt={userName} className={styles.avatarImg} />
+                        ) : (
+                            <div className={styles.avatarInitials}>{initials}</div>
+                        )}
                     </div>
 
-                    <div className={styles.divider}></div>
+                    <h2 className={styles.idName}>{userName}</h2>
+                    <p className={styles.idRole}>Student Developer</p>
 
-                    <div className={styles.sectionDivider} style={{ marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '1.25rem', color: '#0f172a', fontWeight: 600 }}>Technical Skills</h3>
-                    </div>
-                    <div className={styles.skillsContainer}>
-                        <div className={styles.skillTags}>
-                            {userSkills.map((s, idx) => (
-                                <span key={idx} className={styles.skillBadge} style={{ padding: '6px 16px', background: '#f8fafc', color: '#475467', borderColor: '#e2e8f0', borderRadius: '4px', fontWeight: 500 }}>{s}</span>
-                            ))}
-                        </div>
-                    </div>
+                    <div className={styles.divider} />
 
-                    <div className={styles.divider} style={{ margin: '32px 0' }}></div>
-
-                    <div className={styles.sectionDivider} style={{ marginBottom: '24px' }}>
-                        <h3 style={{ fontSize: '1.25rem', color: '#0f172a', fontWeight: 600 }}>Education Journey</h3>
+                    {/* About section */}
+                    <div className={styles.idSection}>
+                        <div className={styles.idSectionTitle}>About</div>
+                        <div className={styles.idRow}><Phone size={13} /><span>{userPhone}</span></div>
+                        <div className={styles.idRow}><Mail size={13} /><span>{userEmail}</span></div>
+                        {userLocation !== 'Not provided' && (
+                            <div className={styles.idRow}><MapPin size={13} /><span>{userLocation}</span></div>
+                        )}
                     </div>
 
-                    <div>
-                        {education.map((edu, i) => (
-                            <div key={i} className={styles.eduDisplayCard} style={{ padding: '24px', alignItems: 'center' }}>
-                                <div className={styles.eduIcon} style={{ background: '#f1f5f9', width: '56px', height: '56px' }}>
-                                    <GraduationCap size={28} color="#64748b" />
+                    <div className={styles.divider} />
+
+                    {/* Links */}
+                    <div className={styles.idSection}>
+                        <div className={styles.idSectionTitle}>Links</div>
+                        {userGithub ? (
+                            <a href={`https://${userGithub.replace('https://', '')}`} target="_blank" rel="noreferrer" className={styles.idLink}>
+                                <Github size={13} /> {userGithub.replace('https://github.com/', 'github.com/')}
+                            </a>
+                        ) : <div className={styles.idMuted}><Github size={13} /> Not provided</div>}
+                        {userLinkedin ? (
+                            <a href={`https://${userLinkedin.replace('https://', '')}`} target="_blank" rel="noreferrer" className={styles.idLink}>
+                                <Linkedin size={13} /> {userLinkedin.replace('https://linkedin.com/in/', 'linkedin/')}
+                            </a>
+                        ) : <div className={styles.idMuted}><Linkedin size={13} /> Not provided</div>}
+                    </div>
+                </aside>
+
+                {/* ── Right: Tab content ── */}
+                <main className={styles.contentArea}>
+                    {/* OVERVIEW TAB */}
+                    {activeTab === 'overview' && (
+                        <div>
+                            {/* Bio */}
+                            <div className={styles.section}>
+                                <div className={styles.sectionHeader}>
+                                    <User size={15} />
+                                    <h3>Personal Information</h3>
                                 </div>
-                                <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: '#0f172a', fontWeight: '600' }}>{edu.degree || 'Degree Title'}</h4>
-                                        <p style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: '#64748b' }}>{edu.institution || 'Institution Name'}</p>
-                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#475467', fontWeight: '600', background: '#f8fafc', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                                            <Star size={14} fill="#cbd5e1" color="#cbd5e1" /> GPA: {edu.gpa || 'N/A'}
+                                <div className={styles.infoTable}>
+                                    <div className={styles.infoRow}>
+                                        <div className={styles.infoLabel}>Full Name</div>
+                                        <div className={styles.infoValue}>{userName}</div>
+                                    </div>
+                                    <div className={styles.infoRow}>
+                                        <div className={styles.infoLabel}>Email</div>
+                                        <div className={styles.infoValue}>{userEmail}</div>
+                                    </div>
+                                    <div className={styles.infoRow}>
+                                        <div className={styles.infoLabel}>Phone</div>
+                                        <div className={styles.infoValue}>{userPhone}</div>
+                                    </div>
+                                    <div className={styles.infoRow}>
+                                        <div className={styles.infoLabel}>Location</div>
+                                        <div className={styles.infoValue}>{userLocation}</div>
+                                    </div>
+                                    <div className={styles.infoRow}>
+                                        <div className={styles.infoLabel}>GitHub</div>
+                                        <div className={styles.infoValue}>
+                                            {userGithub
+                                                ? <a href={`https://${userGithub.replace('https://', '')}`} target="_blank" rel="noreferrer" className={styles.linkText}>{userGithub}</a>
+                                                : <span className={styles.muted}>Not provided</span>}
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.9rem', color: '#475467', fontWeight: '500', background: '#f1f5f9', padding: '6px 12px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                                        <Calendar size={14} style={{ display: 'inline', marginRight: '6px', marginBottom: '-2px' }} />
-                                        {edu.year || 'YYYY - YYYY'}
+                                    <div className={styles.infoRow}>
+                                        <div className={styles.infoLabel}>LinkedIn</div>
+                                        <div className={styles.infoValue}>
+                                            {userLinkedin
+                                                ? <a href={`https://${userLinkedin.replace('https://', '')}`} target="_blank" rel="noreferrer" className={styles.linkText}>{userLinkedin}</a>
+                                                : <span className={styles.muted}>Not provided</span>}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
 
-                </div>
-            </div>
+                            {/* Bio box */}
+                            <div className={styles.section}>
+                                <div className={styles.sectionHeader}>
+                                    <BookOpen size={15} />
+                                    <h3>Bio</h3>
+                                </div>
+                                <p className={styles.bioText}>{userBio}</p>
+                            </div>
+
+                            {/* Quick skills preview */}
+                            <div className={styles.section}>
+                                <div className={styles.sectionHeader}>
+                                    <Layers size={15} />
+                                    <h3>Skills</h3>
+                                    <button className={styles.viewMoreLink} onClick={() => setActiveTab('skills')}>
+                                        View all →
+                                    </button>
+                                </div>
+                                <div className={styles.skillPillsRow}>
+                                    {userSkills.slice(0, 6).map((s, i) => (
+                                        <span key={i} className={styles.skillPill}>{s}</span>
+                                    ))}
+                                    {userSkills.length > 6 && (
+                                        <span className={styles.skillMore}>+{userSkills.length - 6} more</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* EDUCATION TAB */}
+                    {activeTab === 'education' && (
+                        <div className={styles.section}>
+                            <div className={styles.sectionHeader}>
+                                <GraduationCap size={15} />
+                                <h3>Education History</h3>
+                            </div>
+                            <div className={styles.eduList}>
+                                {education.map((edu, i) => (
+                                    <div key={i} className={styles.eduCard}>
+                                        <div className={styles.eduIcon}>
+                                            <GraduationCap size={22} color="#4F46E5" />
+                                        </div>
+                                        <div className={styles.eduInfo}>
+                                            <div className={styles.eduDegree}>{edu.degree || 'Degree Title'}</div>
+                                            <div className={styles.eduInstitution}>{edu.institution || 'Institution Name'}</div>
+                                            <div className={styles.eduMeta}>
+                                                <span className={styles.eduChip}><Calendar size={11} /> {edu.year || 'Year'}</span>
+                                                {edu.gpa && <span className={styles.eduChip}><Star size={11} /> GPA: {edu.gpa}</span>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SKILLS TAB */}
+                    {activeTab === 'skills' && (
+                        <div className={styles.section}>
+                            <div className={styles.sectionHeader}>
+                                <Code2 size={15} />
+                                <h3>Technical Skills</h3>
+                            </div>
+                            <div className={styles.skillsGrid}>
+                                {userSkills.map((s, i) => (
+                                    <div key={i} className={styles.skillCard}>
+                                        <div className={styles.skillCardIcon}>{s.charAt(0)}</div>
+                                        <span>{s}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </main>
+            </div>{/* end .body */}
+            </div>{/* end .profileCard */}
         </div>
     );
 }

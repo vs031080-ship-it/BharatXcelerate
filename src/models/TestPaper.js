@@ -10,6 +10,7 @@ const TestPaperSchema = new mongoose.Schema({
         totalMarks: { type: Number, default: 100 },
         passingScore: { type: Number, default: 40 }, // out of 100
     },
+    description: { type: String, default: '' },
     active: { type: Boolean, default: false },
 }, { timestamps: true });
 
