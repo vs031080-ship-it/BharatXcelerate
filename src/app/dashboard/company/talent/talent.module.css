@@ -273,3 +273,81 @@
         flex-direction: column;
     }
 }
+
+/* ===== MCQ Badge & Skill Score styles ===== */
+.badgesRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 8px;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.badgeMore {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+}
+
+.skillRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0;
+}
+
+.skillName {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1e293b;
+    min-width: 60px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.skillLevel {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    min-width: 70px;
+    text-align: left;
+}
+
+.skillBarWrap {
+    flex: 1;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.skillBar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s;
+}
+
+.skillScore {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    min-width: 24px;
+    text-align: right;
+}

@@ -38,6 +38,14 @@ export async function PUT(request) {
         delete updates.email;
         delete updates.role;
 
+        // ⛔ MCQ system-controlled fields — never allow client overwrite
+        delete updates.earnedBadges;
+        delete updates.avgScore;
+        delete updates.skills;        // populated from earned MCQ badges only
+        delete updates.xp;
+        delete updates.projectsCompleted;
+        delete updates.projectsInProgress;
+
         const user = await User.findByIdAndUpdate(
             decoded.userId,
             { $set: updates },

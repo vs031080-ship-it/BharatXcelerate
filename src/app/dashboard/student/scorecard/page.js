@@ -1,20 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Download, Award, Shield, CheckCircle, Calendar, Star, Zap, Rocket, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Award, CheckCircle, TrendingUp, Share2, Download, Star, Shield, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import styles from './scorecard.module.css';
 import { getAuthHeaders } from '@/context/AuthContext';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.05 } }) };
-
-// Icon map for dynamic badges
-const IconMap = {
-    'Rocket': Rocket,
-    'Zap': Zap,
-    'Star': Star,
-    'User': User,
-    'Shield': Shield
-};
+const LEVEL_COLORS = { beginner: '#3b82f6', intermediate: '#f59e0b', advanced: '#ef4444' };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.07 } }) };
 
 export default function ScorecardPage() {
     const [data, setData] = useState(null);
@@ -22,199 +15,150 @@ export default function ScorecardPage() {
     const [toast, setToast] = useState('');
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch('/api/student/scorecard', { headers: getAuthHeaders() });
-                if (res.ok) {
-                    const json = await res.json();
-                    setData(json);
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+        fetch('/api/student/scorecard', { headers: getAuthHeaders() })
+            .then(r => r.json())
+            .then(setData)
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, []);
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
-        setToast('Link copied to clipboard!');
+        setToast('Link copied!');
         setTimeout(() => setToast(''), 3000);
-    };
-
-    const handleDownload = () => {
-        window.print();
     };
 
     if (loading) return (
         <div className={styles.loading}>
-            <div className={styles.spinner}><Zap size={24} /></div>
-            <span>Loading Scorecard...</span>
+            <div className={styles.spinner} /><span>Loading Scorecard...</span>
         </div>
     );
 
-    if (!data) return <div className={styles.error}>Failed to load scorecard</div>;
-
-    const { user, stats, badges, recentProjects } = data;
-    const levelParams = {
-        current: stats?.xp || 0,
-        next: (Math.floor((stats?.xp || 0) / 500) + 1) * 500
-    };
-    const progressPercent = Math.min((levelParams.current / levelParams.next) * 100, 100);
+    const { user, overallAverage, totalTests, passedTests, earnedBadges, bySkill, results } = data || {};
+    const hasTests = totalTests > 0;
 
     return (
         <div className={styles.container}>
-            {/* Toast */}
-            <AnimatePresence>
-                {toast && (
-                    <motion.div className={styles.toast} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-                        <CheckCircle size={16} /> {toast}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {toast && <div className={styles.toast}><CheckCircle size={14} /> {toast}</div>}
 
             {/* Header */}
-            <motion.div
-                className={styles.header}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
+            <motion.div className={styles.header} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className={styles.headerInfo}>
-                    <h1>
-                        {user?.name || 'Student'}'s Scorecard
-                        <span className={styles.verifiedBadge}><Shield size={14} /> Verified</span>
-                    </h1>
-                    <p>Official proof-of-work report • {user?.email}</p>
+                    <h1>{user?.name || 'Student'}'s Scorecard <span className={styles.verifiedBadge}><Shield size={14} /> Verified</span></h1>
+                    <p>MCQ-based skill assessment report • {user?.email}</p>
                 </div>
                 <div className={styles.actions}>
-                    <button className={styles.btnOutline} onClick={handleShare}>
-                        <Share2 size={16} /> Share
-                    </button>
-                    <button className={styles.btnPrimary} onClick={handleDownload}>
-                        <Download size={16} /> Download PDF
-                    </button>
+                    <button className={styles.btnOutline} onClick={handleShare}><Share2 size={15} /> Share</button>
+                    <button className={styles.btnPrimary} onClick={() => window.print()}><Download size={15} /> Download PDF</button>
                 </div>
             </motion.div>
 
-            {/* Main Score Grid */}
-            <div className={styles.mainScoreSection}>
-                {/* Radial Score */}
-                <motion.div
-                    className={styles.scoreCard}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <div className={styles.circularWrapper}>
-                        <svg viewBox="0 0 36 36" className={styles.circularChart}>
-                            <path className={styles.circleBg} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path
-                                className={styles.circle}
-                                strokeDasharray={`${progressPercent}, 100`}
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                            />
-                        </svg>
-                        <div className={styles.scoreContent}>
-                            <span className={styles.scoreValue}>{stats.xp}</span>
-                            <span className={styles.scoreLabel}>Total XP</span>
-                        </div>
-                    </div>
-                    <span className={styles.levelBadge}>Level {stats.level} Developer</span>
-                </motion.div>
-
-                {/* Metrics & Badges */}
-                <div className={styles.metricsGrid}>
-                    <div className={styles.statsRow}>
-                        <motion.div className={styles.statItem} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                            <div className={`${styles.statIcon} ${styles.iconBlue}`}><CheckCircle size={24} /></div>
-                            <div className={styles.statInfo}>
-                                <h4>Projects Completed</h4>
-                                <strong>{stats.completedProjects}</strong>
-                            </div>
-                        </motion.div>
-                        <motion.div className={styles.statItem} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                            <div className={`${styles.statIcon} ${styles.iconPurple}`}><Award size={24} /></div>
-                            <div className={styles.statInfo}>
-                                <h4>Badges Earned</h4>
-                                <strong>{badges.length}</strong>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    <motion.div className={styles.badgesCard} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                        <h3>Top Achievements</h3>
-                        <div className={styles.badgesContainer}>
-                            {badges.length === 0 ? (
-                                <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Complete projects to earn badges!</p>
-                            ) : (
-                                badges.map(badge => {
-                                    const Icon = IconMap[badge.icon] || Award;
-                                    return (
-                                        <div key={badge.id} className={styles.badgeItem} title={badge.description}>
-                                            <div className={styles.badgeIcon}><Icon size={20} /></div>
-                                            <span className={styles.badgeName}>{badge.name}</span>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    </motion.div>
+            {/* Summary strip */}
+            <div className={styles.summaryStrip}>
+                <div className={styles.summaryItem}>
+                    <span className={styles.summaryValue}>{overallAverage || 0}%</span>
+                    <span className={styles.summaryLabel}>Overall Average</span>
+                </div>
+                <div className={styles.summaryDivider} />
+                <div className={styles.summaryItem}>
+                    <span className={styles.summaryValue}>{totalTests || 0}</span>
+                    <span className={styles.summaryLabel}>Tests Taken</span>
+                </div>
+                <div className={styles.summaryDivider} />
+                <div className={styles.summaryItem}>
+                    <span className={styles.summaryValue}>{passedTests || 0}</span>
+                    <span className={styles.summaryLabel}>Tests Passed</span>
+                </div>
+                <div className={styles.summaryDivider} />
+                <div className={styles.summaryItem}>
+                    <span className={styles.summaryValue}>{earnedBadges?.length || 0}</span>
+                    <span className={styles.summaryLabel}>Badges Earned</span>
                 </div>
             </div>
 
-            {/* Verified Projects List */}
-            <div className={styles.projectsSection}>
-                <div className={styles.sectionTitle}>
-                    <h3>Verified Projects</h3>
-                    <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '400' }}>Showing {recentProjects.length} completed</span>
+            {!hasTests ? (
+                <div className={styles.emptyState}>
+                    <Star size={52} color="#e2e8f0" strokeWidth={1.5} />
+                    <h3>No test results yet</h3>
+                    <p>Take skill assessments to build your verified scorecard. Companies filter candidates by your scores.</p>
+                    <Link href="/dashboard/student/exams" className={styles.examLink}>
+                        Browse Exams <ChevronRight size={16} />
+                    </Link>
                 </div>
-
-                {recentProjects.length === 0 ? (
-                    <div className={styles.emptyState}>
-                        <div style={{ background: '#f1f5f9', padding: '24px', borderRadius: '50%', marginBottom: '16px' }}><Rocket size={32} color="#94a3b8" /></div>
-                        <p>No verified projects yet</p>
-                        <span style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Start a project to build your proof-of-work.</span>
-                    </div>
-                ) : (
-                    <div className={styles.projectList}>
-                        {recentProjects.map((p, i) => (
-                            <motion.div
-                                key={p.id}
-                                className={styles.projectCard}
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeUp}
-                                custom={i}
-                            >
-                                <div className={styles.projectIcon}>
-                                    {p.domain === 'Web Dev' ? <Code size={24} /> : <Zap size={24} />}
-                                </div>
-                                <div className={styles.projectInfo}>
-                                    <h4>{p.title}</h4>
-                                    <div className={styles.projectMeta}>
-                                        <span>{p.domain}</span>
-                                        <span className={styles.dot}></span>
-                                        <span>{p.difficulty}</span>
-                                        <span className={styles.dot}></span>
-                                        <span className={styles.date}><Calendar size={14} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} /> {p.date}</span>
-                                    </div>
-                                    {p.skills && p.skills.length > 0 && (
-                                        <div className={styles.projectSkills}>
-                                            {p.skills.slice(0, 4).map(s => <span key={s} className={styles.skillTag}>{s}</span>)}
+            ) : (
+                <>
+                    {/* Per-Skill Breakdown */}
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Skill Scores</h2>
+                        <div className={styles.skillGrid}>
+                            {Object.entries(bySkill || {}).map(([skill, skillResults], i) => {
+                                const best = [...skillResults].sort((a, b) => b.score - a.score)[0];
+                                return (
+                                    <motion.div key={skill} className={styles.skillCard} variants={fadeUp} custom={i} initial="hidden" animate="visible">
+                                        <div className={styles.skillHeader}>
+                                            <span className={styles.skillName}>{skill}</span>
+                                            <span className={styles.skillBestScore}>{best.score}/100</span>
                                         </div>
-                                    )}
-                                </div>
-                                <div className={styles.projectScore}>
-                                    <span className={styles.scoreNum}>{p.score}</span>
-                                    <span className={styles.scoreCaption}>Score</span>
-                                </div>
-                            </motion.div>
-                        ))}
+                                        <div className={styles.skillBar}>
+                                            <div className={styles.skillBarFill} style={{ width: `${best.score}%`, background: best.score >= 40 ? '#10b981' : '#f59e0b' }} />
+                                        </div>
+                                        <div className={styles.levelTags}>
+                                            {skillResults.map(r => (
+                                                <span key={r.level} className={styles.levelTag} style={{ background: LEVEL_COLORS[r.level] + '20', color: LEVEL_COLORS[r.level] }}>
+                                                    {r.level.charAt(0).toUpperCase() + r.level.slice(1)}: {r.score}/100 {r.passed ? '✅' : '❌'}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                     </div>
-                )}
-            </div>
+
+                    {/* Earned Badges */}
+                    {earnedBadges?.length > 0 && (
+                        <div className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Earned Badges</h2>
+                            <div className={styles.badgesGrid}>
+                                {earnedBadges.map((badge, i) => (
+                                    <motion.div key={badge.label} className={styles.badgeCard} variants={fadeUp} custom={i} initial="hidden" animate="visible">
+                                        <div className={styles.badgeEmoji}>🏅</div>
+                                        <div className={styles.badgeLabel}>{badge.label}</div>
+                                        <div className={styles.badgeDate}>{new Date(badge.date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* All Test Results */}
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionTitle}>All Test Results</h2>
+                        <div className={styles.tableWrap}>
+                            <table className={styles.table}>
+                                <thead>
+                                    <tr><th>Skill</th><th>Level</th><th>Score</th><th>Result</th><th>Badge</th><th>Date</th></tr>
+                                </thead>
+                                <tbody>
+                                    {results?.map((r, i) => (
+                                        <tr key={i}>
+                                            <td><strong>{r.skill}</strong></td>
+                                            <td><span className={styles.levelChip} style={{ background: LEVEL_COLORS[r.level] + '20', color: LEVEL_COLORS[r.level] }}>{r.level}</span></td>
+                                            <td>
+                                                <div className={styles.miniBar}><div style={{ width: `${r.score}%`, height: '100%', background: r.score >= 40 ? '#10b981' : '#f59e0b', borderRadius: 3 }} /></div>
+                                                {r.score}/100
+                                            </td>
+                                            <td>{r.passed ? <span className={styles.passTag}>Passed ✅</span> : <span className={styles.failTag}>Failed ❌</span>}</td>
+                                            <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{r.badgeLabel || '—'}</td>
+                                            <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{new Date(r.date).toLocaleDateString('en-IN')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

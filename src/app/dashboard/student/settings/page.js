@@ -161,6 +161,7 @@ export default function StudentSettingsWizard() {
         if (e) e.preventDefault();
         setSaving(true);
         setError('');
+        const wasInWizardMode = !isCompleteMode;
         try {
             const updates = { ...profile, skills, education: education.filter(e => e.degree || e.institution) };
             const res = await fetch('/api/users/profile', {
@@ -172,6 +173,11 @@ export default function StudentSettingsWizard() {
                 updateUser(updates);
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3000);
+                // If student just completed profile for first time (wizard mode), show walkthrough on dashboard
+                if (wasInWizardMode && typeof window !== 'undefined') {
+                    localStorage.setItem('showWalkthroughAfterProfile', 'true');
+                    window.location.href = '/dashboard/student';
+                }
             } else {
                 const data = await res.json();
                 setError(data.error || 'Failed to save profile');
@@ -183,6 +189,7 @@ export default function StudentSettingsWizard() {
         }
         setSaving(false);
     };
+
 
     const handleSavePassword = (e) => {
         e.preventDefault();

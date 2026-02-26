@@ -13,11 +13,15 @@ const UserSchema = new mongoose.Schema({
     avatar: { type: String, default: '' },
     banner: { type: String, default: '' },
 
-    // Gamification & Stats
-    xp: { type: Number, default: 0 },
-    avgScore: { type: Number, default: 0 },
-    projectsCompleted: { type: Number, default: 0 },
-    projectsInProgress: { type: Number, default: 0 },
+    // ─── Stats (MCQ system-controlled — updated only by /api/student/exams/[sessionId]/submit)
+    xp: { type: Number, default: 0 },               // NOT used — reserved for future gamification
+    avgScore: { type: Number, default: 0 },         // mirrors Scorecard.overallAverage
+    projectsCompleted: { type: Number, default: 0 },// NOT used — projects are optional enrichment
+    projectsInProgress: { type: Number, default: 0 },// incremented on project accept, cosmetic only
+
+    // ─── MCQ Assessment Badges (system-assigned only — NEVER user-editable)
+    earnedBadges: [{ type: String }],               // populated from MCQ submit route only
+
     // Social links
     github: { type: String, default: '' },
     linkedin: { type: String, default: '' },

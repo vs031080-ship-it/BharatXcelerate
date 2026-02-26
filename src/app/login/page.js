@@ -24,7 +24,7 @@ export default function LoginPage() {
         try {
             const { user } = await login(email, password, role);
             if (user) {
-                if (user.role === 'admin') router.push('/admin');
+                if (user.role === 'admin') router.push('/dashboard/admin');
                 else if (user.role === 'company') router.push('/dashboard/company');
                 else if (user.role === 'investor') router.push('/dashboard/investor');
                 else router.push('/dashboard/student');
@@ -102,6 +102,7 @@ export default function LoginPage() {
                                     <option value="student">Student</option>
                                     <option value="company">Company</option>
                                     <option value="investor">Investor</option>
+                                    <option value="admin">Admin</option>
                                 </select>
                             </div>
                         </div>

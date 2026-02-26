@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, Award, Lightbulb, User, Settings, LogOut, Menu, X, Bell, Search, ChevronDown, Bookmark, Compass, Briefcase, CheckCircle } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Award, Lightbulb, User, Settings, LogOut, Menu, X, Bell, Search, ChevronDown, Bookmark, Compass, Briefcase, CheckCircle, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
@@ -14,6 +14,7 @@ const sidebarLinks = {
         { icon: Compass, label: 'Explore Projects', href: '/dashboard/student/explore' },
         { icon: FolderKanban, label: 'My Projects', href: '/dashboard/student/projects' },
         { icon: Briefcase, label: 'Jobs', href: '/dashboard/student/jobs' },
+        { icon: CheckCircle, label: 'Exams', href: '/dashboard/student/exams' },
         { icon: Award, label: 'My Scorecard', href: '/dashboard/student/scorecard' },
         { icon: Lightbulb, label: 'Idea Lab', href: '/dashboard/student/ideas' },
         { icon: User, label: 'Profile', href: '/dashboard/student/profile' },
@@ -33,7 +34,16 @@ const sidebarLinks = {
         { icon: User, label: 'Investor Profile', href: '/dashboard/investor/profile' },
         { icon: Settings, label: 'Settings', href: '/dashboard/investor/settings' },
     ],
+    admin: [
+        { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/admin' },
+        { icon: CheckCircle, label: 'Exam Management', href: '/dashboard/admin/tests' },
+        { icon: FileText, label: 'Exam Results', href: '/dashboard/admin/exam-results' },
+        { icon: FolderKanban, label: 'Projects', href: '/dashboard/admin/projects' },
+        { icon: Award, label: 'Project Submissions', href: '/dashboard/admin/submissions' },
+        { icon: User, label: 'Users', href: '/dashboard/admin/users' },
+    ],
 };
+
 
 import Fuse from 'fuse.js';
 
@@ -44,7 +54,7 @@ export default function DashboardLayout({ children }) {
     const router = useRouter();
     const { user, logout } = useAuth();
     const { notifications, getUnreadCount, markNotificationRead, markAllNotificationsRead } = useData();
-    const role = pathname.includes('/company') ? 'company' : pathname.includes('/investor') ? 'investor' : 'student';
+    const role = pathname.includes('/admin') ? 'admin' : pathname.includes('/company') ? 'company' : pathname.includes('/investor') ? 'investor' : 'student';
     const links = sidebarLinks[role] || sidebarLinks.student;
 
     const [sidebarOpen, setSidebarOpen] = useState(true);
