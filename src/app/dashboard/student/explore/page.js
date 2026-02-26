@@ -1,24 +1,26 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Zap, Target, ArrowRight, LayoutGrid, LayoutList } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Zap, Filter, SlidersHorizontal, Loader } from 'lucide-react';
 import Link from 'next/link';
 import { getAuthHeaders } from '@/context/AuthContext';
 import styles from './explore.module.css';
 
-const fallbackProjects = [
-    { id: 1, title: 'E-Commerce Platform', domain: 'Full Stack', difficulty: 'Intermediate', points: 300, image: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=250&fit=crop', description: 'Build a fully functional e-commerce platform with product listings, cart, and checkout.' },
-    { id: 2, title: 'AI Resume Screener', domain: 'AI/ML', difficulty: 'Intermediate', points: 200, image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop', description: 'Create an AI-powered tool to parse and screen resumes against job descriptions.' },
-    { id: 3, title: 'DeFi Lending Protocol', domain: 'Blockchain', difficulty: 'Advanced', points: 350, image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=250&fit=crop', description: 'Develop a decentralized lending protocol on Ethereum using Solidity and React.' },
-    { id: 4, title: 'Task Manager API', domain: 'Backend', difficulty: 'Beginner', points: 100, image: 'https://images.unsplash.com/photo-1540350394557-8d14678e7f91?w=400&h=250&fit=crop', description: 'Build a RESTful API for a task management application with user authentication.' },
-    { id: 5, title: 'Portfolio Website', domain: 'Frontend', difficulty: 'Beginner', points: 150, image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&h=250&fit=crop', description: 'Design and build a responsive personal portfolio website to showcase your skills.' },
-    { id: 6, title: 'Stock Market Predictor', domain: 'Data Science', difficulty: 'Advanced', points: 400, image: 'https://images.unsplash.com/photo-1611974765270-ca1258634369?w=400&h=250&fit=crop', description: 'Use historical stock data to predict future price movements using machine learning models.' },
-    { id: 7, title: 'Chat Application', domain: 'Full Stack', difficulty: 'Intermediate', points: 250, image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=250&fit=crop', description: 'Real-time chat application with web sockets, user presence, and message history.' },
-    { id: 8, title: 'Smart Contract Auditor', domain: 'Blockchain', difficulty: 'Expert', points: 500, image: 'https://images.unsplash.com/photo-1621504450168-38f647311816?w=400&h=250&fit=crop', description: 'Automated tool to detect common vulnerabilities in Solidity smart contracts.' },
-];
-
 const domains = ['All Domains', 'Full Stack', 'AI/ML', 'Blockchain', 'Backend', 'Frontend', 'Data Science', 'Mobile', 'DevOps', 'Cloud', 'Cybersecurity'];
 const difficulties = ['All Levels', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
+
+const DOMAIN_COLORS = {
+    'AI/ML': { bg: '#EDE9FE', txt: '#7C3AED', icon: '🤖' },
+    'Blockchain': { bg: '#FEF3C7', txt: '#D97706', icon: '⛓️' },
+    'Full Stack': { bg: '#DBEAFE', txt: '#1D4ED8', icon: '🌐' },
+    'Backend': { bg: '#D1FAE5', txt: '#059669', icon: '⚙️' },
+    'Frontend': { bg: '#FCE7F3', txt: '#BE185D', icon: '🎨' },
+    'Mobile': { bg: '#FFEDD5', txt: '#EA580C', icon: '📱' },
+    'DevOps': { bg: '#E0F2FE', txt: '#0369A1', icon: '🚀' },
+    'Data Science': { bg: '#F0FDF4', txt: '#16A34A', icon: '📊' },
+    'Cybersecurity': { bg: '#FEE2E2', txt: '#DC2626', icon: '🔐' },
+    'Cloud': { bg: '#F0F9FF', txt: '#0284C7', icon: '☁️' },
+};
 
 const difficultyColors = {
     Beginner: { bg: '#D1FAE5', color: '#065F46' },
@@ -27,216 +29,206 @@ const difficultyColors = {
     Expert: { bg: '#FEE2E2', color: '#991B1B' },
 };
 
+const TABS = [
+    { key: 'all', label: 'All' },
+    { key: 'beginner', label: 'Beginner' },
+    { key: 'intermediate', label: 'Intermediate' },
+    { key: 'advanced', label: 'Advanced' },
+];
+
 export default function ExploreProjectsPage() {
-    const [view, setView] = useState('grid');
+    const [activeTab, setActiveTab] = useState('all');
     const [search, setSearch] = useState('');
     const [domainFilter, setDomainFilter] = useState('All Domains');
-    const [levelFilter, setLevelFilter] = useState('All Levels');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [allProjects, setAllProjects] = useState(fallbackProjects);
-    const [acceptedMap, setAcceptedMap] = useState({});
+    const [sortBy, setSortBy] = useState('points');
+    const [allProjects, setAllProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const res = await fetch('/api/admin/projects', { headers: getAuthHeaders() });
+                const res = await fetch('/api/student/projects/explore', { headers: getAuthHeaders() });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.projects && data.projects.length > 0) {
-                        const apiProjects = data.projects.map(p => ({
-                            id: p._id, title: p.title, domain: p.domain, difficulty: p.difficulty,
-                            points: p.points, image: p.image || 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&h=250&fit=crop',
-                            description: p.description,
-                        }));
-                        setAllProjects([...apiProjects, ...fallbackProjects]);
-                    }
+                    setAllProjects(data.projects || []);
                 }
-            } catch { /* use fallback */ }
+            } catch (error) {
+                console.error('Failed to fetch explore projects', error);
+            } finally {
+                setLoading(false);
+            }
         };
-
-        const fetchAccepted = async () => {
-            try {
-                const res = await fetch('/api/student/submit', { headers: getAuthHeaders() });
-                if (res.ok) {
-                    const data = await res.json();
-                    const map = {};
-                    (data.submissions || []).forEach(s => {
-                        map[s.project?._id || s.project] = s.status;
-                    });
-                    setAcceptedMap(map);
-                }
-            } catch { /* ignore */ }
-        };
-
         fetchProjects();
-        fetchAccepted();
     }, []);
 
-
-    const getProjectStatus = (id) => acceptedMap[id] || null;
-
-    const filteredProjects = allProjects.filter(p => {
+    let filtered = allProjects.filter(p => {
         const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
         const matchesDomain = domainFilter === 'All Domains' || p.domain === domainFilter;
-        const matchesLevel = levelFilter === 'All Levels' || p.difficulty === levelFilter;
-        const status = getProjectStatus(p.id);
-        const matchesStatus = statusFilter === 'all' ||
-            (statusFilter === 'accepted' && status) ||
-            (statusFilter === 'available' && !status);
-        return matchesSearch && matchesDomain && matchesLevel && matchesStatus;
+        const matchesTab =
+            activeTab === 'all' ? true :
+                activeTab === 'beginner' ? p.difficulty === 'Beginner' :
+                    activeTab === 'intermediate' ? p.difficulty === 'Intermediate' :
+                        activeTab === 'advanced' ? ['Advanced', 'Expert'].includes(p.difficulty) : true;
+        return matchesSearch && matchesDomain && matchesTab;
     });
 
-    const acceptedCount = allProjects.filter(p => getProjectStatus(p.id)).length;
-    const availableCount = allProjects.length - acceptedCount;
-
-    const getStatusLabel = (status) => {
-        if (!status) return null;
-        if (status === 'accepted_by_student') return 'Accepted';
-        if (status === 'submitted') return 'Submitted';
-        if (status === 'accepted') return 'Graded ✓';
-        if (status === 'rejected') return 'Rejected';
-        return status;
-    };
+    if (sortBy === 'points') filtered = [...filtered].sort((a, b) => (b.points || 0) - (a.points || 0));
+    if (sortBy === 'title') filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title));
 
     return (
         <div className={styles.container}>
-            {/* Gradient Banner */}
-            <div className={styles.banner}>
+            {/* Page Header */}
+            <div className={styles.pageTop}>
                 <div>
-                    <h1>Explore Projects</h1>
-                    <p>Discover real-world projects to build your portfolio and earn XP.</p>
+                    <h1 className={styles.pageTitle}>Explore Projects</h1>
+                    <p className={styles.pageSub}>Discover real-world projects to build your portfolio and earn XP.</p>
+                </div>
+
+                {/* Pill tabs — like Upcoming / In Progress / Completed in screenshot */}
+                <div className={styles.filterPills}>
+                    {TABS.map(t => (
+                        <button
+                            key={t.key}
+                            className={`${styles.pill} ${activeTab === t.key ? styles.pillActive : ''}`}
+                            onClick={() => setActiveTab(t.key)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className={styles.filterTabs}>
-                {[
-                    { key: 'all', label: `All Projects ${allProjects.length}` },
-                    { key: 'available', label: `Available ${availableCount}` },
-                    { key: 'accepted', label: `My Accepted ${acceptedCount}` },
-                ].map(tab => (
-                    <button
-                        key={tab.key}
-                        className={`${styles.tabBtn} ${statusFilter === tab.key ? styles.tabActive : ''}`}
-                        onClick={() => setStatusFilter(tab.key)}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Controls */}
-            <div className={styles.controls}>
-                <div className={styles.searchWrapper}>
-                    <Search size={18} />
-                    <input type="text" placeholder="Search projects..." value={search} onChange={(e) => setSearch(e.target.value)} />
-                </div>
-
-                <div className={styles.filterGroup}>
-                    <select className={styles.filterSelect} value={domainFilter} onChange={(e) => setDomainFilter(e.target.value)}>
-                        {domains.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-
-                    <select className={styles.filterSelect} value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)}>
-                        {difficulties.map(l => <option key={l} value={l}>{l}</option>)}
-                    </select>
-
-                    <div className={styles.viewToggle}>
-                        <button className={`${styles.toggleBtn} ${view === 'grid' ? styles.activeView : ''}`} onClick={() => setView('grid')} title="Grid View">
-                            <LayoutGrid size={18} />
+            {/* Table Card */}
+            <div className={styles.tableCard}>
+                {/* Controls row */}
+                <div className={styles.controls}>
+                    <div className={styles.filterGroup}>
+                        {/* Domain filter */}
+                        <button className={styles.filterBtn}>
+                            <Filter size={14} />
+                            Filters
                         </button>
-                        <button className={`${styles.toggleBtn} ${view === 'list' ? styles.activeView : ''}`} onClick={() => setView('list')} title="List View">
-                            <LayoutList size={18} />
-                        </button>
+                        <select
+                            className={styles.filterSelect}
+                            value={domainFilter}
+                            onChange={e => setDomainFilter(e.target.value)}
+                        >
+                            {domains.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                    </div>
+
+                    <div className={styles.rightControls}>
+                        <span className={styles.sortLabel}>Sort by:</span>
+                        <div className={styles.sortBox}>
+                            <SlidersHorizontal size={13} color="#6B7280" />
+                            <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                                <option value="points">XP Points</option>
+                                <option value="title">Title</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.searchWrapper}>
+                            <Search size={14} color="#9CA3AF" />
+                            <input
+                                type="text"
+                                placeholder="Search projects..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
+
+                {/* Table Head */}
+                {!loading && filtered.length > 0 && (
+                    <div className={styles.tableHead}>
+                        <span className={styles.colProject}>Project</span>
+                        <span className={styles.colDomain}>Domain</span>
+                        <span className={styles.colDifficulty}>Difficulty</span>
+                        <span className={styles.colDesc}>Description</span>
+                        <span className={styles.colXp}>XP</span>
+                        <span className={styles.colAction} />
+                    </div>
+                )}
+
+                {/* Table Body */}
+                <div className={styles.tableBody}>
+                    {loading ? (
+                        <div className={styles.emptyState}>
+                            <Loader size={22} className={styles.spin} color="#2563EB" />
+                            <span>Loading projects...</span>
+                        </div>
+                    ) : filtered.length === 0 ? (
+                        <div className={styles.emptyState}>
+                            <Search size={48} strokeWidth={1.2} color="#D1D5DB" />
+                            <h3>No projects found</h3>
+                            <p>Check &quot;My Projects&quot; for your ongoing work or try adjusting filters.</p>
+                        </div>
+                    ) : (
+                        <AnimatePresence mode="popLayout">
+                            {filtered.map((p, i) => {
+                                const dc = DOMAIN_COLORS[p.domain] || { bg: '#F1F5F9', txt: '#64748B', icon: '📁' };
+                                const diffClr = difficultyColors[p.difficulty] || difficultyColors.Intermediate;
+                                return (
+                                    <motion.div
+                                        key={p._id}
+                                        className={styles.tableRow}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ delay: i * 0.03 }}
+                                    >
+                                        {/* Project */}
+                                        <div className={styles.colProject}>
+                                            <div className={styles.projectAvatar} style={{ background: dc.bg, color: dc.txt }}>
+                                                {dc.icon}
+                                            </div>
+                                            <div>
+                                                <Link href={`/dashboard/student/projects/${p._id}`} className={styles.projectName}>
+                                                    {p.title}
+                                                </Link>
+                                                <div className={styles.projectSub}>{p.domain}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Domain */}
+                                        <div className={styles.colDomain}>
+                                            <span className={styles.domainChip} style={{ background: dc.bg, color: dc.txt }}>
+                                                {p.domain}
+                                            </span>
+                                        </div>
+
+                                        {/* Difficulty */}
+                                        <div className={styles.colDifficulty}>
+                                            <span className={styles.diffBadge} style={{ background: diffClr.bg, color: diffClr.color }}>
+                                                <Zap size={11} />
+                                                {p.difficulty}
+                                            </span>
+                                        </div>
+
+                                        {/* Description */}
+                                        <div className={styles.colDesc}>
+                                            <span className={styles.colDescText}>{p.description}</span>
+                                        </div>
+
+                                        {/* XP */}
+                                        <div className={styles.colXp}>
+                                            <span className={styles.xpChip}>+{p.points} XP</span>
+                                        </div>
+
+                                        {/* Action */}
+                                        <div className={styles.colAction}>
+                                            <Link href={`/dashboard/student/projects/${p._id}`} className={styles.viewDetailsBtn}>
+                                                Start
+                                            </Link>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    )}
+                </div>
             </div>
-
-            {/* Grid View — Upstream Vendors style */}
-            {view === 'grid' ? (
-                <div className={styles.grid}>
-                    {filteredProjects.map((p) => {
-                        const status = getProjectStatus(p.id);
-                        const dc = difficultyColors[p.difficulty] || {};
-                        return (
-                            <motion.div key={p.id} className={`${styles.card} ${status ? styles.cardAccepted : ''}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                                {/* Card Header with Avatar */}
-                                <div className={styles.cardHeader}>
-                                    <div className={styles.cardAvatar} style={{ background: dc.bg, color: dc.color }}>
-                                        {p.title.charAt(0)}
-                                    </div>
-                                    <div className={styles.cardTitleArea}>
-                                        <h3 className={styles.cardTitle}>{p.title}</h3>
-                                        <span className={styles.cardDomain}>{p.domain}</span>
-                                    </div>
-                                    {status && (
-                                        <span className={styles.statusPill}>{getStatusLabel(status)}</span>
-                                    )}
-                                </div>
-
-                                {/* Description */}
-                                <p className={styles.cardDesc}>{p.description}</p>
-
-                                {/* Difficulty Badge */}
-                                <div className={styles.cardBadgeRow}>
-                                    <span className={styles.diffBadge} style={{ background: dc.bg, color: dc.color }}>
-                                        <Zap size={12} /> {p.difficulty}
-                                    </span>
-                                </div>
-
-                                {/* Stats Footer — Upstream Vendors style */}
-                                <div className={styles.cardFooter}>
-                                    <div className={styles.footerStat}>
-                                        <strong>+{p.points}</strong>
-                                        <span>XP Points</span>
-                                    </div>
-                                    <div className={styles.footerStat}>
-                                        <strong>{p.domain.split(' ')[0]}</strong>
-                                        <span>Domain</span>
-                                    </div>
-                                    <div className={styles.footerAction}>
-                                        <Link href={`/dashboard/student/projects/${p.id}`} className={status ? styles.viewBtn : styles.viewDetailsBtn}>
-                                            {status ? 'View' : 'View Details'} <ArrowRight size={14} />
-                                        </Link>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            ) : (
-                <div className={styles.list}>
-                    {filteredProjects.map((p) => {
-                        const status = getProjectStatus(p.id);
-                        const dc = difficultyColors[p.difficulty] || {};
-                        return (
-                            <motion.div key={p.id} className={`${styles.listRow} ${status ? styles.listRowAccepted : ''}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
-                                <div className={styles.listAvatar} style={{ background: dc.bg, color: dc.color }}>
-                                    {p.title.charAt(0)}
-                                </div>
-                                <div className={styles.listInfo}>
-                                    <h3>{p.title}</h3>
-                                    <span>{p.domain} · {p.difficulty} · +{p.points} XP</span>
-                                </div>
-                                <div className={styles.listActions}>
-                                    {status && <span className={styles.statusPill}>{getStatusLabel(status)}</span>}
-                                    <Link href={`/dashboard/student/projects/${p.id}`} className={status ? styles.viewBtn : styles.viewDetailsBtn}>
-                                        {status ? 'View' : 'View Details'} <ArrowRight size={14} />
-                                    </Link>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {filteredProjects.length === 0 && (
-                <div className={styles.emptyState}>
-                    <Search size={48} />
-                    <h3>No projects found</h3>
-                    <p>Try adjusting your filters or search query.</p>
-                </div>
-            )}
         </div>
     );
 }

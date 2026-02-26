@@ -38,7 +38,7 @@ export async function POST(request) {
         await connectDB();
 
         const body = await request.json();
-        const { title, description, domain, difficulty, points, image, skills, duration, technologies, requirements, resources } = body;
+        const { title, description, domain, difficulty, points, image, skills, duration, technologies, requirements, resources, startDate, deadline } = body;
 
         if (!title || !description || !domain || !difficulty) {
             return NextResponse.json({ error: 'Title, description, domain, and difficulty are required' }, { status: 400 });
@@ -54,6 +54,8 @@ export async function POST(request) {
             detailedDocument: body.detailedDocument || '',
             requirements: requirements || [],
             resources: resources || [],
+            startDate,
+            deadline,
             status: 'active',
             createdBy: authUser.userId,
         });

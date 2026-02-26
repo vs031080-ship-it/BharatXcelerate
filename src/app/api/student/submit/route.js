@@ -11,20 +11,25 @@ export async function POST(req) {
         const user = await getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const body = await req.json();
-        const { projectId, githubUrl, description, action } = body;
+        // Validate role - Only students can submit/accept projects
+        if (user.role !== 'student') {
+            return NextResponse.json({ error: 'Only students can accept or submit projects' }, { status: 403 });
+        }
 
-        // Validate projectId is a valid MongoDB ObjectId
+        const body = await req.json();
+        const { projectId, action, stepIndex, content } = body;
+
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
             return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
         }
 
-        // Handle "accept project" action
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        }
+
+        // Handle "accept project"
         if (action === 'accept') {
-            const project = await Project.findById(projectId);
-            if (!project) {
-                return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-            }
             const existing = await Submission.findOne({ student: user.userId, project: projectId });
             if (existing) {
                 return NextResponse.json({ success: true, submission: existing, message: 'Already accepted' });
@@ -32,44 +37,101 @@ export async function POST(req) {
             const submission = await Submission.create({
                 student: user.userId,
                 project: projectId,
-                githubUrl: 'pending',
-                description: 'Project accepted — work in progress',
-                status: 'accepted_by_student'
+                status: 'started',
+                currentStep: 0,
+                completedSteps: [],
+                stepSubmissions: []
             });
-            return NextResponse.json({ success: true, submission, message: 'Project accepted successfully' });
+            // Update user stats (projectsInProgress)
+            await mongoose.model('User').findByIdAndUpdate(user.userId, { $inc: { projectsInProgress: 1 } });
+
+            return NextResponse.json({ success: true, submission, message: 'Project accepted' });
         }
 
-        if (!githubUrl || !description) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        // Handle "submit step"
+        if (action === 'submit_step') {
+            if (stepIndex === undefined || !content) {
+                return NextResponse.json({ error: 'Missing step index or content' }, { status: 400 });
+            }
+
+            const submission = await Submission.findOne({ student: user.userId, project: projectId });
+            if (!submission) {
+                return NextResponse.json({ error: 'Project not started' }, { status: 400 });
+            }
+
+            // Enforce mandatory feedback (notes)
+            try {
+                const parsed = JSON.parse(content);
+                if (!parsed.notes || parsed.notes.trim().length < 10) {
+                    return NextResponse.json({ error: 'Please provide detailed implementation notes (min 10 characters)' }, { status: 400 });
+                }
+            } catch (e) {
+                if (!content || content.trim().length < 10) {
+                    return NextResponse.json({ error: 'Please provide implementation notes' }, { status: 400 });
+                }
+            }
+
+            // Check if this step is already submitted/approved
+            const existingStepSub = submission.stepSubmissions.find(s => s.stepIndex === stepIndex);
+            if (existingStepSub && existingStepSub.status === 'approved') {
+                return NextResponse.json({ error: 'Step already approved' }, { status: 400 });
+            }
+
+            // Add or Update step submission
+            if (existingStepSub) {
+                existingStepSub.content = content;
+                existingStepSub.status = 'pending';
+                existingStepSub.submittedAt = new Date();
+            } else {
+                submission.stepSubmissions.push({
+                    stepIndex,
+                    content,
+                    status: 'pending',
+                    submittedAt: new Date()
+                });
+            }
+
+            // OPTIONAL: Auto-approve for demo purposes? 
+            // User requested: "when the admin excepts... then only percentage bar change".
+            // So we keep it pending.
+
+            submission.status = 'submitted';
+            await submission.save();
+            return NextResponse.json({ success: true, submission, message: 'Step submitted for review' });
         }
 
-        // Check if project exists
-        const project = await Project.findById(projectId);
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        // Handle "complete project" (Final Submission)
+        if (action === 'complete') {
+            const { githubUrl, description } = body;
+            if (!githubUrl || !description || description.trim().length < 20) {
+                return NextResponse.json({ error: 'GitHub URL and detailed final notes (min 20 chars) are required' }, { status: 400 });
+            }
+
+            const submission = await Submission.findOne({ student: user.userId, project: projectId });
+            if (!submission) {
+                return NextResponse.json({ error: 'Project not started' }, { status: 400 });
+            }
+
+            // Verify all steps are submitted
+            const submittedStepIndices = (submission.stepSubmissions || []).map(s => s.stepIndex);
+            const allStepsSubmitted = project.steps.every((_, idx) => submittedStepIndices.includes(idx));
+
+            if (!allStepsSubmitted) {
+                return NextResponse.json({ error: 'All project steps must be submitted before final submission' }, { status: 400 });
+            }
+
+            submission.githubUrl = githubUrl;
+            submission.description = description;
+            submission.status = 'submitted';
+
+            await submission.save();
+            return NextResponse.json({ success: true, submission, message: 'Final submission successful! Mentor will review it.' });
         }
 
-        // Check for existing submission?
-        const existing = await Submission.findOne({ student: user.userId, project: projectId });
-        if (existing) {
-            // Update existing
-            existing.githubUrl = githubUrl;
-            existing.description = description;
-            existing.status = 'submitted';
-            await existing.save();
-            return NextResponse.json({ success: true, submission: existing, message: 'Submission updated' });
-        }
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 
-        const submission = await Submission.create({
-            student: user.userId,
-            project: projectId,
-            githubUrl,
-            description
-        });
-
-        return NextResponse.json({ success: true, submission, message: 'Project submitted successfully' });
     } catch (error) {
-        console.error('Submission error:', error.message, error.stack);
+        console.error('Submission error:', error);
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -80,6 +142,11 @@ export async function GET(req) {
         await connectDB();
         const user = await getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        // Validate role
+        if (user.role !== 'student') {
+            return NextResponse.json({ error: 'Only students can access their submissions' }, { status: 403 });
+        }
 
         const { searchParams } = new URL(req.url);
         const projectId = searchParams.get('projectId');

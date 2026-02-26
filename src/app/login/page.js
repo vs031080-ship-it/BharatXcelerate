@@ -24,7 +24,7 @@ export default function LoginPage() {
         try {
             const { user } = await login(email, password, role);
             if (user) {
-                if (user.role === 'admin') router.push('/admin');
+                if (user.role === 'admin') router.push('/dashboard/admin');
                 else if (user.role === 'company') router.push('/dashboard/company');
                 else if (user.role === 'investor') router.push('/dashboard/investor');
                 else router.push('/dashboard/student');
@@ -42,43 +42,40 @@ export default function LoginPage() {
             <div className={styles.authLeft}>
                 <div className={styles.authLeftContent}>
                     <div className={styles.authMasonry}>
-                        {/* Column 1 */}
-                        <div className={`${styles.masonryItem} ${styles.itemTall}`}>
+                        {/* Column 1: Items 1, 5, 7 */}
+                        <div className={`${styles.masonryItem} ${styles.span8}`}>
                             <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1471&auto=format&fit=crop" alt="Students collaborating" />
                         </div>
-                        <div className={`${styles.masonryItem} ${styles.itemSquare} ${styles.bgOrange}`}>
+                        <div className={`${styles.masonryItem} ${styles.span6} ${styles.bgOrange}`}>
                             <div className={styles.contentCard}>
                                 <h2>41%</h2>
                                 <p>of recruiters say entry-level positions are the hardest to fill. We bridge that gap.</p>
                             </div>
                         </div>
-                        <div className={`${styles.masonryItem} ${styles.itemTall}`}>
+                        <div className={`${styles.masonryItem} ${styles.span8}`}>
                             <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1470&auto=format&fit=crop" alt="Modern office" />
                         </div>
 
-                        {/* Column 2 */}
-                        <div className={`${styles.masonryItem} ${styles.itemVeryTall}`}>
+                        {/* Column 2: Items 2, 4, 8 */}
+                        <div className={`${styles.masonryItem} ${styles.span11}`}>
                             <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1374&auto=format&fit=crop" alt="Professional mentor" />
                         </div>
-                        <div className={`${styles.masonryItem} ${styles.itemSquare} ${styles.bgGreen}`}>
+                        <div className={`${styles.masonryItem} ${styles.span6} ${styles.bgGreen}`}>
                             <div className={styles.contentCard}>
                                 <h2>76%</h2>
                                 <p>of hiring managers admit attracting the right job candidates is their greatest challenge.</p>
                             </div>
                         </div>
-                        <div className={`${styles.masonryItem} ${styles.itemLarge}`}>
+                        <div className={`${styles.masonryItem} ${styles.span16}`}>
                             <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1374&auto=format&fit=crop" alt="Team meeting" />
                         </div>
 
-                        {/* Column 3 */}
-                        <div className={`${styles.masonryItem} ${styles.itemTall}`}>
+                        {/* Column 3: Items 3, 6 */}
+                        <div className={`${styles.masonryItem} ${styles.span10}`}>
                             <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1470&auto=format&fit=crop" alt="Corporate office" />
                         </div>
-                        <div className={`${styles.masonryItem} ${styles.itemVeryTall}`}>
+                        <div className={`${styles.masonryItem} ${styles.span7}`}>
                             <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=1374&auto=format&fit=crop" alt="Networking event" />
-                        </div>
-                        <div className={`${styles.masonryItem} ${styles.itemShort}`}>
-                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1470&auto=format&fit=crop" alt="Workshop" />
                         </div>
                     </div>
                 </div>
@@ -88,10 +85,6 @@ export default function LoginPage() {
             <div className={styles.authRight}>
                 <motion.div className={styles.authForm} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
                     <div className={styles.authHeader}>
-                        <Link href="/" className={styles.authLogo}>
-                            <Zap size={24} color="#2563EB" fill="#2563EB" />
-                            <span>BharatXcelerate</span>
-                        </Link>
                         <h2>Sign in to BharatXcelerate</h2>
                         <p className={styles.authSubtitle}>Welcome back! Please enter your details below.</p>
                     </div>
@@ -109,6 +102,7 @@ export default function LoginPage() {
                                     <option value="student">Student</option>
                                     <option value="company">Company</option>
                                     <option value="investor">Investor</option>
+                                    <option value="admin">Admin</option>
                                 </select>
                             </div>
                         </div>

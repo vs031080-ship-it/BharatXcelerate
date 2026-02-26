@@ -149,11 +149,8 @@ export default function SignupPage() {
             </div>
 
             <div className={styles.container}>
-                {/* Logo + Progress */}
+                {/* Progress Indicators */}
                 <div className={styles.topBar}>
-                    <Link href="/" className={styles.logo}>
-                        <Zap size={22} /> BharatXcelerate
-                    </Link>
                     <div className={styles.stepIndicator}>
                         {[1, 2, 3].map(s => (
                             <div key={s} className={`${styles.stepDot} ${step >= s ? styles.stepDotActive : ''} ${step === s ? styles.stepDotCurrent : ''}`}>

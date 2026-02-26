@@ -4,70 +4,86 @@ import { getAuthHeaders } from './AuthContext';
 
 const DataContext = createContext();
 
-// --- Fallback Mock Data (used when API is unavailable) ---
-const fallbackJobs = [
-    { id: 'job-1', title: 'Senior Full Stack Developer', type: 'Full-time', location: 'Mumbai', salary: '₹18-25 LPA', company: 'TechNova Solutions', description: 'Build scalable enterprise applications using React, Node.js, and AWS.', skills: ['React', 'Node.js', 'AWS', 'PostgreSQL'], postedDate: 'Feb 10, 2026', applicants: [] },
-    { id: 'job-2', title: 'Data Science Intern', type: 'Internship', location: 'Remote', salary: '₹25,000/month', company: 'TechNova Solutions', description: 'Work on ML models for customer behavior prediction.', skills: ['Python', 'TensorFlow', 'SQL', 'Pandas'], postedDate: 'Feb 5, 2026', applicants: [] },
-    { id: 'job-3', title: 'Blockchain Developer', type: 'Contract', location: 'Bangalore', salary: '₹12-18 LPA', company: 'TechNova Solutions', description: 'Develop and audit smart contracts on Ethereum.', skills: ['Solidity', 'Web3.js', 'Rust', 'React'], postedDate: 'Jan 28, 2026', applicants: [] },
-    { id: 'job-4', title: 'UI/UX Designer', type: 'Full-time', location: 'Delhi', salary: '₹10-15 LPA', company: 'DesignHub India', description: 'Design intuitive user interfaces for SaaS products.', skills: ['Figma', 'Prototyping', 'User Research', 'Design Systems'], postedDate: 'Feb 14, 2026', applicants: [] },
-    { id: 'job-5', title: 'DevOps Engineer', type: 'Full-time', location: 'Pune', salary: '₹15-22 LPA', company: 'CloudScale Tech', description: 'Manage CI/CD pipelines and container orchestration.', skills: ['Docker', 'Kubernetes', 'Terraform', 'CI/CD'], postedDate: 'Feb 12, 2026', applicants: [] },
-];
-
-const fallbackIdeas = [
-    { id: 'idea-1', title: 'AI-Powered Career Counselor', category: 'AI/ML', stage: 'Prototype', likes: [], description: 'An intelligent chatbot for personalized career guidance.', tags: ['NLP', 'Career', 'ML'], author: 'Arjun Sharma', teamSize: 3, createdAt: '2 days ago' },
-    { id: 'idea-2', title: 'GreenChain — Carbon Credit NFTs', category: 'Blockchain', stage: 'Idea', likes: [], description: 'Tokenize carbon credits as NFTs for peer-to-peer trading.', tags: ['Web3', 'Sustainability'], author: 'Arjun Sharma', teamSize: 2, createdAt: '1 week ago' },
-    { id: 'idea-3', title: 'MedTrack — Patient Compliance', category: 'HealthTech', stage: 'MVP', likes: [], description: 'Gamified app helping patients stick to medication schedules.', tags: ['Mobile', 'Healthcare'], author: 'Arjun Sharma', teamSize: 4, createdAt: '3 weeks ago' },
-];
-
-const fallbackShortlist = [
-    { id: 'sl-1', candidateId: 1, candidateName: 'Rahul Desai', role: 'Full Stack Developer', score: 920, projects: 12, skills: ['React', 'Node.js', 'AWS'], location: 'Mumbai', status: 'Interview Scheduled', shortlistedDate: 'Feb 10, 2026', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face' },
-    { id: 'sl-2', candidateId: 2, candidateName: 'Ananya Singh', role: 'Data Scientist', score: 890, projects: 8, skills: ['Python', 'TensorFlow', 'SQL'], location: 'Bangalore', status: 'New', shortlistedDate: 'Feb 14, 2026', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face' },
-];
-
 export function DataProvider({ children }) {
-    const [jobs, setJobs] = useState(fallbackJobs);
-    const [ideas, setIdeas] = useState(fallbackIdeas);
-    const [shortlist, setShortlist] = useState(fallbackShortlist);
+    const [jobs, setJobs] = useState([]);
+    const [ideas, setIdeas] = useState([]);
+    const [shortlist, setShortlist] = useState([]);
     const [applications, setApplications] = useState([]);
     const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [apiAvailable, setApiAvailable] = useState(false);
 
     // Load data from API on mount
     useEffect(() => {
         const loadData = async () => {
+            setLoading(true);
             try {
-                const headers = getAuthHeaders();
-                const [jobsRes, ideasRes, shortlistRes, notifsRes] = await Promise.all([
-                    fetch('/api/jobs').catch(() => null),
-                    fetch('/api/ideas').catch(() => null),
-                    fetch('/api/shortlist').catch(() => null),
-                    fetch('/api/notifications', { headers }).catch(() => null),
+                // Fetch basic data in parallel
+                const [jobsRes, ideasRes, shortlistRes] = await Promise.all([
+                    fetch('/api/jobs', { cache: 'no-store' }),
+                    fetch('/api/ideas', { cache: 'no-store' }),
+                    fetch('/api/shortlist', { cache: 'no-store' })
                 ]);
 
-                if (jobsRes?.ok) {
+                if (jobsRes.ok) {
                     const data = await jobsRes.json();
-                    if (data.jobs?.length > 0) setJobs(data.jobs);
+                    setJobs(data.jobs || []);
                     setApiAvailable(true);
                 }
-                if (ideasRes?.ok) {
+
+                if (ideasRes.ok) {
                     const data = await ideasRes.json();
-                    if (data.ideas?.length > 0) setIdeas(data.ideas);
+                    setIdeas(data.ideas || []);
                 }
-                if (shortlistRes?.ok) {
+
+                if (shortlistRes.ok) {
                     const data = await shortlistRes.json();
-                    if (data.shortlist?.length > 0) setShortlist(data.shortlist);
+                    setShortlist(data.shortlist || []);
                 }
-                if (notifsRes?.ok) {
-                    const data = await notifsRes.json();
-                    setNotifications(data.notifications || []);
+
+                // Notifications require auth headers
+                const headers = getAuthHeaders();
+                if (headers.Authorization) {
+                    const notifRes = await fetch('/api/notifications', { headers, cache: 'no-store' });
+                    if (notifRes.ok) {
+                        const data = await notifRes.json();
+                        setNotifications(data.notifications || []);
+                    }
                 }
-            } catch {
-                // API unavailable, using fallback data
-                console.log('API unavailable, using fallback data');
+            } catch (e) {
+                console.error('Failed to load data:', e);
+            } finally {
+                setLoading(false);
             }
         };
 
         loadData();
+    }, []);
+
+
+    // Poll for notifications every 30 seconds
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            const headers = getAuthHeaders();
+            if (headers.Authorization) {
+                fetch('/api/notifications', { headers })
+                    .then(res => res.ok && res.json())
+                    .then(data => {
+                        if (data.notifications) {
+                            setNotifications(prev => {
+                                // Simple check to avoid unnecessary re-renders if data matches
+                                if (JSON.stringify(prev) !== JSON.stringify(data.notifications)) {
+                                    return data.notifications;
+                                }
+                                return prev;
+                            });
+                        }
+                    })
+                    .catch(console.error);
+            }
+        }, 30000);
+
+        return () => clearInterval(intervalId);
     }, []);
 
     // --- Actions ---
@@ -223,9 +239,27 @@ export function DataProvider({ children }) {
         return notifications.filter(n => n.forRole === role && !n.read).length;
     }, [notifications]);
 
+    const revokeApplication = useCallback(async (jobId, studentName = 'Student') => {
+        try {
+            const res = await fetch(`/api/jobs/${jobId}/apply`, {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+            });
+            if (res.ok) {
+                setJobs(prev => prev.map(j => (j.id === jobId || j._id === jobId) ? { ...j, applicants: j.applicants.filter(a => a !== studentName) } : j));
+                setApplications(prev => prev.filter(a => a.jobId !== jobId));
+                return;
+            }
+        } catch { /* fallback below */ }
+
+        // Fallback
+        setApplications(prev => prev.filter(a => a.jobId !== jobId));
+        setJobs(prev => prev.map(j => (j.id === jobId || j._id === jobId) ? { ...j, applicants: j.applicants.filter(a => a !== studentName) } : j));
+    }, []);
+
     const value = {
-        jobs, ideas, shortlist, applications, notifications,
-        addJob, applyToJob, submitIdea, toggleLikeIdea,
+        jobs, ideas, shortlist, applications, notifications, loading,
+        addJob, applyToJob, revokeApplication, submitIdea, toggleLikeIdea,
         shortlistCandidate, removeShortlist, updateShortlistStatus,
         addNotification, markNotificationRead, markAllNotificationsRead, getUnreadCount,
     };

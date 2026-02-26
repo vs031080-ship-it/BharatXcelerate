@@ -18,13 +18,22 @@ if (!cached) {
 
 async function connectDB() {
     if (cached.conn) {
+        console.log('Using cached MongoDB connection');
         return cached.conn;
     }
 
     if (!cached.promise) {
         const opts = { bufferCommands: false };
+        console.log('Connecting to MongoDB:', MONGODB_URI.startsWith('mongodb+srv') ? 'Atlas (cloud)' : 'Local');
+
+        const start = Date.now();
         cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+            console.log(`MongoDB Connected in ${Date.now() - start}ms`);
             return mongoose;
+        }).catch(err => {
+            console.error('MongoDB Connection Error:', err);
+            cached.promise = null;
+            throw err;
         });
     }
 
